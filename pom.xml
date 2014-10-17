@@ -71,7 +71,7 @@
         <dependency>
             <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-codecs</artifactId>
-            <version>4.8.0</version>
+            <version>${lucene.version}</version>
         </dependency>
 
         <!-- SOLR -->
@@ -175,9 +175,12 @@
                         <manifestEntries>
                             <Class-Path>.</Class-Path>
                         </manifestEntries>
+                        <manifestFile>src/main/resources/META-INF/services/org.apache.lucene.codecs.DocValuesFormat</manifestFile>
+                        <manifestFile>src/main/resources/META-INF/services/org.apache.lucene.codecs.PostingsFormat</manifestFile>
                     </archive>
                 </configuration>
             </plugin>
+
             <plugin>
                 <artifactId>maven-dependency-plugin</artifactId>
                 <groupId>org.apache.maven.plugins</groupId>

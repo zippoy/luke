@@ -1,0 +1,2 @@
+org.apache.lucene.codecs.lucene40.Lucene40PostingsFormat
+org.apache.lucene.codecs.lucene41.Lucene41PostingsFormat
