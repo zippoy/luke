@@ -3479,7 +3479,8 @@ public class Luke extends Thinlet implements ClipboardOwner {
             putProperty(fCombo, "te", te);
             putProperty(fCombo, "teField", fld);
             status = te.seekCeil(new BytesRef(text));
-            if (status.equals(SeekStatus.FOUND)) {
+            if (status.equals(SeekStatus.FOUND) || status.equals(SeekStatus.NOT_FOUND)) {
+              // precise term or different term after the requested term was found.
               rawTerm = te.term();
             } else {
               rawTerm = null;
