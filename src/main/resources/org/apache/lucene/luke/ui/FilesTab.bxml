@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<luke:FilesTab orientation="vertical" splitRatio="0.2"
+               xmlns:bxml="http://pivot.apache.org/bxml"
+               xmlns="org.apache.pivot.wtk" xmlns:luke="org.apache.lucene.luke.ui">
+	<left>
+		<TablePane>
+			<columns>
+				<TablePane.Column width="1*" />
+			</columns>
+			<rows>
+				<TablePane.Row height="1*">
+					<BoxPane orientation="vertical" styles="{fill:true}">
+						<Label text="%filesTab_selectCommitPoint" />
+						<Separator />
+						<Label text="%filesTab_selectHint" />
+						<ScrollPane horizontalScrollBarPolicy="fill_to_capacity">
+							<view>
+								<TableView bxml:id="commitsTable">
+									<columns>
+										<TableView.Column name="gen" width="1*"
+											headerData="%filesTab_commitsTable_col1" />
+										<TableView.Column name="flags" width="1*"
+											headerData="%filesTab_commitsTable_col2" />
+										<TableView.Column name="version" width="1*"
+											headerData="%filesTab_commitsTable_col3" />
+										<TableView.Column name="timestamp" width="1*"
+											headerData="%filesTab_commitsTable_col4" />
+										<TableView.Column name="userdata" width="1*"
+											headerData="%filesTab_commitsTable_col5" />
+									</columns>
+								</TableView>
+							</view>
+							<columnHeader>
+								<TableViewHeader tableView="$commitsTable" />
+							</columnHeader>
+						</ScrollPane>
+					</BoxPane>
+				</TablePane.Row>
+			</rows>
+		</TablePane>
+	</left>
+	<right>
+		<TablePane>
+			<columns>
+				<TablePane.Column width="1*" />
+			</columns>
+			<rows>
+				<TablePane.Row height="1*">
+					<TablePane>
+						<columns>
+							<TablePane.Column width="1*" />
+						</columns>
+						<rows>
+							<TablePane.Row>
+								<Label text="%filesTab_commitsSize" />
+							</TablePane.Row>
+							<TablePane.Row>
+								<Label bxml:id="iFileSize" text="?" />
+							</TablePane.Row>
+							<TablePane.Row height="1*">
+								<ScrollPane horizontalScrollBarPolicy="fill_to_capacity">
+									<view>
+										<TableView bxml:id="filesTable">
+											<columns>
+												<TableView.Column name="filename" width="1*"
+													headerData="%filesTab_filesTable_col1" />
+												<TableView.Column name="size" width="1*"
+													headerData="%filesTab_filesTable_col2" />
+												<TableView.Column name="unit" width="1*"
+													headerData="%filesTab_filesTable_col3" />
+												<TableView.Column name="deletable" width="1*"
+													headerData="%filesTab_filesTable_col4" />
+												<TableView.Column name="inusefunction"
+													width="1*" headerData="%filesTab_filesTable_col5" />
+											</columns>
+										</TableView>
+									</view>
+									<columnHeader>
+										<TableViewHeader tableView="$filesTable" />
+									</columnHeader>
+								</ScrollPane>
+							</TablePane.Row>
+						</rows>
+					</TablePane>
+				</TablePane.Row>
+			</rows>
+		</TablePane>
+	</right>
+</luke:FilesTab>

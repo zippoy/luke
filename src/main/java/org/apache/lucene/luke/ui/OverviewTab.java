@@ -1,0 +1,518 @@
+package org.apache.lucene.luke.ui;
+
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import java.net.URL;
+import java.text.NumberFormat;
+import java.util.Collections;
+
+import org.apache.lucene.index.AtomicReaderContext;
+import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.IndexCommit;
+import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.SegmentReader;
+import org.apache.lucene.luke.core.FieldTermCount;
+import org.apache.lucene.luke.core.HighFreqTerms;
+import org.apache.lucene.luke.core.IndexInfo;
+import org.apache.lucene.luke.core.TableComparator;
+import org.apache.lucene.luke.core.TermStats;
+import org.apache.lucene.luke.core.decoders.Decoder;
+import org.apache.lucene.luke.ui.LukeWindow.LukeMediator;
+import org.apache.lucene.store.Directory;
+import org.apache.pivot.beans.BXML;
+import org.apache.pivot.beans.Bindable;
+import org.apache.pivot.collections.*;
+import org.apache.pivot.serialization.SerializationException;
+import org.apache.pivot.util.Resources;
+import org.apache.pivot.util.concurrent.Task;
+import org.apache.pivot.util.concurrent.TaskExecutionException;
+import org.apache.pivot.util.concurrent.TaskListener;
+import org.apache.pivot.wtk.*;
+
+
+public class OverviewTab extends SplitPane implements Bindable {
+
+  @BXML
+  private Label iPath;
+  @BXML
+  private Label indexCodec;
+  @BXML
+  private Label dirImpl;
+  @BXML
+  private Label iMod;
+  @BXML
+  private Label iDocs;
+  @BXML
+  private Label iFields;
+  @BXML
+  private TableView fieldsTable;
+  @BXML
+  private Label iTerms;
+
+  @BXML
+  private TablePane.Row fieldsAiRow;
+
+  @BXML
+  private TablePane.Row iTermsRow;
+
+  @BXML
+  private Label iFormat;
+  @BXML
+  private Label iCaps;
+  @BXML
+  private Label iDelOpt;
+  @BXML
+  private Label iVer;
+  @BXML
+  private Label iTiiDiv;
+  @BXML
+  private Label iCommit;
+  @BXML
+  private Label iUser;
+  @BXML
+  private Spinner nTerms;
+  @BXML
+  private TableView tTable;
+  @BXML
+  private TablePane.Row topTermsAiRow;
+
+  private java.util.Map<String,FieldTermCount> termCounts = new java.util.HashMap<String,FieldTermCount>();
+  private int numTerms = 0;
+
+  private LukeMediator lukeMediator;
+  private Resources resources;
+  private IndexReader ir;
+  private IndexInfo indexInfo;
+
+  public OverviewTab() {
+    Action.getNamedActions().put("topTerms", new Action() {
+      @Override
+      public void perform(Component component) {
+        actionTopTerms(getNTerms());
+      }
+    });
+  }
+
+  @Override
+  public void initialize(Map<String,Object> namespace, URL location, Resources resources) {
+    this.resources = resources;
+  }
+
+  public void initLukeMediator(LukeMediator lukeMediator) {
+    this.lukeMediator = lukeMediator;
+  }
+
+  /**
+   * Initialize GUI elements. This method is called when a new index is opened.
+   * 
+   * @throws Exception
+   */
+  public void onOpenIndex() throws Exception {
+    this.indexInfo = lukeMediator.getIndexInfo();
+    this.ir = indexInfo.getReader();
+
+    String indexPath = indexInfo.getIndexPath();
+    try {
+      // initSolrTypes();
+
+      // lastST = find("lastST");
+      // setBoolean(find("bReload"), "enabled", true);
+      // setBoolean(find("bClose"), "enabled", true);
+      // setBoolean(find("bCommit"), "enabled", true);
+      // Object cbType = find("cbType");
+      // populateAnalyzers(cbType);
+      // Object pOver = find("pOver");
+
+      String idxName;
+      if (indexPath.length() > 40) {
+        idxName = indexPath.substring(0, 10) + "..." + indexPath.substring(indexPath.length() - 27);
+      } else {
+        idxName = indexPath;
+      }
+      iPath.setText(indexPath + (lukeMediator.getIndexInfo().isReadOnly() ? " (Read-Only)" : ""));
+
+      // happens lower in the commented out code - future note
+
+      String implName = "N/A";
+      Directory dir = lukeMediator.getIndexInfo().getDirectory();
+      if (dir == null) {
+        if (ir != null) {
+          implName = "N/A (reader is " + ir.getClass().getName() + ")";
+        }
+      } else {
+        implName = dir.getClass().getName();
+      }
+      dirImpl.setText(implName);
+
+      // Label iFileSize = (Label) beanSerializer.get("iFileSize");
+      // long totalFileSize = Util.calcTotalFileSize(pName, dir);
+      // iFileSize.setText(Util.normalizeSize(totalFileSize) +
+      // Util.normalizeUnit(totalFileSize));
+      if (ir == null) {
+        return;
+      }
+      // we need IndexReader from now on
+
+      // TODO: Codecs are now per field...
+      indexCodec.setText(lukeMediator.getIndexInfo().getIndexCodec().getName());
+
+      // String modText = "N/A";
+      // if (dir != null) {
+      // modText = new Date(IndexReader.lastModified(dir))
+      // .toString();
+      // }
+      // iMod.setText(modText);
+      iMod.setText(indexInfo.getLastModified());
+
+      String numdocs = String.valueOf(ir.numDocs());
+      iDocs.setText(numdocs);
+
+      // TODO
+      // Label iDocs1 = (Label) beanSerializer.get("iDocs1");
+      // iDocs1.setText(String.valueOf(ir.maxDoc() - 1));
+
+      java.util.List<String> indexFields = indexInfo.getFieldNames();
+      iFields.setText(String.valueOf(indexFields.size()));
+      // if (fn.size() == 0) {
+      // showStatus("Empty index.");
+      // }
+
+      // Label defFld = (Label) beanSerializer.get("defFld");
+      // Label fCombo = (Label) beanSerializer.get("fCombo");
+
+      iFields.setText(String.valueOf(indexFields.size()));
+
+      final ActivityIndicator ai = new ActivityIndicator();
+      ai.setStyles("{backgroundColor:11}");
+      ai.setPreferredHeight(10);
+      ai.setPreferredWidth(10);
+      ai.setActive(true);
+
+      fieldsAiRow.add(ai);
+
+      iTermsRow.remove(iTerms);
+
+      final ActivityIndicator iTermsAi = new ActivityIndicator();
+      iTermsAi.setStyles("{backgroundColor:'#fcfdfd'}");
+      iTermsAi.setPreferredHeight(10);
+      iTermsAi.setPreferredWidth(10);
+
+      iTermsAi.setActive(true);
+      iTermsRow.add(iTermsAi);
+
+      TaskListener<String> taskListener = new TaskListener<String>() {
+        @Override
+        public void taskExecuted(Task<String> task) {
+          // setBoolean(cell, "enabled", false);
+          // setString(cell, "text", "..wait..");
+          fieldsTable.setTableData(new ArrayList(0));
+          termCounts.clear();
+          FieldTermCount ftc = null;
+          try {
+
+            numTerms = indexInfo.getNumTerms();
+            termCounts = indexInfo.getFieldTermCounts();
+
+            iTerms.setText(String.valueOf(numTerms));
+            initFieldList(null, null);
+
+          } catch (Exception e) {
+            // showStatus("ERROR: can't count terms per field");
+            numTerms = -1;
+            termCounts = Collections.emptyMap();
+          }
+
+          ai.setActive(false);
+          iTermsAi.setActive(false);
+          fieldsAiRow.remove(ai);
+          iTermsRow.remove(iTermsAi);
+          iTermsRow.add(iTerms);
+          // lukeWindow.setEnabled(true);
+        }
+
+        @Override
+        public void executeFailed(Task<String> task) {
+          ai.setActive(false);
+          iTermsAi.setActive(true);
+          // lukeWindow.setEnabled(true);
+        }
+      };
+      Task fListTask = new Task() {
+
+        @Override
+        public Object execute() throws TaskExecutionException {
+          return null;
+        }
+      };
+
+      fListTask.execute(new TaskAdapter<String>(taskListener));
+
+      String sDel = ir.hasDeletions() ? "Yes (" + ir.numDeletedDocs() + ")" : "No";
+      IndexCommit ic = ir instanceof DirectoryReader ? ((DirectoryReader) ir).getIndexCommit() : null;
+      String sOpt = ic != null ? (ic.getSegmentCount() == 1 ? "Yes" : "No") : "?";
+      String sDelOpt = sDel + " / " + sOpt;
+      iDelOpt.setText(sDelOpt);
+
+      String verText = "N/A";
+      if (ic != null) {
+        verText = Long.toHexString(((DirectoryReader) ir).getVersion());
+      }
+      iVer.setText(verText);
+
+      String formatText = "N/A";
+      String formatCaps = "N/A";
+      if (dir != null) {
+        //int format = IndexGate.getIndexFormat(dir);
+        //IndexGate.FormatDetails formatDetails = IndexGate.getFormatDetails(format);
+        //formatText = format + " (" + formatDetails.getGenericName() + ")";
+        //formatCaps = formatDetails.getCapabilities();
+        int format = indexInfo.getIndexFormat();
+        formatText = format + " (" + indexInfo.getIndexFormatText() + ")";
+        formatCaps = indexInfo.getIndexCapabilities();
+        if (formatCaps == null) {
+          formatCaps = (String) resources.get("overviewTab_newerVersionWarning");
+        }
+      }
+      iFormat.setText(formatText);
+      iCaps.setText(formatCaps);
+
+      String divText = "N/A";
+
+      if (ir instanceof DirectoryReader) {
+      //  java.util.List<AtomicReaderContext> readers = ((DirectoryReader) ir).leaves();
+        java.util.List<AtomicReaderContext> readers = ir.leaves();
+        if (readers.size() > 0) {
+          if (readers.get(0).reader() instanceof SegmentReader) {
+            divText = String.valueOf(((SegmentReader) readers.get(0).reader()).getTermInfosIndexDivisor());
+          }
+        }
+      }
+      iTiiDiv.setText(divText);
+
+      String commitText = "N/A";
+      try {
+        commitText = ic.getSegmentsFileName() + " (generation=" + ic.getGeneration() + ", segs=" + ic.getSegmentCount() + ")";
+      } catch (UnsupportedOperationException uoe) {}
+      iCommit.setText(commitText);
+
+      String userData = null;
+      try {
+        java.util.Map<String,String> userDataMap = ic.getUserData();
+        if (userDataMap != null && !userDataMap.isEmpty()) {
+          userData = ic.getUserData().toString();
+        } else {
+          userData = "--";
+        }
+      } catch (UnsupportedOperationException uoe) {
+        userData = "(not supported)";
+      }
+      iUser.setText(userData);
+      final int nTermsInt = getNTerms();
+
+      actionTopTerms(nTermsInt);
+
+    } catch (Exception e) {
+      e.printStackTrace();
+      errorMsg(e.getMessage());
+    }
+  }
+
+  /**
+   * Update the list of top terms.
+   */
+  public void actionTopTerms(int nTerms) {
+    if (ir == null) {
+      // showStatus(MSG_NOINDEX);
+      return;
+    }
+
+    int nd = nTerms;
+
+    final int ndoc = nd;
+
+    Sequence<?> fields = fieldsTable.getSelectedRows();
+
+    String[] flds = null;
+    if (fields == null || fields.getLength() == 0) {
+      flds = indexInfo.getFieldNames().toArray(new String[0]);
+    } else {
+      flds = new String[fields.getLength()];
+      for (int i = 0; i < fields.getLength(); i++) {
+        flds[i] = ((Map<String,String>) fields.get(i)).get("name");
+      }
+    }
+    final String[] fflds = flds;
+
+    tTable.setTableData(new ArrayList(0));
+
+    final ActivityIndicator ai = new ActivityIndicator();
+    try {
+      ai.setStyles("{backgroundColor:11}");
+    } catch (SerializationException e) {
+      throw new RuntimeException(e);
+    }
+    ai.setPreferredHeight(10);
+    ai.setPreferredWidth(10);
+    ai.setHeight(10);
+    ai.setWidth(10);
+
+    topTermsAiRow.add(ai);
+    ai.setActive(true);
+
+    Task<Object> topTermsTask = new Task<Object>() {
+
+      @Override
+      public Object execute() throws TaskExecutionException {
+        return null;
+      }
+    };
+
+    TaskListener<Object> taskListener = new TaskListener<Object>() {
+      @Override
+      public void taskExecuted(Task<Object> task) {
+        // this must happen here rather than in the task because it must happen in the UI dispatch thread
+        try {
+          TermStats[] topTerms = HighFreqTerms.getHighFreqTerms(ir, ndoc, fflds);
+
+          List<Map<String,String>> tableData = new ArrayList<Map<String,String>>();
+
+          if (topTerms == null || topTerms.length == 0) {
+            Map<String,String> row = new HashMap<String,String>();
+            row.put("text", "No Results");
+            tableData.add(row);
+          }
+
+          for (int i = 0; i < topTerms.length; i++) {
+            Map<String,String> row = new HashMap<String,String>();
+
+            // putProperty(row, "term", tis[i].term);
+            // putProperty(row, "ti", tis[i]);
+
+            row.put("num", String.valueOf(i + 1));
+
+            row.put("df", String.valueOf(topTerms[i].docFreq) + "  ");
+
+            row.put("field", topTerms[i].field);
+
+            Decoder dec = lukeMediator.getDecoders().get(topTerms[i].field);
+            if (dec == null)
+              dec = lukeMediator.getDefDecoder();
+            String s;
+            try {
+              s = dec.decodeTerm(topTerms[i].field, topTerms[i].termtext.utf8ToString());
+            } catch (Throwable e) {
+              // e.printStackTrace();
+              s = topTerms[i].termtext.utf8ToString();
+              // TODO
+              // setColor(cell, "foreground", Color.RED);
+            }
+            row.put("text", s);
+            tableData.add(row);
+          }
+          tTable.setTableData(tableData);
+          topTermsAiRow.remove(ai);
+        } catch (Exception e) {
+          e.printStackTrace();
+          errorMsg(e.getMessage());
+        }
+
+        ai.setActive(false);
+        // lukeWindow.setEnabled(true);
+      }
+
+      @Override
+      public void executeFailed(Task<Object> task) {
+        ai.setActive(false);
+        // lukeWindow.setEnabled(true);
+      }
+    };
+
+    topTermsTask.execute(new TaskAdapter<Object>(taskListener));
+  }
+
+  private void initFieldList(Object fCombo, Object defFld) {
+    // removeAll(fieldsTable);
+    // removeAll(defFld);
+    // setString(fCombo, "text", idxFields[0]);
+    // setString(defFld, "text", idxFields[0]);
+    NumberFormat intCountFormat = NumberFormat.getIntegerInstance();
+    NumberFormat percentFormat = NumberFormat.getNumberInstance();
+    intCountFormat.setGroupingUsed(true);
+    percentFormat.setMaximumFractionDigits(2);
+    fieldsTable.getTableViewSortListeners().add(new TableViewSortListener.Adapter() {
+      @Override
+      public void sortChanged(TableView tableView) {
+        @SuppressWarnings("unchecked")
+        List<Map<String, String>> tableData = (List<Map<String, String>>) tableView.getTableData();
+        tableData.setComparator(new TableComparator(tableView));
+      }
+    });
+    // default sort : sorted by name in ascending order
+    fieldsTable.setSort("name", SortDirection.ASCENDING);
+
+    for (String s : indexInfo.getFieldNames()) {
+      Map<String,String> row = new HashMap<String,String>();
+
+      row.put("name", s);
+
+      FieldTermCount ftc = termCounts.get(s);
+      if (ftc != null) {
+        long cnt = ftc.termCount;
+
+        row.put("termCount", intCountFormat.format(cnt));
+
+        float pcent = (float) (cnt * 100) / (float) numTerms;
+
+        row.put("percent", percentFormat.format(pcent) + " %");
+
+      } else {
+        row.put("termCount", "0");
+        row.put("percent", "0.00%");
+      }
+
+      //tableData.add(row);
+      List<Map<String, String>> tableData = (List<Map<String, String>>)fieldsTable.getTableData();
+      tableData.add(row);
+
+      Decoder dec = lukeMediator.getDecoders().get(s);
+      if (dec == null)
+        dec = lukeMediator.getDefDecoder();
+      row.put("decoder", dec.toString());
+
+      // populate combos
+      // Object choice = create("choice");
+      // add(fCombo, choice);
+      // setString(choice, "text", s);
+      // putProperty(choice, "fName", s);
+      // choice = create("choice");
+      // add(defFld, choice);
+      // setString(choice, "text", s);
+      // putProperty(choice, "fName", s);
+    }
+    //fieldsTable.setTableData(tableData);
+  }
+
+  private int getNTerms() {
+    final int nTermsInt = nTerms.getSelectedIndex();
+    return nTermsInt;
+  }
+
+  private void errorMsg(String error) {
+    Alert.alert(MessageType.ERROR, error, getWindow());
+  }
+}

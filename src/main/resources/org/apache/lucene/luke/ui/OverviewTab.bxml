@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<luke:OverviewTab bxml:id="OverviewTab"
+	xmlns:bxml="http://pivot.apache.org/bxml" xmlns:content="org.apache.pivot.wtk.content"
+	xmlns="org.apache.pivot.wtk" xmlns:luke="org.apache.lucene.luke.ui"
+	orientation="vertical" splitRatio="0.25">
+	<top>
+		<TablePane>
+			<columns>
+				<TablePane.Column width="1*" />
+			</columns>
+			<rows>
+				<TablePane.Row height="1*">
+					<ScrollPane horizontalScrollBarPolicy="fill_to_capacity"
+						styles="{backgroundColor:11}">
+						<view>
+							<TablePane bxml:id="masterable"
+								styles="{verticalSpacing:2,horizontalSpacing:2,padding:4}">
+								<columns>
+									<TablePane.Column width="1*" />
+								</columns>
+								<rows>
+									<TablePane.Row height="1*">
+										<TablePane bxml:id="tablePane1"
+											styles="{verticalSpacing:0,horizontalSpacing:2}">
+											<columns>
+												<TablePane.Column />
+												<TablePane.Column width="1*" />
+											</columns>
+											<rows>
+												<TablePane.Row height="-1">
+													<Label text="%overviewTab_indexPath"
+														styles="{font:{bold:true},backgroundColor:'#dce0e7',padding:2}" />
+													<Label bxml:id="iPath" text="?"
+														styles="{backgroundColor:'#fcfdfd',padding:2}" />
+												</TablePane.Row>
+												<TablePane.Row height="-1">
+													<Label text="%overviewTab_indexCodec"
+														styles="{font:{bold:true},backgroundColor:'#f1f1f1',padding:2}" />
+													<Label bxml:id="indexCodec" text="?"
+														styles="{backgroundColor:11,padding:2}" />
+												</TablePane.Row>
+												<TablePane.Row height="-1">
+													<Label text="%overviewTab_numFields"
+														styles="{font:{bold:true},backgroundColor:'#dce0e7',padding:2}" />
+													<Label bxml:id="iFields" text="?"
+														styles="{backgroundColor:'#fcfdfd',padding:2}" />
+												</TablePane.Row>
+												<TablePane.Row height="-1">
+													<Label text="%overviewTab_numDocs"
+														styles="{font:{bold:true},backgroundColor:'#f1f1f1',padding:2}" />
+													<Label bxml:id="iDocs" text="?"
+														styles="{backgroundColor:11,padding:2}" />
+												</TablePane.Row>
+												<TablePane.Row bxml:id="iTermsRow" height="-1">
+													<Label text="%overviewTab_numTerms"
+														styles="{font:{bold:true},backgroundColor:'#dce0e7',padding:2}" />
+													<Label bxml:id="iTerms" text="?"
+														styles="{backgroundColor:'#fcfdfd',padding:2, horizontalAlignment:'left'}" />
+												</TablePane.Row>
+												<TablePane.Row height="-1">
+													<Label text="%overviewTab_hasDelOpt"
+														styles="{font:{bold:true},backgroundColor:'#f1f1f1',padding:2}" />
+													<Label bxml:id="iDelOpt" text="? / ?"
+														styles="{backgroundColor:11,padding:2}" />
+												</TablePane.Row>
+												<TablePane.Row height="-1">
+													<Label text="%overviewTab_lastModified"
+														styles="{font:{bold:true},backgroundColor:'#dce0e7',padding:2}" />
+													<Label bxml:id="iMod" text="?"
+														styles="{backgroundColor:'#fcfdfd',padding:2}" />
+												</TablePane.Row>
+												<TablePane.Row height="-1">
+													<Label text="%overviewTab_indexVersion"
+														styles="{font:{bold:true},backgroundColor:'#f1f1f1',padding:2}" />
+													<Label bxml:id="iVer" text="?"
+														styles="{backgroundColor:11,padding:2}" />
+												</TablePane.Row>
+												<TablePane.Row height="-1">
+													<Label text="%overviewTab_indexFormat"
+														styles="{font:{bold:true},backgroundColor:'#dce0e7',padding:2}" />
+													<Label bxml:id="iFormat" text="?"
+														styles="{backgroundColor:'#fcfdfd',padding:2}" />
+												</TablePane.Row>
+												<TablePane.Row height="-1">
+													<Label text="%overviewTab_indexFunctionality"
+														styles="{font:{bold:true},backgroundColor:'#f1f1f1',padding:2}" />
+													<Label bxml:id="iCaps" text="?"
+														styles="{backgroundColor:11,padding:2}" />
+												</TablePane.Row>
+												<TablePane.Row height="-1">
+													<Label text="%overviewTab_indexDivisor"
+														styles="{font:{bold:true},backgroundColor:'#dce0e7',padding:2}" />
+													<Label bxml:id="iTiiDiv" text="?"
+														styles="{backgroundColor:'#fcfdfd',padding:2}" />
+												</TablePane.Row>
+												<TablePane.Row height="-1">
+													<Label text="%overviewTab_dirImpl"
+														styles="{font:{bold:true},backgroundColor:'#f1f1f1',padding:2}" />
+													<Label bxml:id="dirImpl" text="?"
+														styles="{backgroundColor:11,padding:2}" />
+												</TablePane.Row>
+												<TablePane.Row height="-1">
+													<Label text="%overviewTab_openedCommit"
+														styles="{font:{bold:true},backgroundColor:'#dce0e7',padding:2}" />
+													<Label bxml:id="iCommit" text=""
+														styles="{backgroundColor:'#fcfdfd',padding:2}" />
+												</TablePane.Row>
+												<TablePane.Row height="-1">
+													<Label text="%overviewTab_userData"
+														styles="{font:{bold:true},backgroundColor:'#f1f1f1',padding:2}" />
+													<Label bxml:id="iUser" text=""
+														styles="{backgroundColor:11,padding:2}" />
+												</TablePane.Row>
+											</rows>
+										</TablePane>
+									</TablePane.Row>
+								</rows>
+							</TablePane>
+						</view>
+					</ScrollPane>
+				</TablePane.Row>
+			</rows>
+		</TablePane>
+	</top>
+	<bottom>
+		<TablePane>
+			<columns>
+				<TablePane.Column width="1*" />
+			</columns>
+			<rows>
+				<TablePane.Row height="1*">
+
+					<TablePane bxml:id="bottomTable"
+						styles="{verticalSpacing:5,horizontalSpacing:1,padding:5,backgroundColor:11}">
+						<columns>
+							<TablePane.Column width="1*" />
+						</columns>
+						<rows>
+							<TablePane.Row height="1*">
+								<SplitPane bxml:id="splitPane" orientation="horizontal"
+									styles="{useShadow:true}" splitRatio="0.45">
+									<left>
+										<TablePane bxml:id="fListTablePane"
+											styles="{verticalSpacing:1,horizontalSpacing:1}">
+											<columns>
+												<TablePane.Column width="1*" />
+											</columns>
+											<rows>
+												<TablePane.Row height="-1">
+													<Label styles="{backgroundColor:11,padding:2}" text="%overviewTab_fieldSelect" />
+												</TablePane.Row>
+												<TablePane.Row height="-1">
+													<Label styles="{backgroundColor:11,font:{bold:true}}"
+														text="%overviewTab_fieldsAndTermCounts" />
+												</TablePane.Row>
+												<TablePane.Row bxml:id="fieldsAiRow" height="-1" />
+												<TablePane.Row height="1*">
+													<Border styles="{padding:1}">
+														<content>
+															<ScrollPane verticalScrollBarPolicy="always"
+																horizontalScrollBarPolicy="fill_to_capacity">
+																<view>
+																	<TableView bxml:id="fieldsTable" selectMode="multi">
+																		<columns>
+																			<TableView.Column name="name" width="1*"
+																				headerData="Name" />
+																			<TableView.Column name="termCount"
+																				width="1*" headerData="Term Count" />
+																			<TableView.Column name="percent"
+																				width="1*" headerData="%%" />
+																			<TableView.Column name="decoder"
+																				width="1*" headerData="Decoder" />
+																		</columns>
+
+																	</TableView>
+																</view>
+																<columnHeader>
+																	<TableViewHeader tableView="$fieldsTable" sortMode="single_column" />
+																</columnHeader>
+															</ScrollPane>
+														</content>
+													</Border>
+												</TablePane.Row>
+											</rows>
+										</TablePane>
+									</left>
+									<right>
+										<TablePane bxml:id="tListTablePane"
+											styles="{verticalSpacing:1,horizontalSpacing:1}">
+											<columns>
+												<TablePane.Column width="1*" />
+											</columns>
+											<rows>
+												<TablePane.Row height="-1">
+													<BoxPane orientation="vertical" preferredWidth="200"
+														styles="{fill:true,backgroundColor:11}">
+														<TextArea styles="{font:{size:'80%'}}" text="%overviewTab_topTermsHint" />
+														<TextArea styles="{font:{size:'80%'}}" text="%overviewTab_decoderWarn" />
+
+														<Label text="Number of top terms:" styles="{font:{bold:true}}" />
+
+														<Spinner bxml:id="nTerms" selectedIndex="50">
+															<spinnerData>
+																<content:NumericSpinnerData
+																	lowerBound="0" upperBound="999999" increment="1" />
+															</spinnerData>
+														</Spinner>
+														<PushButton buttonData="%overviewTab_showTopTerms"
+															action="topTerms" />
+													</BoxPane>
+												</TablePane.Row>
+												<TablePane.Row>
+													<Label styles="{backgroundColor:11}" text="%overviewTab_topRankingTerms" />
+												</TablePane.Row>
+												<TablePane.Row bxml:id="topTermsAiRow" />
+												<TablePane.Row height="1*">
+													<Border styles="{padding:1}">
+														<content>
+															<ScrollPane horizontalScrollBarPolicy="fill_to_capacity">
+																<view>
+																	<TableView bxml:id="tTable">
+																		<columns>
+																			<TableView.Column name="num" width="35"
+																				headerData="%overviewTab_topTermsTable_col1" />
+																			<TableView.Column name="df" width="50"
+																				headerData="%overviewTab_topTermsTable_col2" />
+																			<TableView.Column name="field"
+																				width="170" headerData="%overviewTab_topTermsTable_col3" />
+																			<TableView.Column name="text" width="1*"
+																				headerData="%overviewTab_topTermsTable_col4" />
+																		</columns>
+																	</TableView>
+																</view>
+																<columnHeader>
+																	<TableViewHeader tableView="$tTable" />
+																</columnHeader>
+															</ScrollPane>
+														</content>
+													</Border>
+												</TablePane.Row>
+											</rows>
+										</TablePane>
+									</right>
+								</SplitPane>
+							</TablePane.Row>
+						</rows>
+					</TablePane>
+				</TablePane.Row>
+			</rows>
+		</TablePane>
+	</bottom>
+</luke:OverviewTab>

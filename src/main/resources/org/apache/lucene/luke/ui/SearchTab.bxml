@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<luke:SearchTab bxml:id="SearchTab" xmlns:bxml="http://pivot.apache.org/bxml"
+	xmlns:content="org.apache.pivot.wtk.content" xmlns="org.apache.pivot.wtk"
+	xmlns:luke="org.apache.lucene.luke.ui" orientation="vertical"
+	splitRatio="0.3">
+	<left>
+		<TablePane>
+			<columns>
+				<TablePane.Column width="1*" />
+			</columns>
+			<rows>
+				<TablePane.Row height="1*">
+					<ScrollPane horizontalScrollBarPolicy="fill_to_capacity"
+						styles="{backgroundColor:11}">
+						<TablePane
+							styles="{horizontalSpacing:5,verticalSpacing:5,backgroundColor:11}">
+							<columns>
+								<TablePane.Column width="1*" />
+								<TablePane.Column width="1*" />
+							</columns>
+							<rows>
+								<TablePane.Row>
+									<BoxPane orientation="vertical" styles="{fill:true}">
+										<FlowPane>
+											<Label text="%searchTab_searchPrompt" />
+											<ScrollPane horizontalScrollBarPolicy="fill"
+												verticalScrollBarPolicy="fill_to_capacity" preferredHeight="60"
+												preferredWidth="250">
+												<view>
+													<Border>
+														<content>
+															<TextArea bxml:id="queryTextArea" text="" />
+														</content>
+													</Border>
+												</view>
+											</ScrollPane>
+
+											<PushButton preferredHeight="20" action="search">
+												<buttonData>
+													<content:ButtonData icon="/img/search.gif"
+														text="Search" />
+												</buttonData>
+											</PushButton>
+
+										</FlowPane>
+										<BoxPane orientation="horizontal">
+											<Label text="Query details:  " />
+											<PushButton width="45" buttonData="%searchTab_update"
+												action="showParsed" />
+											<PushButton width="95" buttonData="%searchTab_explainStructure"
+												action="explainStructure" />
+										</BoxPane>
+										<TabPane width="300" preferredWidth="300"
+											styles="{tabOrientation:'vertical'}">
+											<tabs>
+												<ScrollPane styles="{backgroundColor:11}">
+													<TabPane.tabData>
+														<content:ButtonData text="%searchTab_Parsed" />
+													</TabPane.tabData>
+													<view>
+														<BoxPane>
+
+															<Label bxml:id="parsedQueryLabel" text="" />
+														</BoxPane>
+													</view>
+												</ScrollPane>
+												<ScrollPane styles="{backgroundColor:11}">
+													<TabPane.tabData>
+														<content:ButtonData text="%searchTab_Rewritten" />
+													</TabPane.tabData>
+													<view>
+														<BoxPane styles="{fill:true}">
+															<Label bxml:id="rewrittenQueryLabel" text="" />
+
+														</BoxPane>
+													</view>
+												</ScrollPane>
+											</tabs>
+
+										</TabPane>
+									</BoxPane>
+
+									<TabPane>
+										<tabs>
+											<BoxPane>
+												<TabPane.tabData>
+													<content:ButtonData text="%searchTab_analysis" />
+												</TabPane.tabData>
+												<Border styles="{backgroundColor:11}">
+													<content>
+														<BoxPane orientation="vertical">
+															<Label text="%searchTab_searchAnalyzer" />
+															<Label text="%searchTab_classNote" />
+
+															<ListButton bxml:id="analyzerList" listSize="20" />
+															<Label text="%searchTab_defaultField" />
+														</BoxPane>
+													</content>
+												</Border>
+											</BoxPane>
+										</tabs>
+									</TabPane>
+								</TablePane.Row>
+							</rows>
+						</TablePane>
+					</ScrollPane>
+				</TablePane.Row>
+			</rows>
+		</TablePane>
+	</left>
+	<right>
+		<TablePane>
+			<columns>
+				<TablePane.Column width="1*" />
+			</columns>
+			<rows>
+				<TablePane.Row height="1*">
+					<TablePane>
+
+						<columns>
+							<TablePane.Column width="1*" />
+						</columns>
+						<rows>
+							<TablePane.Row>
+								<Label text="%searchTab_results" />
+							</TablePane.Row>
+							<TablePane.Row height="1*">
+								<ScrollPane horizontalScrollBarPolicy="fill_to_capacity"
+									styles="{backgroundColor:11}">
+									<view>
+										<TableView bxml:id="searchResultsTable">
+											<columns>
+												<TableView.Column name="num"
+													headerData="%searchTab_searchTable_col1" />
+												<TableView.Column name="score"
+													headerData="%searchTab_searchTable_col2" />
+												<TableView.Column name="docId"
+													headerData="%searchTab_searchTable_col3" />
+											</columns>
+
+										</TableView>
+									</view>
+									<columnHeader>
+										<TableViewHeader tableView="$searchResultsTable" />
+									</columnHeader>
+								</ScrollPane>
+							</TablePane.Row>
+						</rows>
+					</TablePane>
+				</TablePane.Row>
+			</rows>
+		</TablePane>
+	</right>
+</luke:SearchTab>
