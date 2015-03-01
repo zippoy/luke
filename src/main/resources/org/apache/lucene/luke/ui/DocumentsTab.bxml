@@ -229,11 +229,13 @@
 									<TableView bxml:id="docTable">
 										<columns>
 											<TableView.Column name="name"
-																				headerData="%documentsTab_docTable_col1" />
+                                                              headerData="%documentsTab_docTable_col1" />
 											<TableView.Column name="itsvopatolb"
-																				headerData="%documentsTab_docTable_col2" width="150"/>
+                                                              headerData="%documentsTab_docTable_col2" width="150"/>
+                                            <TableView.Column name="norm"
+                                                              headerData="%documentsTab_docTable_col3" width="50"/>
 											<TableView.Column name="value"
-																				headerData="%documentsTab_docTable_col3" width="1*" />
+                                                              headerData="%documentsTab_docTable_col4" width="1*" />
 										</columns>
 
 									</TableView>

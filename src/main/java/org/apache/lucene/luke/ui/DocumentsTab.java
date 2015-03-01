@@ -356,6 +356,7 @@ public class DocumentsTab extends SplitPane implements Bindable {
 
   private static final String FIELDROW_KEY_NAME = "name";
   private static final String FIELDROW_KEY_FLAGS = "itsvopatolb";
+  private static final String FIELDROW_KEY_NORM = "norm";
   private static final String FIELDROW_KEY_VALUE = "value";
   private static final String FIELDROW_KEY_FIELD = "field";
 
@@ -369,8 +370,26 @@ public class DocumentsTab extends SplitPane implements Bindable {
 
     row.put(FIELDROW_KEY_FIELD, field);
 
-    row.put(FIELDROW_KEY_NAME, fName);
-    row.put(FIELDROW_KEY_FLAGS, Util.fieldFlags(f, infos.fieldInfo(fName)));
+    if (fName != null) {
+      row.put(FIELDROW_KEY_NAME, fName);
+      row.put(FIELDROW_KEY_FLAGS, Util.fieldFlags(f, infos.fieldInfo(fName)));
+      try {
+        FieldInfo info = infos.fieldInfo(fName);
+        if (info.hasNorms()) {
+          NumericDocValues norms = ar.getNormValues(fName);
+          String norm = String.valueOf(norms.get(docid));
+          row.put(FIELDROW_KEY_NORM, norm);
+        } else {
+          row.put(FIELDROW_KEY_NORM, "---");
+        }
+      } catch (IOException ioe) {
+        ioe.printStackTrace();
+        row.put(FIELDROW_KEY_NORM, "!?!");
+      }
+    } else {
+      row.put(FIELDROW_KEY_NORM, "---");
+      // setBoolean(cell, "enabled", false);
+    }
 
     // if (f == null) {
     // setBoolean(cell, "enabled", false);

@@ -97,7 +97,8 @@
 
  documentsTab_docTable_col1: "Field",
  documentsTab_docTable_col2: "IdfpoPSVBNtxx#txxDtxx",
- documentsTab_docTable_col3: "Value",
+ documentsTab_docTable_col3: "Norm",
+ documentsTab_docTable_col4: "Value",
 
  documentsTab_docTable_popup_menu1: "Field's Term Vector",
  documentsTab_docTable_popup_menu2: "Show Full Text",
