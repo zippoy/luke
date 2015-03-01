@@ -1,0 +1,75 @@
+<luke:FieldNormWindow bxml:id="fieldNorm" icon="/img/luke.gif"
+											 title="%fieldNormWindow_title" xmlns:bxml="http://pivot.apache.org/bxml"
+											 xmlns:luke="org.apache.lucene.luke.ui" xmlns:content="org.apache.pivot.wtk.content"
+											 xmlns="org.apache.pivot.wtk">
+	<content>
+		<TablePane styles="{verticalSpacing:10}">
+			<columns>
+				<TablePane.Column width="1*"/>
+			</columns>
+			<rows>
+				<TablePane.Row>
+					<TablePane styles="{verticalSpacing:5,horizontalSpacing:5}">
+						<columns>
+							<TablePane.Column />
+							<TablePane.Column width="1*"/>
+						</columns>
+						<rows>
+							<TablePane.Row>
+								<Label text="Field name: " />
+								<Label bxml:id="field" text="?" styles="{font:{bold:true}}"/>
+							</TablePane.Row>
+							<TablePane.Row>
+								<Label text="Field norm: " />
+								<Label bxml:id="normVal" text="?" styles="{font:{bold:true}}"/>
+							</TablePane.Row>
+						</rows>
+					</TablePane>
+				</TablePane.Row>
+
+				<TablePane.Row>
+					<Separator/>
+				</TablePane.Row>
+
+				<TablePane.Row>
+					<BoxPane orientation="vertical" styles="{fill:true}">
+						<Label text="%fieldNormWindow_simClass"/>
+						<BoxPane styles="{fill:true}">
+							<TextInput bxml:id="simclass" preferredWidth="400"/>
+							<PushButton bxml:id="refreshButton">
+								<buttonData>
+									<content:ButtonData icon="/img/refresh.png" />
+								</buttonData>
+							</PushButton>
+						</BoxPane>
+						<Label bxml:id="simErr" text="" styles="{color:'red'}" visible="false"/>
+					  <TablePane styles="{verticalSpacing:5,horizontalSpacing:5}">
+							<columns>
+								<TablePane.Column />
+								<TablePane.Column width="1*"/>
+							</columns>
+							<rows>
+								<TablePane.Row>
+									<Label text="%fieldNormWindow_otherNorm"/>
+									<TextInput bxml:id="otherNorm" />
+								</TablePane.Row>
+								<TablePane.Row>
+									<Label text="%fieldNormWindow_encNorm"/>
+									<Label bxml:id="encNorm" text="?"/>
+								</TablePane.Row>
+							</rows>
+						</TablePane>
+					</BoxPane>
+				</TablePane.Row>
+
+				<TablePane.Row>
+					<BoxPane orientation="horizontal" styles="{horizontalAlignment:'right'}">
+						<PushButton buttonData="%label_ok"
+												ButtonPressListener.buttonPressed="fieldNorm.close()">
+						</PushButton>
+					</BoxPane>
+				</TablePane.Row>
+			</rows>
+		</TablePane>
+	</content>
+</luke:FieldNormWindow>

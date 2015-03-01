@@ -21,7 +21,9 @@ import org.apache.lucene.index.*;
 import org.apache.lucene.luke.core.*;
 import org.apache.lucene.luke.core.decoders.Decoder;
 import org.apache.lucene.luke.ui.LukeWindow.LukeMediator;
+import org.apache.lucene.luke.ui.FieldsTableRow;
 import org.apache.lucene.store.Directory;
+import org.apache.lucene.util.BytesRef;
 import org.apache.pivot.beans.BXML;
 import org.apache.pivot.beans.Bindable;
 import org.apache.pivot.collections.*;
@@ -31,6 +33,7 @@ import org.apache.pivot.util.concurrent.Task;
 import org.apache.pivot.util.concurrent.TaskExecutionException;
 import org.apache.pivot.util.concurrent.TaskListener;
 import org.apache.pivot.wtk.*;
+import org.apache.pivot.wtk.content.TableViewRowEditor;
 
 import java.net.URL;
 import java.text.NumberFormat;
@@ -222,7 +225,6 @@ public class OverviewTab extends SplitPane implements Bindable {
 
             iTerms.setText(String.valueOf(numTerms));
             initFieldList(null, null);
-
           } catch (Exception e) {
             // showStatus("ERROR: can't count terms per field");
             numTerms = -1;
@@ -253,6 +255,7 @@ public class OverviewTab extends SplitPane implements Bindable {
       };
 
       fListTask.execute(new TaskAdapter<String>(taskListener));
+      clearFieldsTableStatus();
 
       String sDel = ir.hasDeletions() ? "Yes (" + ir.numDeletedDocs() + ")" : "No";
       IndexCommit ic = ir instanceof DirectoryReader ? ((DirectoryReader) ir).getIndexCommit() : null;
@@ -269,6 +272,11 @@ public class OverviewTab extends SplitPane implements Bindable {
       String formatText = "N/A";
       String formatCaps = "N/A";
       if (dir != null) {
+        //int format = IndexGate.getIndexFormat(dir);
+        //IndexGate.FormatDetails formatDetails = IndexGate.getFormatDetails(format);
+        //formatText = format + " (" + formatDetails.getGenericName() + ")";
+        //formatCaps = formatDetails.getCapabilities();
+        //int format = indexInfo.getIndexFormat();
         IndexGate.FormatDetails formatDetails = indexInfo.getIndexFormat();
         formatText = formatDetails.version + " (" + formatDetails.genericName + ")";
         formatCaps = formatDetails.capabilities;
@@ -335,16 +343,24 @@ public class OverviewTab extends SplitPane implements Bindable {
 
     Sequence<?> fields = fieldsTable.getSelectedRows();
 
-    String[] flds = null;
+    final java.util.Map<String, Decoder> fldDecMap = new java.util.HashMap<String, Decoder>();
     if (fields == null || fields.getLength() == 0) {
-      flds = indexInfo.getFieldNames().toArray(new String[0]);
+      // no fields selected
+      for (String fld : indexInfo.getFieldNames()) {
+        Decoder dec = lukeMediator.getDecoders().get(fld);
+        if (dec == null) {
+          dec = lukeMediator.getDefDecoder();
+        }
+        fldDecMap.put(fld, dec);
+      }
     } else {
-      flds = new String[fields.getLength()];
+      // some fields selected
       for (int i = 0; i < fields.getLength(); i++) {
-        flds[i] = ((Map<String,String>) fields.get(i)).get("name");
+        String fld = ((FieldsTableRow)fields.get(i)).getName();
+        Decoder dec = ((FieldsTableRow)fields.get(i)).getDecoder();
+        fldDecMap.put(fld, dec);
       }
     }
-    final String[] fflds = flds;
 
     tTable.setTableData(new ArrayList(0));
 
@@ -375,6 +391,7 @@ public class OverviewTab extends SplitPane implements Bindable {
       public void taskExecuted(Task<Object> task) {
         // this must happen here rather than in the task because it must happen in the UI dispatch thread
         try {
+          final String[] fflds = fldDecMap.keySet().toArray(new String[0]);
           TermStats[] topTerms = HighFreqTerms.getHighFreqTerms(ir, ndoc, fflds);
 
           List<Map<String,String>> tableData = new ArrayList<Map<String,String>>();
@@ -397,12 +414,11 @@ public class OverviewTab extends SplitPane implements Bindable {
 
             row.put("field", topTerms[i].field);
 
-            Decoder dec = lukeMediator.getDecoders().get(topTerms[i].field);
-            if (dec == null)
-              dec = lukeMediator.getDefDecoder();
+            Decoder dec = fldDecMap.get(topTerms[i].field);
+
             String s;
             try {
-              s = dec.decodeTerm(topTerms[i].field, topTerms[i].termtext.utf8ToString());
+              s = dec.decodeTerm(topTerms[i].field, topTerms[i].termtext);
             } catch (Throwable e) {
               // e.printStackTrace();
               s = topTerms[i].termtext.utf8ToString();
@@ -410,6 +426,8 @@ public class OverviewTab extends SplitPane implements Bindable {
               // setColor(cell, "foreground", Color.RED);
             }
             row.put("text", s);
+            // hidden field. would be used when the user select 'Browse term docs' menu at top terms table.
+            row.put("rawterm", topTerms[i].termtext.utf8ToString());
             tableData.add(row);
           }
           tTable.setTableData(tableData);
@@ -431,6 +449,72 @@ public class OverviewTab extends SplitPane implements Bindable {
     };
 
     topTermsTask.execute(new TaskAdapter<Object>(taskListener));
+
+    addListenerToTopTermsTable();
+  }
+
+  private void addListenerToTopTermsTable() {
+    // register mouse button listener for more options.
+    tTable.getComponentMouseButtonListeners().add(new ComponentMouseButtonListener.Adapter(){
+      @Override
+      public boolean mouseClick(Component component, Mouse.Button button, int x, int y, int count) {
+        final Map<String, String> row = (Map<String, String>) tTable.getSelectedRow();
+        if (row == null) {
+          System.out.println("No term selected.");
+          return false;
+        }
+        if (button.name().equals(Mouse.Button.RIGHT.name())) {
+          MenuPopup popup = new MenuPopup();
+          Menu menu = new Menu();
+          Menu.Section section1 = new Menu.Section();
+          Menu.Section section2 = new Menu.Section();
+          Menu.Item item1 = new Menu.Item(resources.get("overviewTab_topTermTable_popup_menu1"));
+          item1.setAction(new Action() {
+            @Override
+            public void perform(Component component) {
+              // 'Browse term docs' menu selected. switch to Documents tab.
+              Term term = new Term(row.get("field"), new BytesRef(row.get("rawterm")));
+              lukeMediator.getDocumentsTab().showTerm(term);
+              // TODO: index access isn't good...
+              lukeMediator.getTabPane().setSelectedIndex(1);
+            }
+          });
+          Menu.Item item2 = new Menu.Item(resources.get("overviewTab_topTermTable_popup_menu2"));
+          item2.setAction(new Action() {
+            @Override
+            public void perform(Component component) {
+              // 'Show all term docs' menu selected. switch to Search tab.
+              // TODO
+            }
+          });
+          Menu.Item item3 = new Menu.Item(resources.get("overviewTab_topTermTable_popup_menu3"));
+          item3.setAction(new Action() {
+            @Override
+            public void perform(Component component) {
+              // 'Copy to clipboard' menu selected.
+              StringBuilder sb = new StringBuilder();
+              sb.append(row.get("num") + "\t");
+              sb.append(row.get("df") + "\t");
+              sb.append(row.get("field") + "\t");
+              sb.append(row.get("text") + "\t");
+              LocalManifest content = new LocalManifest();
+              content.putText(sb.toString());
+              Clipboard.setContent(content);
+            }
+          });
+          section1.add(item1);
+          section1.add(item2);
+          section2.add(item3);
+          menu.getSections().add(section1);
+          menu.getSections().add(section2);
+          popup.setMenu(menu);
+
+          popup.open(getWindow(), getMouseLocation().x + 20, getMouseLocation().y);
+          return true;
+        }
+        return false;
+      }
+    });
   }
 
   private void initFieldList(Object fCombo, Object defFld) {
@@ -442,45 +526,51 @@ public class OverviewTab extends SplitPane implements Bindable {
     NumberFormat percentFormat = NumberFormat.getNumberInstance();
     intCountFormat.setGroupingUsed(true);
     percentFormat.setMaximumFractionDigits(2);
+    // sort listener
     fieldsTable.getTableViewSortListeners().add(new TableViewSortListener.Adapter() {
       @Override
       public void sortChanged(TableView tableView) {
         @SuppressWarnings("unchecked")
-        List<Map<String, String>> tableData = (List<Map<String, String>>) tableView.getTableData();
+        List<FieldsTableRow> tableData = (List<FieldsTableRow>) tableView.getTableData();
         tableData.setComparator(new TableComparator(tableView));
       }
     });
     // default sort : sorted by name in ascending order
     fieldsTable.setSort("name", SortDirection.ASCENDING);
 
-    for (String s : indexInfo.getFieldNames()) {
-      Map<String,String> row = new HashMap<String,String>();
+    // row editor for decoders
+    List decoders = new ArrayList();
+    for (Decoder dec : Util.loadDecoders()) {
+      decoders.add(dec);
+    }
+    ListButton decodersButton = new ListButton(decoders);
+    decodersButton.setSelectedItemKey("decoder");
+    TableViewRowEditor rowEditor = new TableViewRowEditor();
+    rowEditor.getCellEditors().put("decoder", decodersButton);
+    fieldsTable.setRowEditor(rowEditor);
 
-      row.put("name", s);
 
-      FieldTermCount ftc = termCounts.get(s);
+    for (String fname : indexInfo.getFieldNames()) {
+      FieldsTableRow row = new FieldsTableRow(lukeMediator);
+      row.setName(fname);
+      FieldTermCount ftc = termCounts.get(fname);
       if (ftc != null) {
         long cnt = ftc.termCount;
-
-        row.put("termCount", intCountFormat.format(cnt));
-
+        row.setTermCount(intCountFormat.format(cnt));
         float pcent = (float) (cnt * 100) / (float) numTerms;
-
-        row.put("percent", percentFormat.format(pcent) + " %");
-
+        row.setPercent(percentFormat.format(pcent) + " %");
       } else {
-        row.put("termCount", "0");
-        row.put("percent", "0.00%");
+        row.setTermCount("0");
+        row.setPercent("0.00%");
       }
 
-      //tableData.add(row);
-      List<Map<String, String>> tableData = (List<Map<String, String>>)fieldsTable.getTableData();
+      List<FieldsTableRow> tableData = (List<FieldsTableRow>)fieldsTable.getTableData();
       tableData.add(row);
 
-      Decoder dec = lukeMediator.getDecoders().get(s);
+      Decoder dec = lukeMediator.getDecoders().get(fname);
       if (dec == null)
         dec = lukeMediator.getDefDecoder();
-      row.put("decoder", dec.toString());
+      row.setDecoder(dec);
 
       // populate combos
       // Object choice = create("choice");
@@ -492,7 +582,12 @@ public class OverviewTab extends SplitPane implements Bindable {
       // setString(choice, "text", s);
       // putProperty(choice, "fName", s);
     }
-    //fieldsTable.setTableData(tableData);
+
+  }
+
+  private void clearFieldsTableStatus() {
+    // clear the fields table view status
+    fieldsTable.clearSelection();
   }
 
   private int getNTerms() {

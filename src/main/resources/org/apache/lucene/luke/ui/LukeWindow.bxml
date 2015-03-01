@@ -103,7 +103,7 @@
 								</content>
 							</Border>
 
-							<Border>
+							<Border styles="{backgroundColor:11,thickness:0}">
 								<TabPane.tabData>
 									<content:ButtonData icon="/img/docs.gif"
 										text="%lukeWindow_documentsTabText" />
@@ -160,7 +160,10 @@
 					</TabPane>
 				</TablePane.Row>
 				<TablePane.Row>
-					<Label bxml:id="statusLabel" text="" styles="{padding:2}" />
+					<BoxPane>
+						<Label bxml:id="indexName" text="" styles="{padding:2}"/>
+						<Label bxml:id="statusLabel" text="" styles="{padding:2}" />
+					</BoxPane>
 				</TablePane.Row>
 			</rows>
 		</TablePane>

@@ -1,0 +1,57 @@
+<luke:FieldDataWindow bxml:id="fieldData" icon="/img/luke.gif"
+													title="%fieldDataWindow_title" xmlns:bxml="http://pivot.apache.org/bxml"
+													xmlns:luke="org.apache.lucene.luke.ui" xmlns:content="org.apache.pivot.wtk.content"
+													xmlns="org.apache.pivot.wtk">
+	<content>
+		<TablePane styles="{verticalSpacing:10}">
+			<columns>
+				<TablePane.Column width="1*"/>
+			</columns>
+			<rows>
+				<TablePane.Row>
+					<TablePane styles="{verticalSpacing:1,horizontalSpacing:1}">
+						<columns>
+							<TablePane.Column />
+							<TablePane.Column width="1*"/>
+						</columns>
+						<rows>
+							<TablePane.Row>
+								<Label text="Field name:" styles="{font:{bold:true},backgroundColor:'#dce0e7',padding:2}"/>
+								<Label bxml:id="name" text="?" styles="{backgroundColor:'#fcfdfd',padding:2}"/>
+							</TablePane.Row>
+							<TablePane.Row>
+								<Label text="Field length: " styles="{font:{bold:true},backgroundColor:'#f1f1f1',padding:2}"/>
+								<Label bxml:id="length" text="?" styles="{backgroundColor:11,padding:2}"/>
+							</TablePane.Row>
+							<TablePane.Row>
+								<Label text="Show content as: " styles="{font:{bold:true},backgroundColor:'#dce0e7',padding:2}"/>
+								<Spinner bxml:id="cDecoder" />
+							</TablePane.Row>
+						</rows>
+					</TablePane>
+				</TablePane.Row>
+
+				<TablePane.Row>
+					<Label bxml:id="error" text="%fieldDataWindow_decodeError" visible="false"
+								 styles="{color:'red',padding:2,wrapText:true}" preferredWidth="500"/>
+				</TablePane.Row>
+
+				<TablePane.Row>
+					<Border styles="{padding:1}">
+						<ScrollPane>
+							<TextArea bxml:id="data" preferredWidth="500" preferredHeight="250" editable="false"/>
+						</ScrollPane>
+					</Border>
+				</TablePane.Row>
+
+				<TablePane.Row>
+					<BoxPane orientation="horizontal" styles="{horizontalAlignment:'right'}">
+						<PushButton buttonData="%label_ok"
+												ButtonPressListener.buttonPressed="fieldData.close()">
+						</PushButton>
+					</BoxPane>
+				</TablePane.Row>
+			</rows>
+		</TablePane>
+	</content>
+</luke:FieldDataWindow>

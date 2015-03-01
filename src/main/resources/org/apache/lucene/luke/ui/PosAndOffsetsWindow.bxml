@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<luke:PosAndOffsetsWindow bxml:id="posAndOffsets" icon="/img/luke.gif"
+										 title="%posAndOffsetsWindow_title" xmlns:bxml="http://pivot.apache.org/bxml"
+										 xmlns:luke="org.apache.lucene.luke.ui" xmlns:content="org.apache.pivot.wtk.content"
+										 xmlns="org.apache.pivot.wtk">
+	<content>
+		<TablePane styles="{verticalSpacing:10}">
+			<columns>
+				<TablePane.Column width="1*"/>
+			</columns>
+			<rows>
+				<TablePane.Row>
+					<TablePane styles="{verticalSpacing:1,horizontalSpacing:1}">
+						<columns>
+							<TablePane.Column />
+							<TablePane.Column width="1*"/>
+						</columns>
+						<rows>
+							<TablePane.Row>
+								<Label text="Document #" styles="{font:{bold:true},backgroundColor:'#dce0e7',padding:2}"/>
+								<Label bxml:id="docNum" text="?" styles="{backgroundColor:'#fcfdfd',padding:2}"/>
+							</TablePane.Row>
+							<TablePane.Row>
+								<Label text="Term positions for term: " styles="{font:{bold:true},backgroundColor:'#f1f1f1',padding:2}"/>
+								<Label bxml:id="term" text="?" styles="{backgroundColor:11,padding:2}"/>
+							</TablePane.Row>
+							<TablePane.Row>
+								<Label text="Term Frequency: " styles="{font:{bold:true},backgroundColor:'#dce0e7',padding:2}"/>
+								<Label bxml:id="tf" text="?" styles="{backgroundColor:'#fcfdfd',padding:2}"/>
+							</TablePane.Row>
+							<TablePane.Row>
+								<Label text="Offsets: " styles="{font:{bold:true},backgroundColor:'#f1f1f1',padding:2}"/>
+								<Label bxml:id="offsets" text="?" styles="{backgroundColor:11,padding:2}"/>
+							</TablePane.Row>
+							<TablePane.Row>
+								<Label text="Show payload as: " styles="{font:{bold:true},backgroundColor:'#dce0e7',padding:2}"/>
+								<Spinner bxml:id="pDecoder" />
+							</TablePane.Row>
+						</rows>
+					</TablePane>
+				</TablePane.Row>
+
+				<TablePane.Row>
+					<Border styles="{padding:1}">
+						<ScrollPane horizontalScrollBarPolicy="fill_to_capacity" styles="{backgroundColor:11}">
+							<view>
+								<TableView bxml:id="posTable" selectMode="multi">
+									<columns>
+										<TableView.Column name="pos"
+																			headerData="Position" width="50"/>
+										<TableView.Column name="offsets"
+																			headerData="Offsets" width="100"/>
+										<TableView.Column name="payloadStr"
+																			headerData="Payload" width="300"/>
+									</columns>
+								</TableView>
+							</view>
+							<columnHeader>
+								<TableViewHeader tableView="$posTable" />
+							</columnHeader>
+						</ScrollPane>
+					</Border>
+				</TablePane.Row>
+
+				<TablePane.Row>
+					<BoxPane orientation="horizontal" styles="{horizontalAlignment:'right'}">
+						<PushButton buttonData="%label_ok"
+												ButtonPressListener.buttonPressed="posAndOffsets.close()">
+						</PushButton>
+						<PushButton bxml:id="posCopyButton" buttonData="%label_clipboard"/>
+					</BoxPane>
+				</TablePane.Row>
+			</rows>
+		</TablePane>
+	</content>
+</luke:PosAndOffsetsWindow>

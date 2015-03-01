@@ -1,169 +1,251 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <luke:DocumentsTab bxml:id="DocumentsTab"
-	styles="{verticalSpacing:2,horizontalSpacing:2,padding:4,backgroundColor:11}"
 	xmlns:bxml="http://pivot.apache.org/bxml" xmlns:content="org.apache.pivot.wtk.content"
-	xmlns="org.apache.pivot.wtk" xmlns:luke="org.apache.lucene.luke.ui">
+	xmlns="org.apache.pivot.wtk" xmlns:luke="org.apache.lucene.luke.ui"
+	orientation="vertical" splitRatio="0.30">
 
+	<bxml:define>
+		<bxml:include bxml:id="posAndOffsetsWindow" src="PosAndOffsetsWindow.bxml" />
+	</bxml:define>
+	<bxml:define>
+		<bxml:include bxml:id="tvWindow" src="TermVectorWindow.bxml" />
+	</bxml:define>
+	<bxml:define>
+		<bxml:include bxml:id="fieldDataWindow" src="FieldDataWindow.bxml" />
+	</bxml:define>
+	<bxml:define>
+		<bxml:include bxml:id="fieldNormWindow" src="FieldNormWindow.bxml" />
+	</bxml:define>
 
-	<columns>
-		<TablePane.Column width="1*" />
-	</columns>
-	<rows>
-		<TablePane.Row>
-			<FlowPane styles="{padding:10}">
-				<BoxPane orientation="vertical">
-					<Label text="%documentsTab_browseByDocNum" />
-					<BoxPane>
-						<Label text="Doc. #:" />
-						<Label text="0" />
-						<PushButton preferredHeight="20" action="prevDoc">
-							<buttonData>
-								<content:ButtonData icon="/img/prev.png" />
-							</buttonData>
-						</PushButton>
-						<TextInput preferredWidth="48" bxml:id="docNum" />
-						<PushButton preferredHeight="20" action="nextDoc">
-							<buttonData>
-								<content:ButtonData icon="/img/next.png" />
-							</buttonData>
-						</PushButton>
-						<Label bxml:id="maxDocs" text="?" />
+	<top>
+		<SplitPane orientation="horizontal" splitRatio="0.20" styles="{useShadow:true}">
+			<left>
+				<Border styles="{padding:1}">
+				<content>
+				<TablePane styles="{verticalSpacing:1,horizontalSpacing:1,padding:5,backgroundColor:11}">
+					<columns>
+						<TablePane.Column width="1*" />
+					</columns>
+					<rows>
+						<TablePane.Row>
+							<BoxPane orientation="vertical">
+								<Label text="%documentsTab_browseByDocNum" styles="{padding:2,font:{bold:true}}"/>
+								<Label text="Doc. #" styles="{padding:2}"/>
+								<BoxPane orientation="horizontal">
+									<Label text="0" styles="{padding:2}"/>
+									<PushButton preferredHeight="20" action="prevDoc">
+										<buttonData>
+											<content:ButtonData icon="/img/prev.png" />
+										</buttonData>
+									</PushButton>
+									<TextInput preferredWidth="48" bxml:id="docNum" />
+									<PushButton preferredHeight="20" action="nextDoc">
+										<buttonData>
+											<content:ButtonData icon="/img/next.png" />
+										</buttonData>
+									</PushButton>
+									<Label bxml:id="maxDocs" text="?" styles="{padding:2}"/>
+								</BoxPane>
+							</BoxPane>
+						</TablePane.Row>
+					</rows>
+				</TablePane>
+				</content>
+				</Border>
+			</left>
+			<right>
+				<SplitPane orientation="horizontal" splitRatio="0.50" styles="{useShadow:true}">
+					<left>
+						<Border styles="{padding:1}">
+						<content>
+						<TablePane styles="{verticalSpacing:2,horizontalSpacing:1,padding:5,backgroundColor:11}">
+							<columns>
+								<TablePane.Column width="1*" />
+							</columns>
+							<rows>
+								<TablePane.Row>
+									<BoxPane orientation="vertical">
+										<Label text="%documentsTab_browseByTerm" styles="{padding:1,font:{bold:true}}"/>
+										<Label text="%documentsTab_selectField" styles="{wrapText:true}"/>
+										<Label text="%documentsTab_enterTermHint" styles="{wrapText:true}"/>
+										<ListButton bxml:id="fieldsList" listSize="20" />
+										<Label text="%documentsTab_term" />
+										<BoxPane>
+											<PushButton buttonData="%documentsTab_firstTerm"
+																	action="showFirstTerm" />
+											<TextInput bxml:id="termText" />
+											<PushButton action="showNextTerm">
+												<buttonData>
+													<content:ButtonData icon="/img/next.png" />
+												</buttonData>
+											</PushButton>
+										</BoxPane>
+									</BoxPane>
+								</TablePane.Row>
 
-					</BoxPane>
-				</BoxPane>
+								<TablePane.Row>
+									<BoxPane>
+										<Label text="%documentsTab_decodedValue" />
+										<TextArea bxml:id="decText" />
+									</BoxPane>
+								</TablePane.Row>
+							</rows>
+						</TablePane>
+						</content>
+						</Border>
+					</left>
+					<right>
+						<Border styles="{padding:1}">
+						<content>
+						<TablePane styles="{verticalSpacing:2,horizontalSpacing:1,padding:5,backgroundColor:11}">
+							<columns>
+								<TablePane.Column width="1*" />
+							</columns>
+							<rows>
+								<TablePane.Row>
+									<BoxPane orientation="vertical">
+										<Label text="%documentsTab_browseDocsWithTerm" styles="{padding:1,font:{bold:true}}"/>
+										<Label text="%documentsTab_selectTerm" styles="{wrapText:true}"/>
+										<BoxPane>
+											<!--Label text="%documentsTab_document" /-->
+											<PushButton buttonData="%documentsTab_firstDoc" action="showFirstTermDoc" />
+											<PushButton action="showNextTermDoc">
+												<buttonData>
+													<content:ButtonData icon="/img/next.png" />
+												</buttonData>
+											</PushButton>
 
-				<BoxPane orientation="vertical">
-					<Label text="%documentsTab_browseByTerm" />
-					<Label text="%documentsTab_enterTermHint" />
-					<BoxPane>
-						<PushButton buttonData="%documentsTab_firstTerm"
-							action="showFirstTerm" />
-						<Label text="%documentsTab_term" />
-						<ListButton bxml:id="fieldsList" listSize="20" />
-						<TextInput bxml:id="termText" />
-						<PushButton action="showNextTerm">
-							<buttonData>
-								<content:ButtonData icon="/img/next.png" />
-							</buttonData>
-						</PushButton>
-					</BoxPane>
-				</BoxPane>
+											<Label text=" ("/>
+											<Label bxml:id="tdNum" text="?" />
+											<Label text=" of " />
+											<Label bxml:id="tdMax" text="?" />
+											<Label text=" documents )" />
+										</BoxPane>
+									</BoxPane>
+								</TablePane.Row>
 
+								<TablePane.Row>
+									<BoxPane orientation="vertical">
+										<BoxPane>
+											<Label text="%documentsTab_termFreqInDoc" />
+											<Label bxml:id="tFreq" text="?" />
+										</BoxPane>
+										<PushButton bxml:id="bPos" buttonData="%documentsTab_showPositions"
+																action="showPositions" />
+									</BoxPane>
+								</TablePane.Row>
 
-				<!-- second row -->
-				<Label text="%documentsTab_decodedValue" />
-				<TextArea bxml:id="decText" />
+								<TablePane.Row>
+									<Separator/>
+								</TablePane.Row>
 
-				<Separator />
-				<BoxPane orientation="vertical">
-					<BoxPane>
-						<Label text="%documentsTab_browseDocsWithTerm" />
-						<Label text="( " />
-						<Label bxml:id="dFreq" text="0" />
-						<Label text=" documents)" />
-					</BoxPane>
+								<TablePane.Row>
+									<BoxPane>
+										<PushButton buttonData="%documentsTab_showAllDocs"
+																action="showAllTermDoc"/>
+										<BoxPane>
+											<PushButton action="deleteTermDoc">
+												<buttonData>
+													<content:ButtonData icon="/img/delete.gif" />
+												</buttonData>
+											</PushButton>
+											<Label text="%documentsTab_deleteAllDocs" styles="{padding:1}"/>
+										</BoxPane>
+									</BoxPane>
+								</TablePane.Row>
 
-					<BoxPane>
-						<Label text="%documentsTab_document" />
-						<Label bxml:id="tdNum" text="?" />
-						<Label text=" of " />
-						<Label bxml:id="tdMax" text="?" />
-						<PushButton buttonData="%documentsTab_firstDoc" action="showFirstTermDoc" />
-						<PushButton action="showNextTermDoc">
-							<buttonData>
-								<content:ButtonData icon="/img/next.png" />
-							</buttonData>
-						</PushButton>
-					</BoxPane>
+							</rows>
+						</TablePane>
+						</content>
+						</Border>
+					</right>
+				</SplitPane>
+			</right>
+		</SplitPane>
+	</top>
 
-				</BoxPane>
-				<BoxPane orientation="vertical">
-					<PushButton buttonData="%documentsTab_showAllDocs"
-						action="showAllTermDoc" />
-					<PushButton buttonData="%documentsTab_deleteAllDocs"
-						action="deleteTermDoc">
-						<buttonData>
-							<content:ButtonData icon="/img/delete.gif" />
-						</buttonData>
-					</PushButton>
-				</BoxPane>
-				<Label text=" " />
-				<Label text="%documentsTab_termFreqInDoc" />
-
-				<Label bxml:id="tFreq" text="?" />
-				<PushButton bxml:id="bPos" buttonData="%documentsTab_showPositions"
-					action="showPositions" />
-			</FlowPane>
-		</TablePane.Row>
-		<TablePane.Row>
-			<TablePane styles="{verticalSpacing:1, horizontalSpacing:1}">
-				<columns>
-					<TablePane.Column width="1*" />
-					<TablePane.Column />
-				</columns>
-				<rows>
-					<TablePane.Row>
-						<FlowPane>
-							<Label text="Doc #:" />
-							<Label bxml:id="docNum2" text="?" />
-							<Label text=" " />
-						</FlowPane>
-						<FlowPane>
-							<TablePane styles="{verticalSpacing:1, horizontalSpacing:1}">
-								<columns>
-									<TablePane.Column />
-									<TablePane.Column />
-									<TablePane.Column />
-									<TablePane.Column />
-									<TablePane.Column />
-									<TablePane.Column />
-								</columns>
-								<rows>
-									<TablePane.Row>
-										<Label text="Flags: " />
-										<Label text=" I - Indexed " />
-										<Label text="  T - Tokenized " />
-										<Label text="  S - Stored " />
-										<Label text="  V - Term Vector " />
-										<Label text=" (o - offsets; p - positions) " />
-									</TablePane.Row>
-									<TablePane.Row>
-										<TablePane.Filler />
-
-										<Label text=" O - Omit Norms " />
-										<Label text="  f - Omit TF " />
-										<Label text="  L - Lazy " />
-										<Label text="  B - Binary " />
-									</TablePane.Row>
-								</rows>
-							</TablePane>
-						</FlowPane>
-					</TablePane.Row>
-				</rows>
-			</TablePane>
-		</TablePane.Row>
-		<TablePane.Row height="1*">
-			<ScrollPane horizontalScrollBarPolicy="fill_to_capacity" styles="{backgroundColor:11}">
-				<view>
-					<TableView bxml:id="docTable">
+	<bottom>
+		<TablePane styles="{verticalSpacing:5,horizontalSpacing:1,padding:5,backgroundColor:11}">
+			<columns>
+				<TablePane.Column width="1*" />
+			</columns>
+			<rows>
+				<TablePane.Row>
+					<TablePane>
 						<columns>
-							<TableView.Column name="field"
-								headerData="%documentsTab_docTable_col1" />
-							<TableView.Column name="itsvopfolb"
-								headerData="%documentsTab_docTable_col2" />
-							<TableView.Column name="norm"
-								headerData="%documentsTab_docTable_col3" />
-							<TableView.Column name="value"
-								headerData="%documentsTab_docTable_col4" width="1*" />
+							<TablePane.Column width="1*" />
+							<TablePane.Column />
 						</columns>
+						<rows>
+							<TablePane.Row>
+								<FlowPane>
+									<Label text="Doc #:" />
+									<Label bxml:id="docNum2" text="?" />
+									<Label text=" " />
+								</FlowPane>
+								<FlowPane>
+									<TablePane styles="{verticalSpacing:1, horizontalSpacing:1}">
+										<columns>
+											<TablePane.Column />
+											<TablePane.Column />
+											<TablePane.Column />
+											<TablePane.Column />
+											<TablePane.Column />
+											<!--TablePane.Column /-->
+										</columns>
+										<rows>
+											<TablePane.Row>
+												<Label text="Flags: " />
+												<Label text=" I - Indexed (docs,freqs,pos,offsets) " />
+                                                <Label text=" P - Payloads" />
+                                                <Label text=" S - Stored " />
+                                                <Label text=" V - Term Vector " />
+												<!--Label text=" T - Tokenized " /-->
+												<!--Label text=" (o - offsets; p - positions; a - payloads) " /-->
+											</TablePane.Row>
+											<TablePane.Row>
+												<TablePane.Filler />
+												<!--Label text=" O - Omit Norms " /-->
+												<!--Label text="  f - Omit TF " /-->
+												<!--Label text=" L - Lazy " /-->
+                                                <Label text=" B - Binary " />
+                                                <Label text=" Ntxx - Norms (type/precision);"/>
+                                                <Label text=" #txx - Numeric (type/precision);"/>
+                                                <Label text=" Dtxx - DocValues (type/precision)"/>
+											</TablePane.Row>
+										</rows>
+									</TablePane>
+								</FlowPane>
+							</TablePane.Row>
+						</rows>
+					</TablePane>
+				</TablePane.Row>
+				<TablePane.Row height="1*">
+					<Border styles="{padding:1}">
+						<content>
+							<ScrollPane horizontalScrollBarPolicy="fill_to_capacity" styles="{backgroundColor:11}">
+								<view>
+									<TableView bxml:id="docTable">
+										<columns>
+											<TableView.Column name="name"
+																				headerData="%documentsTab_docTable_col1" />
+											<TableView.Column name="itsvopatolb"
+																				headerData="%documentsTab_docTable_col2" width="150"/>
+											<TableView.Column name="value"
+																				headerData="%documentsTab_docTable_col3" width="1*" />
+										</columns>
 
-					</TableView>
-				</view>
-				<columnHeader>
-					<TableViewHeader tableView="$docTable" />
-				</columnHeader>
-			</ScrollPane>
-		</TablePane.Row>
-	</rows>
+									</TableView>
+								</view>
+								<columnHeader>
+									<TableViewHeader tableView="$docTable" />
+								</columnHeader>
+							</ScrollPane>
+						</content>
+					</Border>
+				</TablePane.Row>
+			</rows>
+		</TablePane>
+	</bottom>
 </luke:DocumentsTab>

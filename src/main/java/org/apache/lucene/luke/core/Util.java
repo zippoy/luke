@@ -7,6 +7,7 @@ import org.apache.lucene.document.FieldType.NumericType;
 import org.apache.lucene.index.*;
 import org.apache.lucene.index.FieldInfo.DocValuesType;
 import org.apache.lucene.index.FieldInfo.IndexOptions;
+import org.apache.lucene.luke.core.decoders.*;
 import org.apache.lucene.search.similarities.TFIDFSimilarity;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.util.BytesRef;
@@ -15,10 +16,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class Util {
   
@@ -310,7 +308,14 @@ public class Util {
     }
     return fl;
   }
-  
+
+  public static String normType(FieldInfo info) {
+    if (info == null || !info.hasNorms() || info.getNormType() == null) {
+      return "---";
+    }
+    return info.getNormType().name();
+  }
+
   public static Resolution getResolution(String key) {
     if (key == null || key.trim().length() == 0) {
       return Resolution.MILLISECOND;
@@ -363,4 +368,40 @@ public class Util {
       return String.valueOf(len / 1048576);
     }
   }
+
+  public static List<Decoder> loadDecoders() {
+    List decoders = new ArrayList();
+    // default decoders
+    decoders.add(new BinaryDecoder());
+    decoders.add(new DateDecoder());
+    decoders.add(new NumDoubleDecoder());
+    decoders.add(new NumFloatDecoder());
+    decoders.add(new NumIntDecoder());
+    decoders.add(new NumLongDecoder());
+    decoders.add(new StringDecoder());
+
+    // load external decoders
+    try {
+      String extLoaders = System.getProperty("luke.ext.decoder.loader");
+      if (extLoaders != null) {
+        String[] classes = extLoaders.split(",");
+        for (String className : classes) {
+          Class clazz = Class.forName(className);
+          Class[] interfaces = clazz.getInterfaces();
+          if (Arrays.asList(interfaces).indexOf(DecoderLoader.class) < 0) {
+            throw new Exception(className + " is not a DecoderLoader.");
+          }
+          DecoderLoader loader = (DecoderLoader)clazz.newInstance();
+          List<Decoder> extDecoders = loader.loadDecoders();
+          for (Decoder dec : extDecoders) {
+            decoders.add(dec);
+          }
+        }
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return decoders;
+  }
+
 }

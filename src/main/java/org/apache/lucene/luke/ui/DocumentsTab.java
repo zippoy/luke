@@ -25,26 +25,27 @@ import org.apache.lucene.luke.core.IndexInfo;
 import org.apache.lucene.luke.core.Util;
 import org.apache.lucene.luke.core.decoders.Decoder;
 import org.apache.lucene.luke.ui.LukeWindow.LukeMediator;
+import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
+import org.apache.lucene.search.similarities.DefaultSimilarity;
+import org.apache.lucene.search.similarities.TFIDFSimilarity;
 import org.apache.lucene.util.BytesRef;
 import org.apache.pivot.beans.BXML;
 import org.apache.pivot.beans.Bindable;
-import org.apache.pivot.collections.ArrayList;
-import org.apache.pivot.collections.HashMap;
-import org.apache.pivot.collections.List;
-import org.apache.pivot.collections.Map;
+import org.apache.pivot.collections.*;
 import org.apache.pivot.util.Resources;
 import org.apache.pivot.util.concurrent.Task;
 import org.apache.pivot.util.concurrent.TaskExecutionException;
 import org.apache.pivot.util.concurrent.TaskListener;
 import org.apache.pivot.wtk.*;
 
-import java.io.IOException;
+import java.io.*;
 import java.net.URL;
+import java.util.Arrays;
 
-public class DocumentsTab extends TablePane implements Bindable {
+public class DocumentsTab extends SplitPane implements Bindable {
 
   private int iNum;
   @BXML
@@ -70,6 +71,20 @@ public class DocumentsTab extends TablePane implements Bindable {
   @BXML
   private TextArea decText;
 
+  @BXML
+  private PushButton bPos;
+  @BXML
+  private PosAndOffsetsWindow posAndOffsetsWindow;
+
+  @BXML
+  private TermVectorWindow tvWindow;
+
+  @BXML
+  private FieldDataWindow fieldDataWindow;
+
+  @BXML
+  private FieldNormWindow fieldNormWindow;
+
   private java.util.List<String> fieldNames = null;
 
   // this gets injected by LukeWindow at init
@@ -78,7 +93,8 @@ public class DocumentsTab extends TablePane implements Bindable {
   private Resources resources;
 
   private TermsEnum te;
-  private DocsAndPositionsEnum td;
+  //private DocsAndPositionsEnum td;
+  private DocsEnum td;
 
   private String fld;
   private Term lastTerm;
@@ -197,6 +213,15 @@ public class DocumentsTab extends TablePane implements Bindable {
       fieldsList.setSelectedIndex(0);
     }
     maxDocs.setText(String.valueOf(ir.maxDoc() - 1));
+
+    bPos.setAction(new Action() {
+      @Override
+      public void perform(Component component) {
+        showPositionsWindow();
+      }
+    });
+
+    addlListenerToDocTable();
   }
 
   private void showDoc(int incr) {
@@ -220,6 +245,11 @@ public class DocumentsTab extends TablePane implements Bindable {
         return;
       }
       docNum.setText(String.valueOf(iNum));
+
+      td = null;
+      tdNum.setText("?");
+      tFreq.setText("?");
+      tdMax.setText("?");
 
       org.apache.lucene.util.Bits live = ar.getLiveDocs();
       if (live == null || live.get(iNum)) {
@@ -293,7 +323,7 @@ public class DocumentsTab extends TablePane implements Bindable {
 
   public void popTableWithDoc(int docid, Document doc) {
     docNum.setText(String.valueOf(docid));
-    List<Map<String,String>> tableData = new ArrayList<Map<String,String>>();
+    List<Map<String,Object>> tableData = new ArrayList<Map<String,Object>>();
     docTable.setTableData(tableData);
 
     // putProperty(table, "doc", doc);
@@ -305,10 +335,9 @@ public class DocumentsTab extends TablePane implements Bindable {
 
     docNum2.setText(String.valueOf(docid));
     for (int i = 0; i < indexFields.size(); i++) {
-      Map<String,String> row = new HashMap<String,String>();
-
       IndexableField[] fields = doc.getFields(indexFields.get(i));
-      if (fields == null) {
+      if (fields == null || fields.length == 0) {
+        Map<String,Object> row = new HashMap<String,Object>();
         tableData.add(row);
         addFieldRow(row, indexFields.get(i), null, docid);
         continue;
@@ -318,13 +347,19 @@ public class DocumentsTab extends TablePane implements Bindable {
         // System.out.println("f.len=" + fields[j].getBinaryLength() +
         // ", doc.len=" + doc.getBinaryValue(indexFields[i]).length);
         // }
+        Map<String,Object> row = new HashMap<String,Object>();
         tableData.add(row);
         addFieldRow(row, indexFields.get(i), fields[j], docid);
       }
     }
   }
 
-  private void addFieldRow(Map<String,String> row, String fName, IndexableField field, int docid) {
+  private static final String FIELDROW_KEY_NAME = "name";
+  private static final String FIELDROW_KEY_FLAGS = "itsvopatolb";
+  private static final String FIELDROW_KEY_VALUE = "value";
+  private static final String FIELDROW_KEY_FIELD = "field";
+
+  private void addFieldRow(Map<String,Object> row, String fName, IndexableField field, int docid) {
     java.util.Map<String,Decoder> decoders = lukeMediator.getDecoders();
     Decoder defDecoder = lukeMediator.getDefDecoder();
 
@@ -332,31 +367,14 @@ public class DocumentsTab extends TablePane implements Bindable {
     // putProperty(row, "field", f);
     // putProperty(row, "fName", fName);
 
-    row.put("field", fName);
-    row.put("itsvopfolb", Util.fieldFlags(f, infos.fieldInfo(fName)));
+    row.put(FIELDROW_KEY_FIELD, field);
+
+    row.put(FIELDROW_KEY_NAME, fName);
+    row.put(FIELDROW_KEY_FLAGS, Util.fieldFlags(f, infos.fieldInfo(fName)));
 
     // if (f == null) {
     // setBoolean(cell, "enabled", false);
     // }
-
-    if (f != null) {
-      try {
-        FieldInfo info = infos.fieldInfo(fName);
-        if (info.hasNorms()) {
-          NumericDocValues norms = ar.getNormValues(fName);
-          String val = Long.toString(norms.get(docid));
-          row.put("norm", String.valueOf(norms.get(docid)));
-        } else {
-          row.put("norm", "---");
-        }
-      } catch (IOException ioe) {
-        ioe.printStackTrace();
-        row.put("norm", "!?!");
-      }
-    } else {
-      row.put("norm", "---");
-      // setBoolean(cell, "enabled", false);
-    }
 
     if (f != null) {
       String text = f.stringValue();
@@ -374,15 +392,16 @@ public class DocumentsTab extends TablePane implements Bindable {
         if (f.fieldType().stored()) {
           text = dec.decodeStored(f.name(), f);
         } else {
-          text = dec.decodeTerm(f.name(), text);
+          //text = dec.decodeTerm(f.name(), text);
+          text = dec.decodeTerm(f.name(), f.binaryValue());
         }
       } catch (Throwable e) {
         // TODO:
         // setColor(cell, "foreground", Color.RED);
       }
-      row.put("value", Util.escape(text));
+      row.put(FIELDROW_KEY_VALUE, Util.escape(text));
     } else {
-      row.put("value", "<not present or not stored>");
+      row.put(FIELDROW_KEY_VALUE, "<not present or not stored>");
       // setBoolean(cell, "enabled", false);
     }
   }
@@ -407,7 +426,7 @@ public class DocumentsTab extends TablePane implements Bindable {
         try {
 
           fld = (String) fieldsList.getSelectedItem();
-          System.out.println("fld:" + fld);
+          //System.out.println("fld:" + fld);
           Terms terms = MultiFields.getTerms(ir, fld);
           te = terms.iterator(null);
           BytesRef term = te.next();
@@ -451,7 +470,7 @@ public class DocumentsTab extends TablePane implements Bindable {
       @Override
       public void taskExecuted(Task<Object> task) {
         try {
-          DocsAndPositionsEnum td = MultiFields.getTermPositionsEnum(ir, null, lastTerm.field(), lastTerm.bytes());
+          DocsEnum td = MultiFields.getTermDocsEnum(ir, null, lastTerm.field(), lastTerm.bytes());
           td.nextDoc();
           tdNum.setText("1");
           DocumentsTab.this.td = td;
@@ -528,7 +547,7 @@ public class DocumentsTab extends TablePane implements Bindable {
 
   }
 
-  private void showTerm(final Term t) {
+  protected void showTerm(final Term t) {
     if (t == null) {
       // TODO:
       // showStatus("No terms?!");
@@ -550,7 +569,8 @@ public class DocumentsTab extends TablePane implements Bindable {
     String s = null;
     boolean decodeErr = false;
     try {
-      s = dec.decodeTerm(t.field(), t.text());
+      //s = dec.decodeTerm(t.field(), t.text());
+      s = dec.decodeTerm(t.field(), t.bytes());
     } catch (Throwable e) {
       s = e.getMessage();
       decodeErr = true;
@@ -559,7 +579,8 @@ public class DocumentsTab extends TablePane implements Bindable {
     termText.setText(t.text());
 
     if (!s.equals(t.text())) {
-      decText.setText(s);
+      String decoded = s + " (by " + dec.toString() + ")";
+      decText.setText(decoded);
 
       if (decodeErr) {
         // setColor(rawText, "foreground", Color.RED);
@@ -592,14 +613,11 @@ public class DocumentsTab extends TablePane implements Bindable {
 
         try {
           int freq = ir.docFreq(t);
-          dFreq.setText(String.valueOf(freq));
-
           tdMax.setText(String.valueOf(freq));
         } catch (Exception e) {
           e.printStackTrace();
           // TODO:
           // showStatus(e.getMessage());
-          dFreq.setText("?");
         }
         // ai.setActive(false);
       }
@@ -649,17 +667,20 @@ public class DocumentsTab extends TablePane implements Bindable {
           String rawString = rawTerm != null ? rawTerm.utf8ToString() : null;
 
           if (te == null || !DocumentsTab.this.fld.equals(fld) || !text.equals(rawString)) {
+            // seek for requested term
             Terms terms = MultiFields.getTerms(ir, fld);
             te = terms.iterator(null);
 
             DocumentsTab.this.fld = fld;
             status = te.seekCeil(new BytesRef(text));
-            if (status.equals(SeekStatus.FOUND)) {
+            if (status.equals(SeekStatus.FOUND) || status.equals(SeekStatus.NOT_FOUND)) {
+              // precise term or different term after the requested term was found.
               rawTerm = te.term();
             } else {
               rawTerm = null;
             }
           } else {
+            // move to next term
             rawTerm = te.next();
           }
           if (rawTerm == null) { // proceed to next field
@@ -675,7 +696,7 @@ public class DocumentsTab extends TablePane implements Bindable {
               te = terms.iterator(null);
               rawTerm = te.next();
               DocumentsTab.this.fld = fld;
-              break;
+              //break;
             }
           }
           if (rawTerm == null) {
@@ -723,6 +744,7 @@ public class DocumentsTab extends TablePane implements Bindable {
         try {
           Document doc = ir.document(td.docID());
           docNum.setText(String.valueOf(td.docID()));
+          iNum = td.docID();
 
           tFreq.setText(String.valueOf(td.freq()));
 
@@ -744,6 +766,38 @@ public class DocumentsTab extends TablePane implements Bindable {
 
     showTermDocTask.execute(new TaskAdapter<Object>(taskListener));
 
+  }
+
+  private void showPositionsWindow() {
+    try {
+      if (td == null) {
+        Alert.alert(MessageType.WARNING, (String) resources.get("documentsTab_msg_docNotSelected"), getWindow());
+      } else {
+        // create new Enum to show positions info
+        DocsAndPositionsEnum pe = MultiFields.getTermPositionsEnum(ir, null, lastTerm.field(), lastTerm.bytes());
+        if (pe == null) {
+          Alert.alert(MessageType.INFO, (String) resources.get("documentsTab_msg_positionNotIndexed"), getWindow());
+        } else {
+          // enumerate docId to the current doc
+          while(pe.docID() != td.docID()) {
+            if (pe.nextDoc() == DocIdSetIterator.NO_MORE_DOCS) {
+              // this must not happen!
+              Alert.alert(MessageType.ERROR, (String) resources.get("documentsTab_msg_noPositionInfo"), getWindow());
+            }
+          }
+          try {
+            posAndOffsetsWindow.initPositionInfo(pe, lastTerm);
+            posAndOffsetsWindow.open(getDisplay(), getWindow());
+          } catch (Exception e) {
+            // TODO:
+            e.printStackTrace();
+          }
+        }
+      }
+    } catch (Exception e) {
+      // TODO
+      e.printStackTrace();
+    }
   }
 
   public void showAllTermDoc() {
@@ -804,4 +858,178 @@ public class DocumentsTab extends TablePane implements Bindable {
 
   }
 
+  private void addlListenerToDocTable() {
+    docTable.getComponentMouseButtonListeners().add(new ComponentMouseButtonListener.Adapter() {
+      @Override
+      public boolean mouseClick(Component component, Mouse.Button button, int i, int i1, int i2) {
+        final Map<String, Object> row = (Map<String, Object>) docTable.getSelectedRow();
+        if (row == null) {
+          System.out.println("No field selected.");
+          return false;
+        }
+        if (button.name().equals(Mouse.Button.RIGHT.name())) {
+          MenuPopup popup = new MenuPopup();
+          Menu menu = new Menu();
+          Menu.Section section = new Menu.Section();
+          Menu.Item item1 = new Menu.Item(resources.get("documentsTab_docTable_popup_menu1"));
+          item1.setAction(new Action() {
+            @Override
+            public void perform(Component component) {
+              String name = (String)row.get(FIELDROW_KEY_NAME);
+              try {
+                Terms terms = ir.getTermVector(iNum, name);
+                if (terms == null) {
+                  String msg = "DocId: " + iNum + ", field: " + name;
+                  Alert.alert(MessageType.WARNING, "Term vector not avalable for " + msg, getWindow());
+                } else {
+                  showTermVectorWindow(name, terms);
+                }
+              } catch (IOException e) {
+                // TODO:
+                e.printStackTrace();
+              }
+
+            }
+          });
+          Menu.Item item2 = new Menu.Item(resources.get("documentsTab_docTable_popup_menu2"));
+          item2.setAction(new Action() {
+            @Override
+            public void perform(Component component) {
+              String name = (String)row.get(FIELDROW_KEY_NAME);
+              IndexableField field = (IndexableField)row.get(FIELDROW_KEY_FIELD);
+              if (field == null) {
+                Alert.alert(MessageType.WARNING, (String) resources.get("documentsTab_msg_noDataAvailable"), getWindow());
+              } else {
+                showFieldDataWindow(name, field);
+              }
+            }
+          });
+          Menu.Item item3 = new Menu.Item(resources.get("documentsTab_docTable_popup_menu3"));
+          item3.setAction(new Action() {
+            @Override
+            public void perform(Component component) {
+              String name = (String)row.get(FIELDROW_KEY_NAME);
+              IndexableField field = (IndexableField)row.get(FIELDROW_KEY_FIELD);
+              FieldInfo info = infos.fieldInfo(name);
+              if (field == null) {
+                Alert.alert(MessageType.WARNING, (String) resources.get("documentsTab_msg_noDataAvailable"), getWindow());
+              } else if (!info.isIndexed() || !info.hasNorms()) {
+                Alert.alert(MessageType.WARNING, (String) resources.get("documentsTab_msg_noNorm"), getWindow());
+              } else {
+                showFieldNormWindow(name);
+              }
+            }
+          });
+          Menu.Item item4 = new Menu.Item(resources.get("documentsTab_docTable_popup_menu4"));
+          item4.setAction(new Action() {
+            @Override
+            public void perform(Component component) {
+              String name = (String)row.get(FIELDROW_KEY_NAME);
+              IndexableField field = (IndexableField)row.get(FIELDROW_KEY_FIELD);
+              if (ir == null) {
+                Alert.alert(MessageType.ERROR, (String) resources.get("documentsTab_noOrClosedIndex"), getWindow());
+              } else if (field == null) {
+                Alert.alert(MessageType.WARNING, (String) resources.get("documentsTab_msg_noDataAvailable"), getWindow());
+              } else {
+                saveFieldData(field);
+              }
+            }
+          });
+          section.add(item1);
+          section.add(item2);
+          section.add(item3);
+          section.add(item4);
+          menu.getSections().add(section);
+          popup.setMenu(menu);
+          popup.open(getWindow(), getMouseLocation().x + 20, getMouseLocation().y + 50);
+          return true;
+        }
+        return false;
+      }
+    });
+
+  }
+
+  private void showTermVectorWindow(String fieldName, Terms tv) {
+    try {
+      tvWindow.initTermVector(fieldName, tv);
+    } catch (IOException e) {
+      // TODO
+      e.printStackTrace();
+    }
+    tvWindow.open(getDisplay(), getWindow());
+  }
+
+  private void showFieldDataWindow(String fieldName, IndexableField field) {
+    fieldDataWindow.initFieldData(fieldName, field);
+    fieldDataWindow.open(getDisplay(), getWindow());
+  }
+
+  private static TFIDFSimilarity defaultSimilarity = new DefaultSimilarity();
+  private void showFieldNormWindow(String fieldName) {
+    if (ar != null) {
+      try {
+        NumericDocValues norms = ar.getNormValues(fieldName);
+        fieldNormWindow.initFieldNorm(iNum, fieldName, norms);
+        fieldNormWindow.open(getDisplay(), getWindow());
+      } catch (Exception e) {
+        Alert.alert(MessageType.ERROR, (String) resources.get("documentsTab_msg_errorNorm"), getWindow());
+        e.printStackTrace();
+      }
+    }
+  }
+
+  private void saveFieldData(IndexableField field) {
+    byte[] data = null;
+    if (field.binaryValue() != null) {
+      BytesRef bytes = field.binaryValue();
+      data = new byte[bytes.length];
+      System.arraycopy(bytes.bytes, bytes.offset, data, 0,
+        bytes.length);
+    }
+    else {
+      try {
+        data = field.stringValue().getBytes("UTF-8");
+      } catch (UnsupportedEncodingException uee) {
+        uee.printStackTrace();
+        data = field.stringValue().getBytes();
+      }
+    }
+    if (data == null || data.length == 0) {
+      Alert.alert(MessageType.WARNING, (String) resources.get("documentsTab_msg_noDataAvailable"), getWindow());
+    }
+
+    final byte[] fieldData = Arrays.copyOf(data, data.length);
+    final FileBrowserSheet fileBrowserSheet = new FileBrowserSheet(FileBrowserSheet.Mode.SAVE_AS);
+    fileBrowserSheet.open(getWindow(), new SheetCloseListener() {
+      @Override
+      public void sheetClosed(Sheet sheet) {
+        if (sheet.getResult()) {
+          Sequence<File> selectedFiles = fileBrowserSheet.getSelectedFiles();
+          File file = selectedFiles.get(0);
+          try {
+            OutputStream os = new FileOutputStream(file);
+            int delta = fieldData.length / 100;
+            if (delta == 0) delta = 1;
+            for (int i = 0; i < fieldData.length; i++) {
+              os.write(fieldData[i]);
+              // TODO: show progress
+              //if (i % delta == 0) {
+              // setInteger(bar, "value", i / delta);
+              //}
+            }
+            os.flush();
+            os.close();
+            Alert.alert(MessageType.INFO, "Saved to " + file.getAbsolutePath(), getWindow());
+          } catch (IOException e) {
+            e.printStackTrace();
+            Alert.alert(MessageType.ERROR, "Can't save to : " + file.getAbsoluteFile(), getWindow());
+          }
+        } else {
+          Alert.alert(MessageType.INFO, "You didn't select anything.", getWindow());
+        }
+
+      }
+    });
+  }
 }

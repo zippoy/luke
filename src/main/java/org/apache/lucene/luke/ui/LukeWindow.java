@@ -70,6 +70,8 @@ public class LukeWindow extends Frame implements Bindable {
   @BXML
   private LukeInitWindow lukeInitWindow;
   @BXML
+  private TabPane tabPane;
+  @BXML
   private FilesTab filesTab;
   @BXML
   private DocumentsTab documentsTab;
@@ -79,6 +81,8 @@ public class LukeWindow extends Frame implements Bindable {
   private OverviewTab overviewTab;
   @BXML
   private AnalyzersTab analyzersTab;
+  @BXML
+  private Label indexName;
 
   private LukeMediator lukeMediator = new LukeMediator();
 
@@ -235,6 +239,7 @@ public class LukeWindow extends Frame implements Bindable {
   /**
    * Populate a combobox with the current list of analyzers.
    *
+   * @param combo
    * @throws ClassNotFoundException
    * @throws java.io.IOException
    */
@@ -257,6 +262,8 @@ public class LukeWindow extends Frame implements Bindable {
   /**
    * Open indicated index and re-initialize all GUI and plugins.
    *
+   * @param pName
+   *          path to index
    * @param force
    *          if true, and the index is locked, unlock it first. If false, and the index is locked, an error will be reported.
    * @param readOnly
@@ -407,6 +414,7 @@ public class LukeWindow extends Frame implements Bindable {
 
       // initPlugins();
       showStatus("Index successfully open.");
+      indexName.setText("Index path: " + indexPath);
     } catch (Exception e) {
       e.printStackTrace();
       errorMsg(e.getMessage());
@@ -590,8 +598,13 @@ public class LukeWindow extends Frame implements Bindable {
       setComponentColor(component, "scrollButtonBackgroundColor", theme[2]);
       setComponentColor(component, "borderColor", theme[3]);
     } else if (component instanceof PushButton || component instanceof ListButton) {
-      component.getComponentMouseButtonListeners().add(mouseButtonPressedListener);
-      component.getComponentMouseListeners().add(mouseMoveListener);
+      // Listeners are added at start-up time only.
+      if (component.getComponentMouseButtonListeners().isEmpty()) {
+        component.getComponentMouseButtonListeners().add(mouseButtonPressedListener);
+      }
+      if (component.getComponentMouseListeners().isEmpty()) {
+        component.getComponentMouseListeners().add(mouseMoveListener);
+      }
       setComponentColor(component, "color", theme[1]);
       setComponentColor(component, "backgroundColor", theme[0]);
       setComponentColor(component, "borderColor", theme[3]);
@@ -647,7 +660,7 @@ public class LukeWindow extends Frame implements Bindable {
 
   private Directory directory;
 
-  class LukeMediator {
+  public class LukeMediator {
 
     // populated by LukeWindow#openIndex
     private IndexInfo indexInfo;
@@ -666,6 +679,14 @@ public class LukeWindow extends Frame implements Bindable {
 
     public OverviewTab getOverViewTab() {
       return overviewTab;
+    }
+
+    public DocumentsTab getDocumentsTab() {
+      return documentsTab;
+    }
+
+    public TabPane getTabPane() {
+      return tabPane;
     }
 
     public LukeWindow getLukeWindow() {

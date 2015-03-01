@@ -26,6 +26,9 @@
  sandstoneTheme: "Sandstone Theme",
  skyTheme: "Sky Theme",
  navyTheme: "Navy Theme",
+
+ label_ok: "OK",
+ label_clipboard: "Copy to Clipboard",
  
  lukeInitWindow_title: "Path to index directory:",
  lukeInitWindow_path: "Path:",
@@ -58,9 +61,10 @@
  overviewTab_userData: "Current commit user data:",
  
  overviewTab_fieldsAndTermCounts: "Available fields and term counts per field:",
- overviewTab_topRankingTerms: "Top Ranking Terms (Right click for more options)",
+ overviewTab_topRankingTerms: "Top Ranking Terms (Select a row and right click for more options)",
  overviewTab_decoderWarn: "Tokens marked in red indicate decoding errors, likely due to a mismatched decoder.",
  overviewTab_fieldSelect: "Select fields from the list below, and press button to view top terms in these fields. No selection means all fields.",
+ overviewTab_fieldsHintDecoder: "Hint: Double click 'Decoder' column, select decoder class, and press Enter to set the suitable decoder.",
  overviewTab_topTermsHint: "Hint: use Shift-Click to select ranges, or Ctrl-Click to select multiple fields (or unselect all).",
  overviewTab_showTopTerms: "Show top terms >>",
  
@@ -68,28 +72,59 @@
  overviewTab_topTermsTable_col2: "DF",
  overviewTab_topTermsTable_col3: "Field",
  overviewTab_topTermsTable_col4: "Text",
+
+ overviewTab_topTermTable_popup_menu1: "Browse term docs",
+ overviewTab_topTermTable_popup_menu2: "Show all term docs",
+ overviewTab_topTermTable_popup_menu3: "Copy to clipboard",
  
  documentsTab_noOrClosedIndex: "FAILED: No index, or index is closed. Reopen it.",
  documentsTab_docNumOutsideRange: "Document number outside valid range.",
  documentsTab_browseByDocNum: "Browse by document number:",
  documentsTab_browseByTerm: "Browse by term:",
+ documentsTab_selectField: "Select a field from the spinner below, press Next to browse terms.",
  documentsTab_enterTermHint: "(Hint: enter a substring and press Next to start at the nearest term).",
  documentsTab_firstTerm: "First Term",
  documentsTab_term: "Term:",
  documentsTab_decodedValue: "Decoded value:",
- documentsTab_browseDocsWithTerm: "Browse documents with this term",
+ documentsTab_browseDocsWithTerm: "Browse documents with this term:",
+ documentsTab_selectTerm: "After select term, press Next to browse docs with the term.",
  documentsTab_showAllDocs: "Show All Docs",
  documentsTab_deleteAllDocs: "Delete All Docs",
  documentsTab_document: "Document:",
  documentsTab_firstDoc: "First Doc",
  documentsTab_termFreqInDoc: "Term freq in this doc:",
- documentsTab_showPositions: "Show Positions",
- 
+ documentsTab_showPositions: "Show Positions and Offsets",
+
  documentsTab_docTable_col1: "Field",
- documentsTab_docTable_col2: "ITSVopfOLB",
- documentsTab_docTable_col3: "Norm",
- documentsTab_docTable_col4: "Value",
- 
+ documentsTab_docTable_col2: "IdfpoPSVBNtxx#txxDtxx",
+ documentsTab_docTable_col3: "Value",
+
+ documentsTab_docTable_popup_menu1: "Field's Term Vector",
+ documentsTab_docTable_popup_menu2: "Show Full Text",
+ documentsTab_docTable_popup_menu3: "Set Norm",
+ documentsTab_docTable_popup_menu4: "Save Field",
+
+ documentsTab_msg_docNotSelected: "Please select a term and a document for showing term positions.",
+ documentsTab_msg_positionNotIndexed: "Positions are not indexed for this term.",
+ documentsTab_msg_noPositionInfo: "No positions info ???",
+ documentsTab_msg_noDataAvailable: "No data available for this field.",
+ documentsTab_msg_noNorm: "Cannot examine norm value - this field is not indexed.",
+ documentsTab_msg_errorNorm: "Error reading norm: ",
+ documentsTab_msg_cantOverwriteDir: "Can't overwrite a directory.",
+
+ posAndOffsetsWindow_title: "Term Positions and Offsets",
+
+ termVectorWindow_title: "Term Vector",
+ termVectorWindow_field: "Term vector for the field: ",
+
+ fieldDataWindow_title: "Field Data",
+ fieldDataWindow_decodeError: "Some values could not be properly represented in this format. They are marked in grey and presented as a hex dump.",
+
+ fieldNormWindow_title: "Field Norm",
+ fieldNormWindow_simClass: "Encode other field norm using this TFIDFSimilarity (full class name): ",
+ fieldNormWindow_otherNorm: "Enter norm value: ",
+ fieldNormWindow_encNorm: "Encoded value rounded to: ",
+
  searchTab_searchPrompt: "Enter search expression here:",
  searchTab_update: "Update",
  searchTab_explainStructure: "Explain Structure",

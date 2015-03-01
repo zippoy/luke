@@ -148,7 +148,10 @@
 											</columns>
 											<rows>
 												<TablePane.Row height="-1">
-													<Label styles="{backgroundColor:11,padding:2}" text="%overviewTab_fieldSelect" />
+													<Label styles="{backgroundColor:11,padding:2,wrapText:true}" text="%overviewTab_fieldSelect" />
+												</TablePane.Row>
+												<TablePane.Row height="-1">
+													<Label styles="{backgroundColor:11,padding:2,wrapText:true}" text="%overviewTab_fieldsHintDecoder" />
 												</TablePane.Row>
 												<TablePane.Row height="-1">
 													<Label styles="{backgroundColor:11,font:{bold:true}}"
