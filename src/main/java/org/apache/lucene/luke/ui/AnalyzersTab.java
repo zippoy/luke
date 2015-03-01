@@ -1,18 +1,8 @@
 package org.apache.lucene.luke.ui;
 
-import java.io.StringReader;
-import java.lang.reflect.Constructor;
-import java.net.URL;
-import java.util.Iterator;
-
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
-import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
-import org.apache.lucene.analysis.tokenattributes.FlagsAttribute;
-import org.apache.lucene.analysis.tokenattributes.OffsetAttribute;
-import org.apache.lucene.analysis.tokenattributes.PayloadAttribute;
-import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
-import org.apache.lucene.analysis.tokenattributes.TypeAttribute;
+import org.apache.lucene.analysis.tokenattributes.*;
 import org.apache.lucene.luke.core.Util;
 import org.apache.lucene.luke.ui.LukeWindow.LukeMediator;
 import org.apache.lucene.util.Attribute;
@@ -21,22 +11,15 @@ import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.util.Version;
 import org.apache.pivot.beans.BXML;
 import org.apache.pivot.beans.Bindable;
-import org.apache.pivot.collections.ArrayList;
-import org.apache.pivot.collections.HashMap;
-import org.apache.pivot.collections.List;
-import org.apache.pivot.collections.Map;
-import org.apache.pivot.collections.Sequence;
+import org.apache.pivot.collections.*;
 import org.apache.pivot.util.Resources;
-import org.apache.pivot.wtk.Action;
-import org.apache.pivot.wtk.Component;
-import org.apache.pivot.wtk.ListButton;
-import org.apache.pivot.wtk.ListView;
+import org.apache.pivot.wtk.*;
 import org.apache.pivot.wtk.ListView.SelectMode;
-import org.apache.pivot.wtk.ListViewSelectionListener;
-import org.apache.pivot.wtk.Span;
-import org.apache.pivot.wtk.TablePane;
-import org.apache.pivot.wtk.TableView;
-import org.apache.pivot.wtk.TextArea;
+
+import java.io.StringReader;
+import java.lang.reflect.Constructor;
+import java.net.URL;
+import java.util.Iterator;
 
 public class AnalyzersTab extends TablePane implements Bindable {
   

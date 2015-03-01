@@ -1,9 +1,9 @@
 package org.apache.lucene.luke.core;
 
+import org.apache.lucene.index.IndexDeletionPolicy;
+
 import java.io.IOException;
 import java.util.List;
-
-import org.apache.lucene.index.IndexDeletionPolicy;
 
 public class KeepAllIndexDeletionPolicy extends IndexDeletionPolicy {
 

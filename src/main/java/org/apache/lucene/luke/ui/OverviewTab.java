@@ -17,20 +17,8 @@ package org.apache.lucene.luke.ui;
  * limitations under the License.
  */
 
-import java.net.URL;
-import java.text.NumberFormat;
-import java.util.Collections;
-
-import org.apache.lucene.index.AtomicReaderContext;
-import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.IndexCommit;
-import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.SegmentReader;
-import org.apache.lucene.luke.core.FieldTermCount;
-import org.apache.lucene.luke.core.HighFreqTerms;
-import org.apache.lucene.luke.core.IndexInfo;
-import org.apache.lucene.luke.core.TableComparator;
-import org.apache.lucene.luke.core.TermStats;
+import org.apache.lucene.index.*;
+import org.apache.lucene.luke.core.*;
 import org.apache.lucene.luke.core.decoders.Decoder;
 import org.apache.lucene.luke.ui.LukeWindow.LukeMediator;
 import org.apache.lucene.store.Directory;
@@ -43,6 +31,10 @@ import org.apache.pivot.util.concurrent.Task;
 import org.apache.pivot.util.concurrent.TaskExecutionException;
 import org.apache.pivot.util.concurrent.TaskListener;
 import org.apache.pivot.wtk.*;
+
+import java.net.URL;
+import java.text.NumberFormat;
+import java.util.Collections;
 
 
 public class OverviewTab extends SplitPane implements Bindable {
@@ -277,13 +269,9 @@ public class OverviewTab extends SplitPane implements Bindable {
       String formatText = "N/A";
       String formatCaps = "N/A";
       if (dir != null) {
-        //int format = IndexGate.getIndexFormat(dir);
-        //IndexGate.FormatDetails formatDetails = IndexGate.getFormatDetails(format);
-        //formatText = format + " (" + formatDetails.getGenericName() + ")";
-        //formatCaps = formatDetails.getCapabilities();
-        int format = indexInfo.getIndexFormat();
-        formatText = format + " (" + indexInfo.getIndexFormatText() + ")";
-        formatCaps = indexInfo.getIndexCapabilities();
+        IndexGate.FormatDetails formatDetails = indexInfo.getIndexFormat();
+        formatText = formatDetails.version + " (" + formatDetails.genericName + ")";
+        formatCaps = formatDetails.capabilities;
         if (formatCaps == null) {
           formatCaps = (String) resources.get("overviewTab_newerVersionWarning");
         }

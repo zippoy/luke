@@ -17,25 +17,9 @@ package org.apache.lucene.luke.ui;
  * limitations under the License.
  */
 
-import java.io.IOException;
-import java.net.URL;
-
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
-import org.apache.lucene.index.AtomicReader;
-import org.apache.lucene.index.CompositeReader;
-import org.apache.lucene.index.DocsAndPositionsEnum;
-import org.apache.lucene.index.DocsEnum;
-import org.apache.lucene.index.FieldInfo;
-import org.apache.lucene.index.FieldInfos;
-import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.IndexableField;
-import org.apache.lucene.index.MultiFields;
-import org.apache.lucene.index.NumericDocValues;
-import org.apache.lucene.index.SlowCompositeReaderWrapper;
-import org.apache.lucene.index.Term;
-import org.apache.lucene.index.Terms;
-import org.apache.lucene.index.TermsEnum;
+import org.apache.lucene.index.*;
 import org.apache.lucene.index.TermsEnum.SeekStatus;
 import org.apache.lucene.luke.core.IndexInfo;
 import org.apache.lucene.luke.core.Util;
@@ -55,15 +39,10 @@ import org.apache.pivot.util.Resources;
 import org.apache.pivot.util.concurrent.Task;
 import org.apache.pivot.util.concurrent.TaskExecutionException;
 import org.apache.pivot.util.concurrent.TaskListener;
-import org.apache.pivot.wtk.Action;
-import org.apache.pivot.wtk.Component;
-import org.apache.pivot.wtk.Label;
-import org.apache.pivot.wtk.ListButton;
-import org.apache.pivot.wtk.TablePane;
-import org.apache.pivot.wtk.TableView;
-import org.apache.pivot.wtk.TaskAdapter;
-import org.apache.pivot.wtk.TextArea;
-import org.apache.pivot.wtk.TextInput;
+import org.apache.pivot.wtk.*;
+
+import java.io.IOException;
+import java.net.URL;
 
 public class DocumentsTab extends TablePane implements Bindable {
 
@@ -354,7 +333,7 @@ public class DocumentsTab extends TablePane implements Bindable {
     // putProperty(row, "fName", fName);
 
     row.put("field", fName);
-    row.put("itsvopfolb", Util.fieldFlags(f));
+    row.put("itsvopfolb", Util.fieldFlags(f, infos.fieldInfo(fName)));
 
     // if (f == null) {
     // setBoolean(cell, "enabled", false);

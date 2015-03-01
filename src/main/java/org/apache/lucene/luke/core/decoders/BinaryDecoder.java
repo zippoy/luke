@@ -1,8 +1,8 @@
 package org.apache.lucene.luke.core.decoders;
 
 import org.apache.lucene.document.Field;
+import org.apache.lucene.luke.core.Util;
 import org.apache.lucene.util.BytesRef;
-import org.getopt.luke.Util;
 
 public class BinaryDecoder implements Decoder {
 
@@ -10,7 +10,7 @@ public class BinaryDecoder implements Decoder {
   public String decodeTerm(String fieldName, Object value) throws Exception {
     byte[] data;
     if (value instanceof BytesRef) {
-      return Util.bytesToHex((BytesRef)value, false);
+      return Util.bytesToHex((BytesRef) value, false);
     } else if (value instanceof byte[]) {
       data = (byte[])value;
     } else {

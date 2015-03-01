@@ -22,7 +22,6 @@ import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Bits;
 import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.util.PriorityQueue;
-import org.getopt.luke.TermStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

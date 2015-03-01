@@ -17,26 +17,16 @@ package org.apache.lucene.luke.ui;
  * limitations under the License.
  */
 
-import java.io.File;
-import java.net.URL;
-
 import org.apache.lucene.luke.ui.LukeWindow.LukeMediator;
 import org.apache.pivot.beans.BXML;
 import org.apache.pivot.beans.Bindable;
 import org.apache.pivot.collections.Map;
 import org.apache.pivot.collections.Sequence;
 import org.apache.pivot.util.Resources;
-import org.apache.pivot.wtk.Action;
-import org.apache.pivot.wtk.Alert;
-import org.apache.pivot.wtk.Checkbox;
-import org.apache.pivot.wtk.Component;
-import org.apache.pivot.wtk.Dialog;
-import org.apache.pivot.wtk.FileBrowserSheet;
-import org.apache.pivot.wtk.MessageType;
-import org.apache.pivot.wtk.Sheet;
-import org.apache.pivot.wtk.SheetCloseListener;
-import org.apache.pivot.wtk.Spinner;
-import org.apache.pivot.wtk.TextInput;
+import org.apache.pivot.wtk.*;
+
+import java.io.File;
+import java.net.URL;
 
 public class LukeInitWindow extends Dialog implements Bindable {
   @BXML

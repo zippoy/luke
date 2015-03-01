@@ -1,16 +1,13 @@
 package org.apache.lucene.luke.core;
 
-import java.io.IOException;
-
 import org.apache.lucene.index.AtomicReaderContext;
 import org.apache.lucene.search.Scorer;
 import org.apache.lucene.search.TimeLimitingCollector;
+import org.apache.lucene.search.TimeLimitingCollector.TimeExceededException;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.TopScoreDocCollector;
-import org.apache.lucene.search.TimeLimitingCollector.TimeExceededException;
-import org.getopt.luke.*;
-import org.getopt.luke.LimitedException;
-import org.getopt.luke.NoScoringScorer;
+
+import java.io.IOException;
 
 public class IntervalLimitedCollector extends LimitedHitCollector {
   private long maxTime;
@@ -29,7 +26,7 @@ public class IntervalLimitedCollector extends LimitedHitCollector {
   }
 
   /* (non-Javadoc)
-   * @see org.getopt.luke.LimitedHitCollector#limitSize()
+   * @see LimitedHitCollector#limitSize()
    */
   @Override
   public long limitSize() {
@@ -37,7 +34,7 @@ public class IntervalLimitedCollector extends LimitedHitCollector {
   }
 
   /* (non-Javadoc)
-   * @see org.getopt.luke.LimitedHitCollector#limitType()
+   * @see LimitedHitCollector#limitType()
    */
   @Override
   public int limitType() {
@@ -53,7 +50,7 @@ public class IntervalLimitedCollector extends LimitedHitCollector {
   }
 
   /* (non-Javadoc)
-   * @see org.getopt.luke.AccessibleHitCollector#getScore(int)
+   * @see AccessibleHitCollector#getScore(int)
    */
   @Override
   public float getScore(int pos) {

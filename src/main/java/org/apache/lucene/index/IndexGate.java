@@ -1,10 +1,11 @@
 package org.apache.lucene.index;
 
+import org.apache.lucene.codecs.Codec;
 import org.apache.lucene.codecs.CodecUtil;
-import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.IOContext;
-import org.apache.lucene.store.IndexInput;
+import org.apache.lucene.store.*;
+import org.apache.lucene.util.IOUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
@@ -179,7 +180,24 @@ public class IndexGate {
     }
     res.genericName = res.genericName + " (" + format + ")";    
   }
-  
+
+  public static String getLastModified(final Directory dir) throws Exception {
+    SegmentInfos.FindSegmentsFile fsf = new SegmentInfos.FindSegmentsFile(dir) {
+      @Override
+      protected Object doBody(String segmentsFile) throws IOException {
+        if (dir instanceof FSDirectory) {
+          File file = new File(((FSDirectory)dir).getDirectory(), segmentsFile);
+          long lastModified = file.lastModified();
+          return lastModified;
+        }
+        return null;
+      }
+    };
+    Long lastModified = (Long)fsf.run();
+    return lastModified == null ? "N/A" : new Date(lastModified).toString();
+  }
+
+
   public static FormatDetails getIndexFormat(final Directory dir) throws Exception {
     SegmentInfos.FindSegmentsFile fsf = new SegmentInfos.FindSegmentsFile(dir) {
 
@@ -196,15 +214,32 @@ public class IndexGate {
             int actualVersion = SegmentInfos.VERSION_40;
             try {
               actualVersion = CodecUtil.checkHeaderNoMagic(in, "segments", SegmentInfos.VERSION_40, Integer.MAX_VALUE);
-              if (actualVersion > SegmentInfos.VERSION_46) {
+              res.version = Integer.toString(actualVersion);
+              if (actualVersion > SegmentInfos.VERSION_49) {
                 res.capabilities += " (WARNING: newer version of Lucene than this tool)";
               }
             } catch (Exception e) {
               e.printStackTrace();
               res.capabilities += " (error reading: " + e.getMessage() + ")";
             }
-            res.genericName = "Lucene 4." + actualVersion;
-            res.version = "4." + actualVersion;
+            switch (actualVersion) {
+              case SegmentInfos.VERSION_40:
+                res.genericName = "Lucene 4.0+";
+                break;
+              case SegmentInfos.VERSION_46:
+                res.genericName = "Lucene 4.6+";
+                break;
+              case SegmentInfos.VERSION_48:
+                res.genericName = "Lucene 4.8+";
+                break;
+              case SegmentInfos.VERSION_49:
+                res.genericName = "Lucene 4.9+";
+                break;
+              default:
+                res.capabilities = "unknown";
+                res.genericName = "Lucene 3.x or prior";
+                break;
+            }
           } else {
             res.genericName = "Lucene 3.x or prior";
             detectOldFormats(res, indexFormat);
@@ -220,7 +255,44 @@ public class IndexGate {
     };
     return (FormatDetails)fsf.run();
   }
-  
+
+
+  public static int getIndexFormatIntValue(final Directory dir) throws Exception {
+    SegmentInfos.FindSegmentsFile fsf = new SegmentInfos.FindSegmentsFile(dir) {
+      @Override
+      protected Object doBody(String segmentsFile) throws CorruptIndexException,
+        IOException {
+        //IndexInput in = dir.openInput(segmentsFile, IOContext.READONCE);
+        //Integer indexFormat = new Integer(in.readInt());
+        //in.close();
+
+        // codes below were copied from SegmentInfos class in Lucene 4.10.3
+        boolean success = false;
+        ChecksumIndexInput input = directory.openChecksumInput(segmentsFile, IOContext.READ);
+        final int format = input.readInt();
+        final int actualFormat;
+        try {
+          if (format == CodecUtil.CODEC_MAGIC) {
+            actualFormat = CodecUtil.checkHeaderNoMagic(input, "segments", SegmentInfos.VERSION_40, SegmentInfos.VERSION_49);
+          } else {
+            actualFormat = -1;
+          }
+          success = true;
+        } finally {
+          if (!success) {
+            IOUtils.closeWhileHandlingException(input);
+          } else {
+            input.close();
+          }
+        }
+        return actualFormat;
+      }
+    };
+    Integer indexFormat = (Integer)fsf.run();
+    return indexFormat.intValue();
+  }
+
+
   public static boolean preferCompoundFormat(Directory dir) throws Exception {
     SegmentInfos infos = new SegmentInfos();
     infos.read(dir);
@@ -271,7 +343,18 @@ public class IndexGate {
     Collections.sort(names);
     return names;
   }
-  
+
+  public static Codec getCodecOfFirstSegment(Directory dir)
+    throws CorruptIndexException, IOException {
+
+    SegmentInfos infos = new SegmentInfos();
+    infos.read(dir);
+
+    SegmentInfo info = (SegmentInfo) infos.info(0).info;
+    return info.getCodec();
+
+  }
+
   public static class FormatDetails {
     public String genericName = "N/A";
     public String capabilities = "N/A";

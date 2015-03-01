@@ -3,12 +3,11 @@
  */
 package org.apache.lucene.luke.core;
 
-import java.io.IOException;
-import java.util.ArrayList;
-
 import org.apache.lucene.index.AtomicReaderContext;
 import org.apache.lucene.search.Scorer;
-import org.getopt.luke.AccessibleHitCollector;
+
+import java.io.IOException;
+import java.util.ArrayList;
 
 class AllHitsCollector extends AccessibleHitCollector {
   private ArrayList<AllHit> hits = new ArrayList<AllHit>();
@@ -36,11 +35,11 @@ class AllHitsCollector extends AccessibleHitCollector {
   }
 
   public int getDocId(int i) {
-    return ((org.getopt.luke.AllHitsCollector.AllHit)hits.get(i)).docId;
+    return (hits.get(i)).docId;
   }
 
   public float getScore(int i) {
-    return ((org.getopt.luke.AllHitsCollector.AllHit)hits.get(i)).score;
+    return (hits.get(i)).score;
   }
 
   private static class AllHit {

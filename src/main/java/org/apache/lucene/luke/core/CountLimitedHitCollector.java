@@ -1,14 +1,11 @@
 package org.apache.lucene.luke.core;
 
-import java.io.IOException;
-
 import org.apache.lucene.index.AtomicReaderContext;
 import org.apache.lucene.search.Scorer;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.TopScoreDocCollector;
-import org.getopt.luke.*;
-import org.getopt.luke.LimitedException;
-import org.getopt.luke.NoScoringScorer;
+
+import java.io.IOException;
 
 public class CountLimitedHitCollector extends LimitedHitCollector {
   private int maxSize;
@@ -36,7 +33,7 @@ public class CountLimitedHitCollector extends LimitedHitCollector {
   }
 
   /* (non-Javadoc)
-   * @see org.getopt.luke.AllHitsCollector#collect(int, float)
+   * @see AllHitsCollector#collect(int, float)
    */
   @Override
   public void collect(int doc) throws IOException {
@@ -51,7 +48,7 @@ public class CountLimitedHitCollector extends LimitedHitCollector {
   }
 
   /* (non-Javadoc)
-   * @see org.getopt.luke.AccessibleHitCollector#getDocId(int)
+   * @see AccessibleHitCollector#getDocId(int)
    */
   @Override
   public int getDocId(int pos) {
@@ -62,7 +59,7 @@ public class CountLimitedHitCollector extends LimitedHitCollector {
   }
 
   /* (non-Javadoc)
-   * @see org.getopt.luke.AccessibleHitCollector#getScore(int)
+   * @see AccessibleHitCollector#getScore(int)
    */
   @Override
   public float getScore(int pos) {
@@ -73,7 +70,7 @@ public class CountLimitedHitCollector extends LimitedHitCollector {
   }
 
   /* (non-Javadoc)
-   * @see org.getopt.luke.AccessibleHitCollector#getTotalHits()
+   * @see AccessibleHitCollector#getTotalHits()
    */
   @Override
   public int getTotalHits() {

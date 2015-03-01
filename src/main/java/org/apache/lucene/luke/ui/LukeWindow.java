@@ -17,26 +17,12 @@ package org.apache.lucene.luke.ui;
  * limitations under the License.
  */
 
-import java.awt.Color;
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.net.URL;
-import java.util.Arrays;
-import java.util.HashSet;
-
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.SimpleAnalyzer;
 import org.apache.lucene.analysis.core.StopAnalyzer;
 import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.IndexCommit;
-import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.index.MultiReader;
-import org.apache.lucene.index.SegmentInfos;
+import org.apache.lucene.index.*;
 import org.apache.lucene.luke.core.ClassFinder;
 import org.apache.lucene.luke.core.IndexInfo;
 import org.apache.lucene.luke.core.decoders.Decoder;
@@ -51,42 +37,28 @@ import org.apache.pivot.beans.Bindable;
 import org.apache.pivot.collections.Map;
 import org.apache.pivot.serialization.SerializationException;
 import org.apache.pivot.util.Resources;
-import org.apache.pivot.wtk.Action;
-import org.apache.pivot.wtk.Alert;
-import org.apache.pivot.wtk.Border;
-import org.apache.pivot.wtk.BoxPane;
+import org.apache.pivot.wtk.*;
 import org.apache.pivot.wtk.Checkbox;
 import org.apache.pivot.wtk.Component;
-import org.apache.pivot.wtk.ComponentMouseButtonListener;
-import org.apache.pivot.wtk.ComponentMouseListener;
 import org.apache.pivot.wtk.Container;
-import org.apache.pivot.wtk.DesktopApplicationContext;
-import org.apache.pivot.wtk.Display;
-import org.apache.pivot.wtk.FillPane;
-import org.apache.pivot.wtk.FlowPane;
 import org.apache.pivot.wtk.Frame;
-import org.apache.pivot.wtk.GridPane;
-import org.apache.pivot.wtk.ImageView;
 import org.apache.pivot.wtk.Label;
-import org.apache.pivot.wtk.LinkButton;
-import org.apache.pivot.wtk.ListButton;
-import org.apache.pivot.wtk.ListView;
 import org.apache.pivot.wtk.MenuBar;
-import org.apache.pivot.wtk.MessageType;
 import org.apache.pivot.wtk.Mouse.Button;
-import org.apache.pivot.wtk.PushButton;
-import org.apache.pivot.wtk.RadioButton;
-import org.apache.pivot.wtk.ScrollBar;
 import org.apache.pivot.wtk.ScrollPane;
-import org.apache.pivot.wtk.Separator;
-import org.apache.pivot.wtk.SplitPane;
-import org.apache.pivot.wtk.TabPane;
-import org.apache.pivot.wtk.TablePane;
 import org.apache.pivot.wtk.TablePane.Row;
-import org.apache.pivot.wtk.TableView;
 import org.apache.pivot.wtk.TextArea;
-import org.apache.pivot.wtk.TextInput;
 import org.apache.pivot.wtk.Window;
+
+import java.awt.*;
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.net.URL;
+import java.util.Arrays;
+import java.util.HashSet;
+
+import org.apache.pivot.wtk.Mouse.Button;
 
 public class LukeWindow extends Frame implements Bindable {
 
@@ -263,7 +235,6 @@ public class LukeWindow extends Frame implements Bindable {
   /**
    * Populate a combobox with the current list of analyzers.
    *
-   * @param combo
    * @throws ClassNotFoundException
    * @throws java.io.IOException
    */
@@ -286,8 +257,6 @@ public class LukeWindow extends Frame implements Bindable {
   /**
    * Open indicated index and re-initialize all GUI and plugins.
    *
-   * @param pName
-   *          path to index
    * @param force
    *          if true, and the index is locked, unlock it first. If false, and the index is locked, an error will be reported.
    * @param readOnly

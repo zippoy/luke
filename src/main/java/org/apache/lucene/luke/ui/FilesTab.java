@@ -17,14 +17,6 @@ package org.apache.lucene.luke.ui;
  * limitations under the License.
  */
 
-import java.awt.Color;
-import java.io.File;
-import java.net.URL;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexCommit;
 import org.apache.lucene.index.IndexGate;
@@ -41,6 +33,14 @@ import org.apache.pivot.collections.Map;
 import org.apache.pivot.util.Resources;
 import org.apache.pivot.wtk.SplitPane;
 import org.apache.pivot.wtk.TableView;
+
+import java.awt.*;
+import java.io.File;
+import java.net.URL;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
 
 public class FilesTab extends SplitPane implements Bindable {
   @BXML

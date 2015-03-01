@@ -3,8 +3,6 @@ package org.apache.lucene.luke.core;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.*;
 import org.apache.lucene.util.Bits;
-import org.getopt.luke.*;
-import org.getopt.luke.Util;
 
 import java.util.*;
 
@@ -20,7 +18,7 @@ import java.util.*;
  *
  */
 public class DocReconstructor extends Observable {
-  private ProgressNotification progress = new ProgressNotification();
+  //private ProgressNotification progress = new ProgressNotification();
   private String[] fieldNames = null;
   private AtomicReader reader = null;
   private int numTerms;
@@ -105,19 +103,21 @@ public class DocReconstructor extends Observable {
     // collect values from unstored fields
     HashSet<String> fields = new HashSet<String>(Arrays.asList(fieldNames));
     // try to use term vectors if available
-    progress.maxValue = fieldNames.length;
-    progress.curValue = 0;
-    progress.minValue = 0;
+    // TODO
+    //progress.maxValue = fieldNames.length;
+    //progress.curValue = 0;
+    //progress.minValue = 0;
     TermsEnum te = null;
     DocsAndPositionsEnum dpe = null;
     for (int i = 0; i < fieldNames.length; i++) {
       Terms tvf = reader.getTermVector(docNum, fieldNames[i]);
       if (tvf != null) { // has vectors for this field
         te = tvf.iterator(te);
-        progress.message = "Checking term vectors for '" + fieldNames[i] + "' ...";
-        progress.curValue = i;
+        // TODO
+        //progress.message = "Checking term vectors for '" + fieldNames[i] + "' ...";
+        //progress.curValue = i;
         setChanged();
-        notifyObservers(progress);
+        //notifyObservers(progress);
         List<IntPair> vectors = TermVectorMapper.map(tvf, te, false, true);
         if (vectors != null) {
           GrowableStringArray gsa = res.getReconstructedFields().get(fieldNames[i]);
@@ -136,14 +136,16 @@ public class DocReconstructor extends Observable {
     }
     // this loop collects data only from left-over fields
     // not yet collected through term vectors
-    progress.maxValue = fields.size();
-    progress.curValue = 0;
-    progress.minValue = 0;
+    // TODO
+    //progress.maxValue = fields.size();
+    //progress.curValue = 0;
+    //progress.minValue = 0;
     for (String fld : fields) {
-      progress.message = "Collecting terms in " + fld + " ...";
-      progress.curValue++;
+      // TODO
+      //progress.message = "Collecting terms in " + fld + " ...";
+      //progress.curValue++;
       setChanged();
-      notifyObservers(progress);
+      //notifyObservers(progress);
       Terms terms = MultiFields.getTerms(reader, fld);
       if (terms == null) { // no terms in this field
         continue;
@@ -172,10 +174,11 @@ public class DocReconstructor extends Observable {
         }
       }
     }
-    progress.message = "Done.";
-    progress.curValue = 100;
+    // TODO
+    //progress.message = "Done.";
+    //progress.curValue = 100;
     setChanged();
-    notifyObservers(progress);
+    //notifyObservers(progress);
     return res;
   }
   

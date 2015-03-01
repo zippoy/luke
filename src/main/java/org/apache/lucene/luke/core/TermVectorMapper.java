@@ -4,7 +4,6 @@ import org.apache.lucene.index.DocsAndPositionsEnum;
 import org.apache.lucene.index.DocsEnum;
 import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
-import org.getopt.luke.IntPair;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -15,10 +14,10 @@ import java.util.List;
  */
 public class TermVectorMapper {
 
-  public static List<org.getopt.luke.IntPair> map(Terms terms, TermsEnum reuse, boolean acceptTermsOnly, boolean convertOffsets) throws IOException {
+  public static List<IntPair> map(Terms terms, TermsEnum reuse, boolean acceptTermsOnly, boolean convertOffsets) throws IOException {
     TermsEnum te = terms.iterator(reuse);
     DocsAndPositionsEnum dpe = null;
-    List<org.getopt.luke.IntPair> res = new ArrayList<org.getopt.luke.IntPair>();
+    List<IntPair> res = new ArrayList<IntPair>();
     while (te.next() != null) {
       DocsAndPositionsEnum newDpe = te.docsAndPositions(null, dpe, 1);
       if (newDpe == null) { // no positions and no offsets - just add terms if allowed
@@ -27,7 +26,7 @@ public class TermVectorMapper {
         }
         int freq = (int)te.totalTermFreq();
         if (freq == -1) freq = 0;
-        res.add(new org.getopt.luke.IntPair(freq, te.term().utf8ToString()));
+        res.add(new IntPair(freq, te.term().utf8ToString()));
         continue;
       }
       dpe = newDpe;
@@ -36,10 +35,10 @@ public class TermVectorMapper {
         // treat this as no positions nor offsets
         int freq = (int)te.totalTermFreq();
         if (freq == -1) freq = 0;
-        res.add(new org.getopt.luke.IntPair(freq, te.term().utf8ToString()));
+        res.add(new IntPair(freq, te.term().utf8ToString()));
         continue;
       }
-      org.getopt.luke.IntPair ip = new org.getopt.luke.IntPair(dpe.freq(), te.term().utf8ToString());
+      IntPair ip = new IntPair(dpe.freq(), te.term().utf8ToString());
       for (int i = 0; i < dpe.freq(); i++) {
         int pos = dpe.nextPosition();
         if (pos != -1) {

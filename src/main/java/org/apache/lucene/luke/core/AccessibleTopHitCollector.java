@@ -1,13 +1,11 @@
 package org.apache.lucene.luke.core;
 
-import java.io.IOException;
-
 import org.apache.lucene.index.AtomicReaderContext;
 import org.apache.lucene.search.Scorer;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.TopScoreDocCollector;
-import org.getopt.luke.*;
-import org.getopt.luke.AccessibleHitCollector;
+
+import java.io.IOException;
 
 public class AccessibleTopHitCollector extends AccessibleHitCollector {
   private TopScoreDocCollector tdc;

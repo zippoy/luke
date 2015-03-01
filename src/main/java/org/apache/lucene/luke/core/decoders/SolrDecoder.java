@@ -1,13 +1,13 @@
 package org.apache.lucene.luke.core.decoders;
 
+import org.apache.lucene.document.Field;
+import org.apache.lucene.luke.core.ClassFinder;
+import org.apache.solr.schema.FieldType;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.TreeMap;
-
-import org.apache.lucene.document.Field;
-import org.apache.solr.schema.FieldType;
-import org.getopt.luke.ClassFinder;
 
 public class SolrDecoder implements Decoder {
   private static final String solr_prefix = "org.apache.solr.schema.";

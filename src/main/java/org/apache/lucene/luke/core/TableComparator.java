@@ -17,12 +17,12 @@ package org.apache.lucene.luke.core;
  * limitations under the License.
  */
 
-import java.util.Comparator;
-
 import org.apache.pivot.collections.Dictionary;
 import org.apache.pivot.collections.Map;
 import org.apache.pivot.wtk.SortDirection;
 import org.apache.pivot.wtk.TableView;
+
+import java.util.Comparator;
 
 public class TableComparator implements Comparator<Map<String,String>> {
   private TableView tableView;

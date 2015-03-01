@@ -1,7 +1,6 @@
 package org.apache.lucene.luke.core.decoders;
 
 import org.apache.lucene.document.DateTools;
-
 import org.apache.lucene.document.Field;
 
 public class DateDecoder implements Decoder {

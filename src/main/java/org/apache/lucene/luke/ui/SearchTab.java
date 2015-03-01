@@ -17,23 +17,12 @@ package org.apache.lucene.luke.ui;
  * limitations under the License.
  */
 
-import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.net.URL;
-import java.text.DecimalFormat;
-import java.util.List;
-
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.index.IndexableField;
-import org.apache.lucene.luke.core.AccessibleHitCollector;
-import org.apache.lucene.luke.core.AccessibleTopHitCollector;
-import org.apache.lucene.luke.core.IndexInfo;
-import org.apache.lucene.luke.core.LimitedException;
-import org.apache.lucene.luke.core.Prefs;
-import org.apache.lucene.luke.core.Util;
+import org.apache.lucene.luke.core.*;
 import org.apache.lucene.luke.core.decoders.Decoder;
 import org.apache.lucene.luke.ui.LukeWindow.LukeMediator;
 import org.apache.lucene.queryparser.classic.QueryParser;
@@ -51,17 +40,14 @@ import org.apache.pivot.util.Resources;
 import org.apache.pivot.util.concurrent.Task;
 import org.apache.pivot.util.concurrent.TaskExecutionException;
 import org.apache.pivot.util.concurrent.TaskListener;
-import org.apache.pivot.wtk.Action;
-import org.apache.pivot.wtk.Alert;
-import org.apache.pivot.wtk.Component;
-import org.apache.pivot.wtk.Label;
-import org.apache.pivot.wtk.ListButton;
-import org.apache.pivot.wtk.MessageType;
-import org.apache.pivot.wtk.SplitPane;
-import org.apache.pivot.wtk.TableView;
+import org.apache.pivot.wtk.*;
 import org.apache.pivot.wtk.TableView.Column;
-import org.apache.pivot.wtk.TaskAdapter;
-import org.apache.pivot.wtk.TextArea;
+
+import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.net.URL;
+import java.text.DecimalFormat;
+import java.util.List;
 
 public class SearchTab extends SplitPane implements Bindable {
 

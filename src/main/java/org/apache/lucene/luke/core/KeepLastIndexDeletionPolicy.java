@@ -1,10 +1,10 @@
 package org.apache.lucene.luke.core;
 
-import java.io.IOException;
-import java.util.List;
-
 import org.apache.lucene.index.IndexCommit;
 import org.apache.lucene.index.IndexDeletionPolicy;
+
+import java.io.IOException;
+import java.util.List;
 
 public class KeepLastIndexDeletionPolicy extends IndexDeletionPolicy {
 

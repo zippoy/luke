@@ -17,20 +17,14 @@ package org.apache.lucene.luke.ui;
  * limitations under the License.
  */
 
-import java.awt.Font;
-import java.awt.GraphicsEnvironment;
-import java.util.Locale;
-import java.util.MissingResourceException;
-
 import org.apache.pivot.beans.BXMLSerializer;
 import org.apache.pivot.collections.Map;
 import org.apache.pivot.util.Resources;
-import org.apache.pivot.wtk.Alert;
-import org.apache.pivot.wtk.Application;
-import org.apache.pivot.wtk.DesktopApplicationContext;
-import org.apache.pivot.wtk.Display;
-import org.apache.pivot.wtk.MessageType;
-import org.apache.pivot.wtk.Theme;
+import org.apache.pivot.wtk.*;
+
+import java.awt.*;
+import java.util.Locale;
+import java.util.MissingResourceException;
 
 public class LukeApplication implements Application {
   public static final String LANGUAGE_KEY = "language";
