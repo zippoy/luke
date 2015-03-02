@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<luke:LukeInitWindow bxml:id="lukeinit" icon="/img/luke.gif"
+	title="%lukeInitWindow_title" xmlns:bxml="http://pivot.apache.org/bxml"
+	xmlns:luke="org.apache.lucene.luke.ui" xmlns:content="org.apache.pivot.wtk.content"
+	xmlns="org.apache.pivot.wtk">
+	<content>
+		<BoxPane orientation="vertical" styles="{padding:6, spacing:8, fill:true}">
+			<TablePane bxml:id="tablePane1"
+				styles="{verticalSpacing:1,
+                    horizontalSpacing:1,backgroundColor:10}">
+				<columns>
+					<TablePane.Column />
+					<TablePane.Column />
+					<TablePane.Column />
+				</columns>
+				<rows>
+					<TablePane.Row height="-1">
+						<Label text="%lukeInitWindow_path" />
+						<TextInput bxml:id="indexPath" />
+						<PushButton bxml:id="browse" buttonData="%lukeInitWindow_browse"
+							action="browse" />
+					</TablePane.Row>
+					<TablePane.Row>
+						<Label text="" />
+						<Label text="%lukeInitWindow_multipleIndexesHint" />
+					</TablePane.Row>
+				</rows>
+			</TablePane>
+			<BoxPane orientation="vertical" styles="{padding:6, spacing:8, fill:true}">
+				<Checkbox bxml:id="readOnly" buttonData="%lukeInitWindow_readOnly" />
+				<Checkbox bxml:id="forceUnlock" buttonData="%lukeInitWindow_forceUnlock" />
+			</BoxPane>
+			<Separator />
+			<Label text="%lukeInitWindow_expertOptions" />
+			<BoxPane orientation="vertical" styles="{padding:6, spacing:8, fill:true}">
+				<BoxPane orientation="horizontal">
+					<Label text="%lukeInitWindow_directory" />
+					<TextInput bxml:id="directory" text="FSDirectory" />
+				</BoxPane>
+				<Checkbox bxml:id="ramDir" buttonData="%lukeInitWindow_ramDirectory" />
+				<Checkbox bxml:id="keepCommits" buttonData="%lukeInitWindow_keepCommitPoints"
+					selected="true" />
+				<Checkbox bxml:id="dontOpenReader" buttonData="%lukeInitWindow_dontOpenReader" />
+				<Checkbox bxml:id="slowIO" buttonData="%lukeInitWindow_slowIO" />
+				<BoxPane orientation="horizontal">
+					<Label text="%lukeInitWindow_termInfosDiv" />
+					<Spinner bxml:id="tiiDiv" preferredWidth="40"
+						selectedIndex="2">
+						<spinnerData>
+							<content:NumericSpinnerData
+								lowerBound="-1" upperBound="999999" increment="1" />
+						</spinnerData>
+					</Spinner>
+				</BoxPane>
+			</BoxPane>
+			<Separator />
+			<BoxPane orientation="horizontal" styles="{horizontalAlignment:'right'}">
+				<PushButton buttonData="OK" action="openIndex"
+					ButtonPressListener.buttonPressed="lukeinit.close()">
+
+				</PushButton>
+				<PushButton buttonData="Cancel"
+					ButtonPressListener.buttonPressed="lukeinit.close()">
+
+				</PushButton>
+			</BoxPane>
+
+		</BoxPane>
+
+	</content>
+</luke:LukeInitWindow>

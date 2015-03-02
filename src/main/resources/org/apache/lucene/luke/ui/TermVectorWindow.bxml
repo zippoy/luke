@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<luke:TermVectorWindow bxml:id="termVector" icon="/img/luke.gif"
+													title="%termVectorWindow_title" xmlns:bxml="http://pivot.apache.org/bxml"
+													xmlns:luke="org.apache.lucene.luke.ui" xmlns:content="org.apache.pivot.wtk.content"
+													xmlns="org.apache.pivot.wtk">
+	<content>
+		<TablePane styles="{verticalSpacing:10}">
+			<columns>
+				<TablePane.Column width="1*"/>
+			</columns>
+			<rows>
+				<TablePane.Row>
+					<BoxPane styles="{fill:true}">
+						<ImageView image="/img/info.gif"/>
+						<Label text="%termVectorWindow_field" />
+						<Label bxml:id="field" text="?" styles="{font:{bold:true}}"/>
+					</BoxPane>
+				</TablePane.Row>
+				<TablePane.Row>
+					<Border styles="{padding:1}">
+						<ScrollPane horizontalScrollBarPolicy="fill_to_capacity" styles="{backgroundColor:11}">
+							<view>
+								<TableView bxml:id="tvTable" selectMode="multi">
+									<columns>
+										<TableView.Column name="term"
+																			headerData="Term" width="100"/>
+										<TableView.Column name="freq"
+																			headerData="Freq." width="50"/>
+										<TableView.Column name="pos"
+																			headerData="Positions" width="100"/>
+										<TableView.Column name="offsets"
+																			headerData="Offsets" width="100" />
+									</columns>
+								</TableView>
+							</view>
+							<columnHeader>
+								<TableViewHeader tableView="$tvTable" sortMode="single_column" />
+							</columnHeader>
+						</ScrollPane>
+					</Border>
+				</TablePane.Row>
+				<TablePane.Row>
+					<BoxPane orientation="horizontal" styles="{horizontalAlignment:'right'}">
+						<PushButton buttonData="%label_ok"
+												ButtonPressListener.buttonPressed="termVector.close()">
+						</PushButton>
+						<PushButton bxml:id="tvCopyButton" buttonData="%label_clipboard"/>
+					</BoxPane>
+				</TablePane.Row>
+			</rows>
+		</TablePane>
+	</content>
+</luke:TermVectorWindow>

@@ -15,6 +15,7 @@
         <hadoop.version>1.2.1</hadoop.version>
         <log4j.version>1.2.17</log4j.version>
         <rhino.version>1.7R4</rhino.version>
+        <pivot.version>2.0.4</pivot.version>
 
         <maven-assembly-plugin.version>2.4</maven-assembly-plugin.version>
         <maven-compiler-plugin.version>3.1</maven-compiler-plugin.version>
@@ -111,6 +112,42 @@
             <version>1.7.7</version>
         </dependency>
 
+        <!-- Pivot -->
+        <dependency>
+            <groupId>org.apache.pivot</groupId>
+            <artifactId>pivot-charts</artifactId>
+            <version>${pivot.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.pivot</groupId>
+            <artifactId>pivot-core</artifactId>
+            <version>${pivot.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.pivot</groupId>
+            <artifactId>pivot-web</artifactId>
+            <version>${pivot.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.pivot</groupId>
+            <artifactId>pivot-web-server</artifactId>
+            <version>${pivot.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.pivot</groupId>
+            <artifactId>pivot-wtk</artifactId>
+            <version>${pivot.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.pivot</groupId>
+            <artifactId>pivot-wtk-terra</artifactId>
+            <version>${pivot.version}</version>
+        </dependency>
 
     </dependencies>
 
@@ -169,7 +206,7 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
-                            <mainClass>org.getopt.luke.Luke</mainClass>
+                            <mainClass>org.apache.lucene.luke.ui.LukeApplication</mainClass>
                         </manifest>
                         <manifestEntries>
                             <Class-Path>.</Class-Path>
@@ -204,7 +241,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>org.getopt.luke.Luke</mainClass>
+                            <mainClass>org.apache.lucene.luke.ui.LukeApplication</mainClass>
                         </manifest>
                     </archive>
 					<finalName>${project.artifactId}-with-deps</finalName>

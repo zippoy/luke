@@ -1,0 +1,90 @@
+<luke:AnalyzersTab bxml:id="AnalyzersTab"
+                   xmlns:bxml="http://pivot.apache.org/bxml"
+                   xmlns="org.apache.pivot.wtk" xmlns:luke="org.apache.lucene.luke.ui">
+
+	<columns>
+		<TablePane.Column width="1*" />
+	</columns>
+	<rows>
+		<TablePane.Row bxml:id="givenRow">
+			<BoxPane styles="{fill:true, padding:3}" orientation="vertical">
+				<TablePane styles="{horizontalSpacing:3, verticalSpacing:3}">
+					<columns>
+						<TablePane.Column />
+						<TablePane.Column />
+					</columns>
+					<rows>
+						<TablePane.Row>
+							<Label text="%analyzersTab_availableAnalyzers" />
+							<Label text="%analyzersTab_compatibility" />
+						</TablePane.Row>
+						<TablePane.Row>
+							<ListButton bxml:id="analyzersListButton" />
+							<ListButton bxml:id="luceneVersionListButton" />
+						</TablePane.Row>
+					</rows>
+				</TablePane>
+
+				<Label text="%analyzersTab_textToBeAnalyzed" />
+				<Border>
+					<content>
+						<ScrollPane preferredHeight="200"
+							horizontalScrollBarPolicy="fill">
+							<view>
+								<TextArea bxml:id="inputText"
+									styles="{wrapText:true, backgroundColor:'#FFFFFF'}" text="%analyzersTab_welcome" />
+							</view>
+						</ScrollPane>
+					</content>
+				</Border>
+				<PushButton buttonData="Analyze" action="analyze" />
+
+			</BoxPane>
+		</TablePane.Row>
+		<TablePane.Row height="1*">
+			<Border styles="{thickness:0}">
+				<content>
+					<SplitPane splitRatio="0.3" styles="{backgroundColor:'#f7f5ee'}">
+						<left>
+							<Border styles="{thickness:0}">
+								<content>
+									<ScrollPane horizontalScrollBarPolicy="fill_to_capacity">
+										<view>
+											<ListView bxml:id="resultsList" />
+										</view>
+									</ScrollPane>
+								</content>
+							</Border>
+						</left>
+						<right>
+							<Border styles="{thickness:0, backgroundColor:11}">
+								<content>
+									<ScrollPane horizontalScrollBarPolicy="fill_to_capacity">
+										<view>
+											<TableView bxml:id="tokenAttsTable">
+												<columns>
+													<TableView.Column name="class"
+														headerData="%analyzersTab_tokenAttsTable_col1" width="200" />
+													<TableView.Column name="impl"
+														headerData="%analyzersTab_tokenAttsTable_col2" width="200" />
+													<TableView.Column name="value"
+														headerData="%analyzersTab_tokenAttsTable_col3" width="1*" />
+												</columns>
+
+											</TableView>
+
+										</view>
+										<columnHeader>
+											<TableViewHeader tableView="$tokenAttsTable" />
+										</columnHeader>
+									</ScrollPane>
+								</content>
+							</Border>
+						</right>
+					</SplitPane>
+				</content>
+			</Border>
+		</TablePane.Row>
+	</rows>
+
+</luke:AnalyzersTab>

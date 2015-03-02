@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<luke:LukeWindow bxml:id="lukeWindow" title="%lukeWindow_title"
+	icon="/img/luke.gif" xmlns:bxml="http://pivot.apache.org/bxml"
+	xmlns:luke="org.apache.lucene.luke.ui" xmlns:content="org.apache.pivot.wtk.content"
+	xmlns="org.apache.pivot.wtk" maximized="true"
+	styles="{backgroundColor:11, showWindowControls:false}">
+
+	<bxml:define>
+		<bxml:include bxml:id="lukeInitWindow" src="LukeInitWindow.bxml" />
+	</bxml:define>
+
+	<menuBar>
+		<MenuBar>
+			<items>
+				<MenuBar.Item buttonData="%file">
+					<menu>
+						<Menu>
+							<sections>
+								<Menu.Section>
+									<Menu.Item buttonData="%openLuceneIndex"
+										ButtonPressListener.buttonPressed="lukeWindow.onOpen()">
+									</Menu.Item>
+									<Menu.Item buttonData="%commitChanges">
+										<buttonData />
+									</Menu.Item>
+									<Menu.Item buttonData="%exit"
+										ButtonPressListener.buttonPressed="lukeWindow.exitLuke()">
+									</Menu.Item>
+								</Menu.Section>
+							</sections>
+						</Menu>
+					</menu>
+				</MenuBar.Item>
+				<MenuBar.Item buttonData="%tools">
+					<menu>
+						<Menu>
+							<sections>
+								<Menu.Section>
+									<Menu.Item buttonData="%undeleteAll" />
+									<Menu.Item buttonData="%optimizeIndex">
+										<buttonData />
+									</Menu.Item>
+								</Menu.Section>
+							</sections>
+						</Menu>
+					</menu>
+				</MenuBar.Item>
+				<MenuBar.Item buttonData="%settings">
+					<menu>
+						<Menu>
+							<sections>
+								<Menu.Section>
+									<Menu.Item buttonData="Display Font" />
+									<Menu.Item bxml:id="colormenu" buttonData="Color Schemes">
+										<Menu>
+											<Menu.Section>
+												<Menu.Item action="defaulttheme" buttonData="%defaultTheme" />
+												<Menu.Item action="graytheme" buttonData="%grayTheme" />
+												<Menu.Item action="sandstonetheme" buttonData="%sandstoneTheme" />
+												<Menu.Item action="skytheme" buttonData="%skyTheme" />
+												<Menu.Item action="navytheme" buttonData="%navyTheme" />
+											</Menu.Section>
+										</Menu>
+										<buttonData />
+									</Menu.Item>
+								</Menu.Section>
+							</sections>
+						</Menu>
+					</menu>
+				</MenuBar.Item>
+				<MenuBar.Item buttonData="%help">
+					<menu>
+						<Menu>
+							<sections>
+								<Menu.Section>
+									<Menu.Item buttonData="%about" />
+								</Menu.Section>
+							</sections>
+						</Menu>
+					</menu>
+				</MenuBar.Item>
+			</items>
+		</MenuBar>
+	</menuBar>
+	<content>
+		<TablePane>
+			<columns>
+				<TablePane.Column width="1*" />
+			</columns>
+			<rows>
+				<TablePane.Row height="1*">
+					<TabPane bxml:id="tabPane">
+						<tabs>
+							<Border styles="{backgroundColor:11,thickness:0}">
+								<TabPane.tabData>
+									<content:ButtonData icon="/img/info.gif"
+										text="%lukeWindow_overviewTabText" />
+								</TabPane.tabData>
+								<content>
+									<bxml:include bxml:id="overviewTab" src="OverviewTab.bxml"
+										inline="true" />
+								</content>
+							</Border>
+
+							<Border styles="{backgroundColor:11,thickness:0}">
+								<TabPane.tabData>
+									<content:ButtonData icon="/img/docs.gif"
+										text="%lukeWindow_documentsTabText" />
+								</TabPane.tabData>
+								<content>
+									<bxml:include bxml:id="documentsTab" src="DocumentsTab.bxml"
+										inline="true" />
+								</content>
+
+							</Border>
+
+							<Border styles="{backgroundColor:11}">
+								<TabPane.tabData>
+									<content:ButtonData icon="/img/search.gif"
+										text="%lukeWindow_searchTabText" />
+								</TabPane.tabData>
+
+								<content>
+									<bxml:include bxml:id="searchTab" src="SearchTab.bxml"
+										inline="true" />
+								</content>
+							</Border>
+
+							<Border styles="{backgroundColor:11}">
+								<TabPane.tabData>
+									<content:ButtonData icon="/img/terms.gif"
+										text="%lukeWindow_analyzersTabText" />
+								</TabPane.tabData>
+
+								<content>
+									<bxml:include bxml:id="analyzersTab" src="AnalyzersTab.bxml"
+										inline="true" />
+								</content>
+							</Border>
+
+							<Border>
+								<TabPane.tabData>
+									<content:ButtonData icon="/img/files.gif"
+										text="%lukeWindow_filesTabText" />
+								</TabPane.tabData>
+								<content>
+									<bxml:include bxml:id="filesTab" src="FilesTab.bxml"
+										inline="true" />
+								</content>
+							</Border>
+							<BoxPane styles="{fill:true}">
+								<TabPane.tabData>
+									<content:ButtonData icon="/img/tools.gif"
+										text="%lukeWindow_pluginsTabText" />
+								</TabPane.tabData>
+								<Label text="Coming..." />
+							</BoxPane>
+						</tabs>
+					</TabPane>
+				</TablePane.Row>
+				<TablePane.Row>
+					<BoxPane>
+						<Label bxml:id="indexName" text="" styles="{padding:2}"/>
+						<Label bxml:id="statusLabel" text="" styles="{padding:2}" />
+					</BoxPane>
+				</TablePane.Row>
+			</rows>
+		</TablePane>
+	</content>
+</luke:LukeWindow>	
