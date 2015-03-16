@@ -1,9 +1,9 @@
 luke
 ====
 
-![Luke, the Lucene Toolbox Project](src/main/resources/img/luke-big.gif)
+![Luke, the Lucene Toolbox Project](src/main/resources/img/luke-big.gif) + ![Apache Pivot](src/main/resources/pivot/ApachePivotLogo.png)
 
-This is mavenised version of Luke tool maintained and further developed by Dmitry Kan (this repo owner).
+This branch runs Luke atop Apache Pivot framework.
 
 Luke is the GUI tool for introspecting your Lucene / Solr index. It allows:
 
@@ -27,6 +27,7 @@ Brief project history
 * The project has been ported to Lucene trunk (marked as 5.0 at the time) by Dmitry Kan
 * The project has been back-ported to Lucene 4.3 by sonarname, who later decided not to continue supporting the project
 * There are updates to the (non-mavenized) project done by tarzanek (https://github.com/tarzanek/luke)
+* Port to Apache Pivot by @markmiller and @mocobeta
 
 This project's goal
 ====
