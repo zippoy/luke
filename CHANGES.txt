@@ -1,7 +1,9 @@
 * Update to 4.10.3
 
-(work in progress)
-https://github.com/DmitryKey/luke/issues/13 Ehcache upgraded to the latest version 2.9.0 (affects Hadoop plugin users)
+Issues fixed in this release: #13 ((affects Hadoop plugin users))
+Apache License 2.0 abbreviation changed from ASL 2.0 to ALv2
+
+Thanks to respective contributors!
 
 * Update to 4.10.1
 
