@@ -1,3 +1,7 @@
+Next release:
+Changes:
+https://github.com/DmitryKey/luke/pull/23 support for Elasticsearch indices (version 1.5.0)
+
 * Upgrade to 4.10.4
 
 Trivial pom upgrade to lucene 4.10.4.
