@@ -3,6 +3,7 @@ package org.getopt.luke;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.*;
 import org.apache.lucene.util.Bits;
+import org.apache.lucene.util.BytesRef;
 
 import java.util.*;
 
@@ -147,26 +148,45 @@ public class DocReconstructor extends Observable {
         continue;
       }
       te = terms.iterator(te);
-      while (te.next() != null) {
+      BytesRef bytesRef;
+      while ((bytesRef=te.next()) != null) {
+        // first use bytesRef to extract the indexed term value
+        String docTerm = bytesRef.utf8ToString();
+
         DocsAndPositionsEnum newDpe = te.docsAndPositions(live, dpe, 0);
+
         if (newDpe == null) { // no position info for this field
-          break;
+            // re-construct without positions
+            GrowableStringArray gsa = (GrowableStringArray)
+                    res.getReconstructedFields().get(fld);
+            if (gsa == null) {
+                gsa = new GrowableStringArray();
+                res.getReconstructedFields().put(fld, gsa);
+            }
+            gsa.append(0, "|", docTerm);
+            // we are done. Move to the next field
+            break;
         }
+
+        // we should have positions as well for the field, process them accordingly
         dpe = newDpe;
+
         int num = dpe.advance(docNum);
         if (num != docNum) { // either greater than or NO_MORE_DOCS
           continue; // no data for this term in this doc
         }
-        String term = te.term().utf8ToString();
-        GrowableStringArray gsa = (GrowableStringArray)
-              res.getReconstructedFields().get(fld);
+
+        // we have computed the value earlier, using the bytesRef data structure
+        docTerm = te.term().utf8ToString();
+
+        GrowableStringArray gsa = res.getReconstructedFields().get(fld);
         if (gsa == null) {
           gsa = new GrowableStringArray();
           res.getReconstructedFields().put(fld, gsa);
         }
         for (int k = 0; k < dpe.freq(); k++) {
           int pos = dpe.nextPosition();
-          gsa.append(pos, "|", term);
+          gsa.append(pos, "|", docTerm);
         }
       }
     }
