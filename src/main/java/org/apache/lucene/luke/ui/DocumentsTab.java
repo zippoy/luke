@@ -85,6 +85,9 @@ public class DocumentsTab extends SplitPane implements Bindable {
   @BXML
   private FieldNormWindow fieldNormWindow;
 
+  @BXML
+  private EditDocWindow editDocWindow;
+
   private java.util.List<String> fieldNames = null;
 
   // this gets injected by LukeWindow at init
@@ -116,6 +119,18 @@ public class DocumentsTab extends SplitPane implements Bindable {
       @Override
       public void perform(Component component) {
         prevDoc();
+      }
+    });
+    Action.getNamedActions().put("addDoc", new Action() {
+      @Override
+      public void perform(Component component) {
+        addDoc();
+      }
+    });
+    Action.getNamedActions().put("editDoc", new Action() {
+      @Override
+      public void perform(Component component) {
+        editDoc();
       }
     });
     Action.getNamedActions().put("showFirstTermDoc", new Action() {
@@ -319,6 +334,18 @@ public class DocumentsTab extends SplitPane implements Bindable {
 
   private void prevDoc() {
     showDoc(-1);
+  }
+
+  private void addDoc() {
+    System.out.println("addDoc()");
+  }
+
+  private void editDoc() {
+    showEditDocWindow();
+  }
+
+  private void showEditDocWindow() {
+    editDocWindow.open(getDisplay(), getWindow());
   }
 
   public void popTableWithDoc(int docid, Document doc) {

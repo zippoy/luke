@@ -113,6 +113,9 @@
  documentsTab_msg_errorNorm: "Error reading norm: ",
  documentsTab_msg_cantOverwriteDir: "Can't overwrite a directory.",
 
+ editDocWindow_title: "Edit document",
+ editDoc_note: "NOTE: unstored fields are reconstructed, some errors may be present!",
+
  posAndOffsetsWindow_title: "Term Positions and Offsets",
 
  termVectorWindow_title: "Term Vector",
