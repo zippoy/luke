@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -59,7 +60,7 @@ public class HighFreqTerms {
     }     
 
     if (args.length > 0) {
-      dir = FSDirectory.open(new File(args[0]));
+      dir = FSDirectory.open(FileSystems.getDefault().getPath(args[0]));
     }
    
     for (int i = 1; i < args.length; i++) {
@@ -210,8 +211,9 @@ public class HighFreqTerms {
   public static void fillQueue(TermsEnum termsEnum, TermStatsQueue tiq, String field) throws Exception {
   BytesRef term;
   while ((term = termsEnum.next()) != null) {
-      BytesRef r = new BytesRef();
-      r.copyBytes(term);
+      //BytesRef r = new BytesRef();
+      //r.copyBytes(term);
+      BytesRef r = BytesRef.deepCopyOf(term);
       tiq.insertWithOverflow(new TermStats(field, r, termsEnum.docFreq()));
     }
   }

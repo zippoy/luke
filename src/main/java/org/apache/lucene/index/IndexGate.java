@@ -71,9 +71,9 @@ public class IndexGate {
   public static final int FORMAT_PRE_4 = -12;
 
   static {
-    knownExtensions.put(IndexFileNames.COMPOUND_FILE_EXTENSION, "compound file with various index data");
-    knownExtensions.put(IndexFileNames.COMPOUND_FILE_ENTRIES_EXTENSION, "compound file entries list");
-    knownExtensions.put(IndexFileNames.GEN_EXTENSION, "generation number - global file");
+    //knownExtensions.put(IndexFileNames.COMPOUND_FILE_EXTENSION, "compound file with various index data");
+    //knownExtensions.put(IndexFileNames.COMPOUND_FILE_ENTRIES_EXTENSION, "compound file entries list");
+    //knownExtensions.put(IndexFileNames.GEN_EXTENSION, "generation number - global file");
     knownExtensions.put(IndexFileNames.SEGMENTS, "per-commit list of segments and user data");
   }
   
@@ -223,8 +223,9 @@ public class IndexGate {
   }
   
   public static boolean preferCompoundFormat(Directory dir) throws Exception {
-    SegmentInfos infos = new SegmentInfos();
-    infos.read(dir);
+    // SegmentInfos infos = new SegmentInfos();
+    // infos.read(dir);
+    SegmentInfos infos = SegmentInfos.readLatestCommit(dir);
     int compound = 0, nonCompound = 0;
     for (int i = 0; i < infos.size(); i++) {
       if (infos.info(i).info.getUseCompoundFile()) {
@@ -265,9 +266,11 @@ public class IndexGate {
     for (IndexCommit ic : commits) {
       known.addAll(ic.getFileNames());
     }
-    if (dir.fileExists(IndexFileNames.SEGMENTS_GEN)) {
-      known.add(IndexFileNames.SEGMENTS_GEN);
+    /* FIXME: Directory#fileExists was removed since lucene 5.1.0
+    if (dir.fileExists(IndexFileNames.OLD_SEGMENTS_GEN)) {
+      known.add(IndexFileNames.OLD_SEGMENTS_GEN);
     }
+    */
     List<String> names = new ArrayList<String>(known);
     Collections.sort(names);
     return names;

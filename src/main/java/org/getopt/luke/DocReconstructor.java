@@ -21,7 +21,7 @@ import java.util.*;
 public class DocReconstructor extends Observable {
   private ProgressNotification progress = new ProgressNotification();
   private String[] fieldNames = null;
-  private AtomicReader reader = null;
+  private LeafReader reader = null;
   private int numTerms;
   private Bits live;
   
@@ -49,8 +49,8 @@ public class DocReconstructor extends Observable {
     }
     if (reader instanceof CompositeReader) {
       this.reader = SlowCompositeReaderWrapper.wrap(reader);
-    } else if (reader instanceof AtomicReader) {
-      this.reader = (AtomicReader)reader;
+    } else if (reader instanceof LeafReader) {
+      this.reader = (LeafReader)reader;
     } else {
       throw new Exception("Unsupported IndexReader class " + reader.getClass().getName());
     }

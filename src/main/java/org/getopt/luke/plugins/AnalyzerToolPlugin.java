@@ -66,13 +66,6 @@ public class AnalyzerToolPlugin extends LukePlugin {
     Object aVersion = app.find(myUi, "aVersion");
     app.removeAll(aVersion);
     Version[] values = {
-            Version.LUCENE_3_0_0,
-            Version.LUCENE_3_1_0,
-            Version.LUCENE_3_2_0,
-            Version.LUCENE_3_3_0,
-            Version.LUCENE_3_4_0,
-            Version.LUCENE_3_5_0,
-            Version.LUCENE_3_6_0,
             Version.LUCENE_4_0_0,
             Version.LUCENE_4_1_0,
             Version.LUCENE_4_2_0,

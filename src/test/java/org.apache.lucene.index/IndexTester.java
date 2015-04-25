@@ -10,6 +10,8 @@ import org.apache.lucene.store.NIOFSDirectory;
 import org.apache.lucene.util.Version;
 
 import java.io.File;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 
 /**
  * Created by dmitry on 4/3/15.
@@ -38,21 +40,21 @@ public class IndexTester extends TestCase {
     }
 
     private void populate() throws Exception {
-        // create an org.apache.lucene.index
-        Directory directory = NIOFSDirectory.open(new File(indexPath));
-        indexCfg = new IndexWriterConfig(Version.LUCENE_4_10_3, new UAX29URLEmailAnalyzer());
-        indexCfg.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
+      Path path = FileSystems.getDefault().getPath(indexPath);
+      Directory directory = NIOFSDirectory.open(path);
+      indexCfg = new IndexWriterConfig(new UAX29URLEmailAnalyzer());
+      indexCfg.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
 
-        IndexWriter writer = new IndexWriter(directory, indexCfg);
+      IndexWriter writer = new IndexWriter(directory, indexCfg);
 
-        Document doc = new Document();
-        doc.add(new StringField("aaa", "1", Field.Store.NO));
-        doc.add(new Field("bbb", "2", Field.Store.NO, Field.Index.NOT_ANALYZED));
+      Document doc = new Document();
+      doc.add(new StringField("aaa", "1", Field.Store.NO));
+      doc.add(new Field("bbb", "2", Field.Store.NO, Field.Index.NOT_ANALYZED));
 
-        // sanity check
-        doc.add(new StringField("ccc", "3", Field.Store.YES));
+      // sanity check
+      doc.add(new StringField("ccc", "3", Field.Store.YES));
 
-        writer.addDocument(doc);
-        writer.close();
+      writer.addDocument(doc);
+      writer.close();
     }
 }
