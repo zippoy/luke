@@ -7,6 +7,7 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Bits;
 import org.apache.lucene.util.BytesRef;
+import org.apache.lucene.util.FixedBitSet;
 import org.getopt.luke.decoders.Decoder;
 
 import java.io.*;
@@ -76,7 +77,7 @@ public class XMLExporter extends Observable {
    * @throws Exception
    */
   public boolean export(OutputStream output, boolean decode, boolean preamble, boolean info,
-      String rootElementName, Ranges ranges) throws Exception {
+      String rootElementName, FixedBitSet ranges) throws Exception {
     running = true;
     pn.message = "Export running ...";
     pn.minValue = 0;
@@ -111,7 +112,7 @@ public class XMLExporter extends Observable {
       Document doc = null;
       int i = -1;
       if (ranges == null) {
-        ranges = new Ranges();
+        ranges = new FixedBitSet(leafReader.maxDoc());
         ranges.set(0, leafReader.maxDoc());
       }
       if (ranges.cardinality() > 0) {
@@ -368,7 +369,7 @@ public class XMLExporter extends Observable {
       throw new Exception("Output file already exists: '" + out.getAbsolutePath() + "'");
     }
     boolean gzip = false;
-    Ranges ranges = null;
+    FixedBitSet ranges = null;
     boolean onlyInfo = false;
     for (int i = 2; i < args.length; i++) {
       if (args[i].equals("-gzip")) {
@@ -393,7 +394,7 @@ public class XMLExporter extends Observable {
       os = new GZIPOutputStream(os);
     }
     if (onlyInfo) {
-      ranges = new Ranges();
+      ranges = new FixedBitSet(64);
     }
     exporter.export(os, false, false, true, "index", ranges);
     os.flush();

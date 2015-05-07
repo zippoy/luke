@@ -6,7 +6,6 @@ package org.getopt.luke;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.LeafReaderContext;
 import org.apache.lucene.search.LeafCollector;
 import org.apache.lucene.search.Scorer;
@@ -14,11 +13,12 @@ import org.apache.lucene.search.Scorer;
 class AllHitsCollector extends AccessibleHitCollector {
   private ArrayList<AllHit> hits = new ArrayList<AllHit>();
   
-  public AllHitsCollector(boolean outOfOrder, boolean shouldScore) {
-    this.outOfOrder = outOfOrder;
-    this.shouldScore = shouldScore;
+  public AllHitsCollector() {
+    //this.outOfOrder = outOfOrder;
+    //this.shouldScore = shouldScore;
   }
-  
+
+  /*
   public void collect(int doc) {
     float score = 1.0f;
     if (shouldScore) {
@@ -31,6 +31,7 @@ class AllHitsCollector extends AccessibleHitCollector {
     }
     hits.add(new AllHit(docBase + doc, score));
   }
+  */
   
   public int getTotalHits() {
     return hits.size();
@@ -46,8 +47,29 @@ class AllHitsCollector extends AccessibleHitCollector {
 
   @Override
   public LeafCollector getLeafCollector(LeafReaderContext leafReaderContext) throws IOException {
-    //this.docBase = leafReaderContext.docBase;
-    return super.getLeafCollector(leafReaderContext);
+    this.docBase = leafReaderContext.docBase;
+    return new LeafCollector() {
+      private Scorer scorer;
+
+      @Override
+      public void setScorer(Scorer scorer) throws IOException {
+        this.scorer = scorer;
+      }
+
+      @Override
+      public void collect(int doc) throws IOException {
+        float score = 1.0f;
+        if (shouldScore) {
+          try {
+            score = scorer.score();
+          } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+          }
+        }
+        hits.add(new AllHit(docBase + doc, score));
+      }
+    };
   }
 
   @Override

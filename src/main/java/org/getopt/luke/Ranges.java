@@ -1,12 +1,16 @@
 package org.getopt.luke;
 
-import org.apache.lucene.util.OpenBitSet;
+//import org.apache.lucene.util.OpenBitSet;
+import org.apache.lucene.util.FixedBitSet;
 
 @SuppressWarnings("serial")
-public class Ranges extends OpenBitSet {
-  
-  public static Ranges parse(String expr) throws Exception {
-    Ranges res = new Ranges();
+public class Ranges {
+
+  // OpenBitSet has been deleted.
+  // https://issues.apache.org/jira/browse/LUCENE-5440
+  // https://issues.apache.org/jira/browse/LUCENE-6010
+  public static FixedBitSet parse(String expr) throws Exception {
+    FixedBitSet res = new FixedBitSet(64);
     expr = expr.replaceAll("\\s+", "");
     if (expr.length() == 0) {
       return res;
@@ -17,19 +21,23 @@ public class Ranges extends OpenBitSet {
       int from, to;
       from = Integer.parseInt(ft[0]);
       if (ft.length == 1) {
+        res = FixedBitSet.ensureCapacity(res, from);
         res.set(from);
       } else {
         to = Integer.parseInt(ft[1]);
+        res = FixedBitSet.ensureCapacity(res, to);
         res.set(from, to);
       }
     }
     return res;
   }
-  
+
+  /*
   public void set(int from, int to) {
     if (from > to) return;
     for (int i = from; i <= to; i++) {
       set(i);
     }
   }
+  */
 }

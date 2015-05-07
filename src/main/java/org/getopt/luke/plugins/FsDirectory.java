@@ -283,10 +283,10 @@ public class FsDirectory extends Directory {
     private RandomAccessFile local;
     private File localFile;
 
-    public DfsIndexOutput(String resourceDescription, Path path, int ioFileBufferSize) throws IOException {
-        super(resourceDescription, new FileOutputStream(new File(path.toUri())), ioFileBufferSize);
+    public DfsIndexOutput(Path path, int ioFileBufferSize) throws IOException {
+      super("", new FileOutputStream(new File(path.toUri())), ioFileBufferSize);
 
-        // create a temporary local file and set it to delete on exit
+      // create a temporary local file and set it to delete on exit
       String randStr = Integer.toString(new Random().nextInt(Integer.MAX_VALUE));
       localFile = File.createTempFile("index_" + randStr, ".tmp");
       localFile.deleteOnExit();
