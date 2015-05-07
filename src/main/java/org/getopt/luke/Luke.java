@@ -114,7 +114,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
   private boolean keepCommits = false;
   // never read
   //private boolean multi = false;
-  private int tiiDiv = 1;
+  //private int tiiDiv = 1;
   private IndexCommit currentCommit = null;
   private Similarity similarity = null;
   private Object lastST;
@@ -629,12 +629,15 @@ public class Luke extends Thinlet implements ClipboardOwner {
 
     boolean force = getBoolean(find(dialog, "force"), "selected");
     boolean noReader = getBoolean(find(dialog, "cbNoReader"), "selected");
+    // DirectoryReader.open(Directory, termInfosIndexDivisor) was removed at 5.0.
+    /*
     tiiDiv = 1;
     try {
       tiiDiv = Integer.parseInt(getString(find(dialog, "tiiDiv"), "text"));
     } catch (Exception e) {
       e.printStackTrace();
     }
+    */
     Object dirImpl = getSelectedItem(find(dialog, "dirImpl"));
     String dirClass = null;
     if (dirImpl == null) {
@@ -682,7 +685,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
         errorMsg("ERROR: " + e.toString());
       }
     } else {
-      openIndex(pName, force, dirClass, readOnly, ram, keepCommits, null, tiiDiv);
+      openIndex(pName, force, dirClass, readOnly, ram, keepCommits, null);
     }
   }
   
@@ -823,7 +826,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
       return;
     }
     openIndex(pName, false, dir.getClass().getName(), readOnly, ram,
-        keepCommits, currentCommit, tiiDiv);
+        keepCommits, currentCommit);
   }
   
   /**
@@ -834,7 +837,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
    * @param ro open in read-only mode, and disallow modifications.
    */
   public void openIndex(String name, boolean force, String dirImpl, boolean ro,
-      boolean ramdir, boolean keepCommits, IndexCommit point, int tiiDivisor) {
+      boolean ramdir, boolean keepCommits, IndexCommit point) {
     pName = name;
     readOnly = ro;
     removeAll();
@@ -1179,9 +1182,9 @@ public class Luke extends Thinlet implements ClipboardOwner {
         verText = Long.toHexString(((DirectoryReader)ir).getVersion());
       }
       setString(iVer, "text", verText);
+      /*
       Object iTiiDiv = find(pOver, "iTiiDiv");
       String divText = "N/A";
-      /*
       if (ir instanceof DirectoryReader) {
         List<LeafReaderContext> readers = ((DirectoryReader) ir).leaves(); //.getSequentialSubReaders();
         if (readers.size() > 0)
@@ -1191,8 +1194,8 @@ public class Luke extends Thinlet implements ClipboardOwner {
           }
         }
       }
-      */
       setString(iTiiDiv, "text", divText);
+      */
       Object iCommit = find(pOver, "iCommit");
       String commitText = "N/A";
       if (ic != null) {
@@ -5262,7 +5265,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
           return null;
         }
       }
-      if (pName != null) luke.openIndex(pName, force, null, ro, ramdir, false, null, 1);
+      if (pName != null) luke.openIndex(pName, force, null, ro, ramdir, false, null);
       if(xmlQueryParserFactoryClassName != null) luke.setParserFactoryClassName(xmlQueryParserFactoryClassName);
       if (script != null) {
         LukePlugin plugin = luke.getPlugin("org.getopt.luke.plugins.ScriptingPlugin");
