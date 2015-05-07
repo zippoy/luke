@@ -191,12 +191,12 @@ public class IndexGate {
         try {
           int indexFormat = in.readInt();
           if (indexFormat == CodecUtil.CODEC_MAGIC) {
-            res.genericName = "Lucene 4.x";
+            res.genericName = "Lucene 5.x";
             res.capabilities = "flexible, codec-specific";
-            int actualVersion = SegmentInfos.VERSION_40;
+            int actualVersion = SegmentInfos.VERSION_51;
             try {
               actualVersion = CodecUtil.checkHeaderNoMagic(in, "segments", SegmentInfos.VERSION_40, Integer.MAX_VALUE);
-              if (actualVersion > SegmentInfos.VERSION_49) {
+              if (actualVersion > SegmentInfos.VERSION_51) {
                 res.capabilities += " (WARNING: newer version of Lucene than this tool)";
                 System.out.println("WARNING: newer version of Lucene than this tool supports");
               }
@@ -204,8 +204,32 @@ public class IndexGate {
               e.printStackTrace();
               res.capabilities += " (error reading: " + e.getMessage() + ")";
             }
-            res.genericName = "Lucene 4." + actualVersion;
-            res.version = "4." + actualVersion;
+            switch(actualVersion) {
+              case SegmentInfos.VERSION_40:
+                res.genericName = "Lucene 4.0 or later";
+                res.version = "4.0 or lager";
+                break;
+              case SegmentInfos.VERSION_46:
+                res.genericName = "Lucene 4.6 or later";
+                res.version = "4.6 or lager";
+                break;
+              case SegmentInfos.VERSION_48:
+                res.genericName = "Lucene 4.8 or later";
+                res.version = "4.8 or lager";
+                break;
+              case SegmentInfos.VERSION_49:
+                res.genericName = "Lucene 4.9 or later";
+                res.version = "4.9 or lager";
+                break;
+              case SegmentInfos.VERSION_50:
+                res.genericName = "Lucene 5.0";
+                res.version = "5.0";
+                break;
+              case SegmentInfos.VERSION_51:
+                res.genericName = "Lucene 5.1 or later";
+                res.version = "5.1 or later";
+                break;
+            }
           } else {
             res.genericName = "Lucene 3.x or prior";
             detectOldFormats(res, indexFormat);
