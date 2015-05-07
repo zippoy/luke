@@ -63,6 +63,9 @@ public class AnalyzerToolPlugin extends LukePlugin {
     }
     app.setInteger(combobox, "selected", 0);
     app.setString(combobox, "text", firstClass);
+    // Analyzer's constructor no longer take Lucene Version since 5.0.
+    // https://issues.apache.org/jira/browse/LUCENE-5859
+    /*
     Object aVersion = app.find(myUi, "aVersion");
     app.removeAll(aVersion);
     Version[] values = {
@@ -89,6 +92,7 @@ public class AnalyzerToolPlugin extends LukePlugin {
         app.setInteger(aVersion, "selected", i);
       }
     }
+    */
     return true;
   }
   
@@ -98,27 +102,19 @@ public class AnalyzerToolPlugin extends LukePlugin {
       Object resultsList = app.find(myUi, "resultsList");
       Object inputText = app.find(myUi, "inputText");
       String classname = app.getString(combobox, "text");
-      Object choice = app.getSelectedItem(app.find(myUi, "aVersion"));
-      Version v = (Version)app.getProperty(choice, "version");
       Class clazz = Class.forName(classname);
       Analyzer analyzer = null;
       try {
-        Constructor<Analyzer> c = clazz.getConstructor(Version.class);
-        analyzer = c.newInstance(v);
-      } catch (Throwable t) {
-        try {
-          // no constructor with Version ?
-          analyzer = (Analyzer)clazz.newInstance();
-        } catch (Throwable t1) {
-          t1.printStackTrace();
-          app
-                .showStatus("Couldn't instantiate analyzer - public 0-arg or 1-arg constructor(Version) required");
-          return;
-        }
+        analyzer = (Analyzer)clazz.newInstance();
+      } catch (Throwable t1) {
+        t1.printStackTrace();
+        app
+          .showStatus("Couldn't instantiate analyzer - public 0-arg or 1-arg constructor(Version) required");
+        return;
       }
 
 
-        TokenStream ts = analyzer.tokenStream("text", new StringReader(app
+      TokenStream ts = analyzer.tokenStream("text", new StringReader(app
               .getString(inputText, "text")));
         ts.reset();
 
