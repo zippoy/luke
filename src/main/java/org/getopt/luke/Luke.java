@@ -65,6 +65,7 @@ import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -1001,11 +1002,11 @@ public class Luke extends Thinlet implements ClipboardOwner {
     }
     try {
       Class implClass = Class.forName(dirImpl);
-      Constructor<Directory> constr = implClass.getConstructor(File.class);
+      Constructor<Directory> constr = implClass.getConstructor(Path.class);
       if (constr != null) {
-        res = constr.newInstance(f);
+        res = constr.newInstance(FileSystems.getDefault().getPath(file));
       } else {
-        constr = implClass.getConstructor(File.class, LockFactory.class);
+        constr = implClass.getConstructor(Path.class, LockFactory.class);
         res = constr.newInstance(f, (LockFactory)null);
       }
     } catch (Throwable e) {
