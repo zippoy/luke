@@ -115,7 +115,6 @@ public class Luke extends Thinlet implements ClipboardOwner {
   private boolean keepCommits = false;
   // never read
   //private boolean multi = false;
-  //private int tiiDiv = 1;
   private IndexCommit currentCommit = null;
   private Similarity similarity = null;
   private Object lastST;
@@ -630,15 +629,6 @@ public class Luke extends Thinlet implements ClipboardOwner {
 
     boolean force = getBoolean(find(dialog, "force"), "selected");
     boolean noReader = getBoolean(find(dialog, "cbNoReader"), "selected");
-    // DirectoryReader.open(Directory, termInfosIndexDivisor) was removed at 5.0.
-    /*
-    tiiDiv = 1;
-    try {
-      tiiDiv = Integer.parseInt(getString(find(dialog, "tiiDiv"), "text"));
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-    */
     Object dirImpl = getSelectedItem(find(dialog, "dirImpl"));
     String dirClass = null;
     if (dirImpl == null) {
@@ -954,12 +944,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
       ArrayList<DirectoryReader> readers = new ArrayList<DirectoryReader>();
       for (Directory dd : dirs) {
         DirectoryReader reader;
-        // DirectoryReader.open(Directory, int) was removed at 5.0.
-        //if (tiiDivisor > 1) {
-        //reader = DirectoryReader.open(dd, tiiDivisor);
-        //} else {
         reader = DirectoryReader.open(dd);
-        //}
         readers.add(reader);
       }
       if (readers.size() == 1) {
@@ -1183,20 +1168,6 @@ public class Luke extends Thinlet implements ClipboardOwner {
         verText = Long.toHexString(((DirectoryReader)ir).getVersion());
       }
       setString(iVer, "text", verText);
-      /*
-      Object iTiiDiv = find(pOver, "iTiiDiv");
-      String divText = "N/A";
-      if (ir instanceof DirectoryReader) {
-        List<LeafReaderContext> readers = ((DirectoryReader) ir).leaves(); //.getSequentialSubReaders();
-        if (readers.size() > 0)
-        {
-          if (readers.get(0).reader() instanceof SegmentReader) {
-          divText = String.valueOf(((SegmentReader) readers.get(0).reader()).getTermInfosIndexDivisor());
-          }
-        }
-      }
-      setString(iTiiDiv, "text", divText);
-      */
       Object iCommit = find(pOver, "iCommit");
       String commitText = "N/A";
       if (ic != null) {
