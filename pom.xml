@@ -71,11 +71,13 @@
 
         <!-- Elasticsearch -->
 
+        <!-- TODO: uncomment following dependencies at future Elasticsearch release (supporting Lucene 5x)
         <dependency>
             <groupId>org.elasticsearch</groupId>
             <artifactId>elasticsearch</artifactId>
             <version>${elasticsearch.version}</version>
         </dependency>
+        -->
 
         <!-- SOLR -->
 
