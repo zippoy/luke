@@ -14,10 +14,8 @@ public class AccessibleTopHitCollector extends AccessibleHitCollector {
   private TopDocs topDocs = null;
   private int size;
   
-  public AccessibleTopHitCollector(int size, boolean outOfOrder, boolean shouldScore) {
+  public AccessibleTopHitCollector(int size) {
     tdc = TopScoreDocCollector.create(size);
-    //this.shouldScore = shouldScore;
-    //this.outOfOrder = outOfOrder;
     this.size = size;
   }
 
@@ -41,35 +39,6 @@ public class AccessibleTopHitCollector extends AccessibleHitCollector {
   public int getTotalHits() {
     return tdc.getTotalHits();
   }
-
-  // obsoleted since 5.x
-  //@Override
-  //public boolean acceptsDocsOutOfOrder() {
-  //  return tdc.acceptsDocsOutOfOrder();
-  //}
-
-  // obsoleted since 5.x
-  //@Override
-  //public void collect(int doc) throws IOException {
-  //  tdc.collect(doc);
-  //}
-
-  // obsoleted since 5.x
-  //@Override
-  //public void setNextReader(AtomicReaderContext context) throws IOException {
-  //  this.docBase = context.docBase;
-  //  tdc.setNextReader(context);
-  //}
-
-  // obsoleted since 5.x
-  //@Override
-  //public void setScorer(Scorer scorer) throws IOException {
-  //  if (shouldScore) {
-  //    tdc.setScorer(scorer);
-  //  } else {
-  //    tdc.setScorer(NoScoringScorer.INSTANCE);
-  //  }
-  //}
 
   @Override
   public void reset() {

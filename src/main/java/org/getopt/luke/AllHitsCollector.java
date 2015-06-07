@@ -14,25 +14,8 @@ class AllHitsCollector extends AccessibleHitCollector {
   private ArrayList<AllHit> hits = new ArrayList<AllHit>();
   
   public AllHitsCollector() {
-    //this.outOfOrder = outOfOrder;
-    //this.shouldScore = shouldScore;
   }
 
-  /*
-  public void collect(int doc) {
-    float score = 1.0f;
-    if (shouldScore) {
-      try {
-        score = scorer.score();
-      } catch (IOException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-      }
-    }
-    hits.add(new AllHit(docBase + doc, score));
-  }
-  */
-  
   public int getTotalHits() {
     return hits.size();
   }
@@ -86,24 +69,6 @@ class AllHitsCollector extends AccessibleHitCollector {
       this.score = score;
     }
   }
-
-  // obsoleted since 5.x
-  // @Override
-  // public boolean acceptsDocsOutOfOrder() {
-  //  return outOfOrder;
-  // }
-
-  // obsoleted since 5.x
-  //@Override
-  //public void setNextReader(AtomicReaderContext context) throws IOException {
-  //  this.docBase = context.docBase;
-  //}
-
-  // obsoleted since 5.x
-  //@Override
-  //public void setScorer(Scorer scorer) throws IOException {
-  //  this.scorer = scorer;
-  //}
 
   @Override
   public void reset() {

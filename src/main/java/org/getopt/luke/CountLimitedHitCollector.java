@@ -32,21 +32,6 @@ public class CountLimitedHitCollector extends LimitedHitCollector {
   }
 
   /* (non-Javadoc)
-   * @see org.getopt.luke.AllHitsCollector#collect(int, float)
-   */
-  //@Override
-  //public void collect(int doc) throws IOException {
-  //  count++;
-  //  if (count > maxSize) {
-  //    count--;
-  //    throw new LimitedException(TYPE_SIZE, maxSize, count, lastDoc);
-  //  }
-  //  lastDoc = docBase + doc;
-  //
-  //  tdc.collect(doc);
-  //}
-
-  /* (non-Javadoc)
    * @see org.getopt.luke.AccessibleHitCollector#getDocId(int)
    */
   @Override
@@ -75,29 +60,6 @@ public class CountLimitedHitCollector extends LimitedHitCollector {
   public int getTotalHits() {
     return count;
   }
-
-  // obsoleted since 5.x
-  //@Override
-  //public boolean acceptsDocsOutOfOrder() {
-  //  return tdc.acceptsDocsOutOfOrder();
-  //}
-
-  // obsoleted since 5.x
-  //@Override
-  //public void setNextReader(AtomicReaderContext context) throws IOException {
-  //  this.docBase = context.docBase;
-  //  tdc.setNextReader(context);
-  //}
-
-  // obsoleted since 5.x
-  //@Override
-  //public void setScorer(Scorer scorer) throws IOException {
-  //  if (shouldScore) {
-  //    tdc.setScorer(scorer);
-  //  } else {
-  //    tdc.setScorer(NoScoringScorer.INSTANCE);
-  //  }
-  //}
 
   @Override
   public void reset() {

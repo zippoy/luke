@@ -854,9 +854,6 @@ public class Luke extends Thinlet implements ClipboardOwner {
       if (IndexWriter.isLocked(d)) {
         if (!ro) {
           if (force) {
-            // IndexWriter.unlock() was removed.
-            // https://issues.apache.org/jira/browse/LUCENE-6060
-            // IndexWriter.unlock(d);
             d.makeLock(IndexWriter.WRITE_LOCK_NAME).close();
           } else {
             errorMsg("Index is locked. Try 'Force unlock' when opening.");
@@ -886,7 +883,6 @@ public class Luke extends Thinlet implements ClipboardOwner {
           if (IndexWriter.isLocked(d1)) {
             if (!ro) {
               if (force) {
-                // IndexWriter.unlock(d1);
                 d1.makeLock(IndexWriter.WRITE_LOCK_NAME).close();
               } else {
                 errorMsg("Index is locked. Try 'Force unlock' when opening.");
@@ -2695,9 +2691,6 @@ public class Luke extends Thinlet implements ClipboardOwner {
         ft.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS);
       }
       ft.setStored(getBoolean(cbStored, "selected"));
-      // IndexableFieldType.indexed() and FieldType.setIndexed() were removed at 5.0.
-      // https://issues.apache.org/jira/browse/LUCENE-6013
-      // ft.setIndexed(getBoolean(cbIndexed, "selected"));
       ft.setTokenized(getBoolean(cbTokenized, "selected"));
       if (ft.stored() == false && ft.indexOptions() == null) {
         errorMsg("Field '" + name + "' is neither stored nor indexed.");
@@ -3926,9 +3919,6 @@ public class Luke extends Thinlet implements ClipboardOwner {
     String arg = getString(find(srchOpts, "snoName"), "text");
     if (arg == null) arg = "";
     try {
-      // Analyzer's constructor no longer take Lucene Version since 5.0.
-      // https://issues.apache.org/jira/browse/LUCENE-5859
-      // Constructor zeroArg = null, zeroArgV = null, oneArg = null, oneArgV = null;
       Constructor zeroArg = null, oneArg = null;
       try {
         zeroArg = Class.forName(sAType).getConstructor(new Class[0]);
@@ -4087,7 +4077,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
     boolean orderRes = getBoolean(ckOrderRes, "selected");
     Collector hc = null;
     if (getBoolean(ckNormRes, "selected")) {
-      return new AccessibleTopHitCollector(1000, orderRes, scoreRes);
+      return new AccessibleTopHitCollector(1000);
     } else if (getBoolean(ckAllRes, "selected")) {
       return new AllHitsCollector();
     } else if (getBoolean(ckLimRes, "selected")) {
@@ -4097,7 +4087,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
         return new CountLimitedHitCollector(lim);
       } else if (getBoolean(ckLimTime, "selected")) {
         int lim = Integer.parseInt(getString(limTime, "text"));
-        return new IntervalLimitedCollector(lim, orderRes, scoreRes);
+        return new IntervalLimitedCollector(lim);
       } else {
         throw new Exception("Unknown LimitedHitCollector type");
       }
@@ -4300,8 +4290,6 @@ public class Luke extends Thinlet implements ClipboardOwner {
       setString(n, "text", getString(n, "text") + ", " + cq.toString());
       Object n1 = create("node");
       add(n, n1);
-      // https://issues.apache.org/jira/browse/LUCENE-1518
-      //if (cq.getFilter() != null) {
       if (cq.getQuery() != null) {
         setString(n1, "text", "Filter: " + cq.getQuery().toString());
       } else if (cq.getQuery() != null) {
@@ -4618,7 +4606,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
   private void _search(final Query q, final IndexSearcher is,
           AccessibleHitCollector hc, final Object sTable, final int repeat) throws Exception {
     if (hc == null) {
-      hc = new AccessibleTopHitCollector(1000, true, true);
+      hc = new AccessibleTopHitCollector(1000);
     }
     final AccessibleHitCollector collector = hc;
     le = null;

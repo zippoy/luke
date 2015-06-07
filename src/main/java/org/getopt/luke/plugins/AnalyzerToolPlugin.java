@@ -63,36 +63,6 @@ public class AnalyzerToolPlugin extends LukePlugin {
     }
     app.setInteger(combobox, "selected", 0);
     app.setString(combobox, "text", firstClass);
-    // Analyzer's constructor no longer take Lucene Version since 5.0.
-    // https://issues.apache.org/jira/browse/LUCENE-5859
-    /*
-    Object aVersion = app.find(myUi, "aVersion");
-    app.removeAll(aVersion);
-    Version[] values = {
-            Version.LUCENE_4_0_0,
-            Version.LUCENE_4_1_0,
-            Version.LUCENE_4_2_0,
-            Version.LUCENE_4_3_0,
-            Version.LUCENE_4_4_0,
-            Version.LUCENE_4_5_0,
-            Version.LUCENE_4_6_0,
-            Version.LUCENE_4_7_0,
-            Version.LUCENE_4_8_0,
-            Version.LUCENE_4_9_0,
-            Version.LUCENE_4_10_0,
-            Version.LATEST
-    };
-    for (int i = 0; i < values.length; i++) {
-      Version v = values[i];
-      Object choice = app.create("choice");
-      app.setString(choice, "text", v.toString());
-      app.putProperty(choice, "version", v);
-      app.add(aVersion, choice);
-      if (v.equals(Luke.LV)) {
-        app.setInteger(aVersion, "selected", i);
-      }
-    }
-    */
     return true;
   }
   

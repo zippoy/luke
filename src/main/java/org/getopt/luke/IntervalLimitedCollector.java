@@ -13,10 +13,8 @@ public class IntervalLimitedCollector extends LimitedHitCollector {
   private TimeLimitingCollector thc;
   
   
-  public IntervalLimitedCollector(int maxTime, boolean outOfOrder, boolean shouldScore) {
+  public IntervalLimitedCollector(int maxTime) {
     this.maxTime = maxTime;
-    //this.outOfOrder = outOfOrder;
-    //this.shouldScore = shouldScore;
     tdc = TopScoreDocCollector.create(1000);
     thc = new TimeLimitingCollector(tdc, TimeLimitingCollector.getGlobalCounter(), maxTime);
   }
@@ -60,41 +58,6 @@ public class IntervalLimitedCollector extends LimitedHitCollector {
   public int getTotalHits() {
     return tdc.getTotalHits();
   }
-
-  // obsoleted since 5.x
-  //@Override
-  //public void collect(int docNum) throws IOException {
-  //  try {
-  //    thc.collect(docNum);
-  //  } catch (TimeExceededException tee) {
-      // re-throw
-  //    throw new LimitedException(TYPE_TIME, maxTime, tee.getTimeElapsed(), tee.getLastDocCollected());
-  //  }
-  //}
-
-  // obsoleted since 5.x
-  //@Override
-  //public boolean acceptsDocsOutOfOrder() {
-  //  return outOfOrder;
-  //}
-
-  // obsoleted since 5.x
-  //@Override
-  //public void setNextReader(AtomicReaderContext context) throws IOException {
-  //  this.docBase = context.docBase;
-  //  thc.setNextReader(context);
-  //}
-
-  // obsoleted since 5.x
-  //@Override
-  //public void setScorer(Scorer scorer) throws IOException {
-  //  this.scorer = scorer;
-  //  if (shouldScore) {
-  //    thc.setScorer(scorer);
-  //  } else {
-  //    thc.setScorer(NoScoringScorer.INSTANCE);
-  //  }
-  //}
 
   @Override
   public void reset() {
