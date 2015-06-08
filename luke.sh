@@ -1,4 +1,10 @@
-java -XX:MaxPermSize=512m -jar target/luke-with-deps.jar
+if [[ -d `echo $LUKE_PATH` ]]; then
+  java -XX:MaxPermSize=512m -jar $LUKE_PATH/target/luke-with-deps.jar
+else
+  echo "Unable to find the LUKE_PATH environnement variable..."
+  echo "Assuming you're running from the root folder of luke..."
+  java -XX:MaxPermSize=512m -jar target/luke-with-deps.jar
+fi
 #
 # In order to start luke with your custom analyzer class extending org.apache.lucene.analysis.Analyzer run:
 # java -XX:MaxPermSize=512m -cp target/luke-with-deps.jar:/path/to/custom_analyzer.jar org.getopt.luke.Luke
