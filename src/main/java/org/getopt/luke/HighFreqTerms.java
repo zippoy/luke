@@ -125,7 +125,7 @@ public class HighFreqTerms {
       for (String field : fieldNames) {
         Terms terms = fields.terms(field);
         if (terms != null) {
-          te = terms.iterator(te);
+          te = terms.iterator();
           fillQueue(te, tiq, field);
         }
       }
@@ -141,7 +141,7 @@ public class HighFreqTerms {
           String field = fieldIterator.next();
         Terms terms = fields.terms(field);
         if (terms != null) {
-          te = terms.iterator(te);
+          te = terms.iterator();
           fillQueue(te, tiq, field);
         }
       }
@@ -200,7 +200,7 @@ public class HighFreqTerms {
   private static long totalTermFreq(IndexReader r, String field, BytesRef text) throws IOException {
       final Terms terms = MultiFields.getTerms(r, field);
       if (terms != null) {
-        final TermsEnum termsEnum = terms.iterator(null);
+        final TermsEnum termsEnum = terms.iterator();
         if (termsEnum.seekExact(text)) {
           return termsEnum.totalTermFreq();
         }

@@ -14,8 +14,8 @@ import java.util.List;
  */
 public class TermVectorMapper {
 
-  public static List<IntPair> map(Terms terms, TermsEnum reuse, boolean acceptTermsOnly, boolean convertOffsets) throws IOException {
-    TermsEnum te = terms.iterator(reuse);
+  public static List<IntPair> map(Terms terms, boolean acceptTermsOnly, boolean convertOffsets) throws IOException {
+    TermsEnum te = terms.iterator();
     DocsAndPositionsEnum dpe = null;
     List<IntPair> res = new ArrayList<IntPair>();
     while (te.next() != null) {

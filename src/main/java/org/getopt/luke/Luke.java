@@ -2985,7 +2985,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
             showStatus("Term Vector not available in field " + fName + " for this doc.");
             return;
           }
-          List<IntPair> tvs = TermVectorMapper.map(tfv, null, true, false);
+          List<IntPair> tvs = TermVectorMapper.map(tfv, true, false);
           if (tvs == null || tvs.isEmpty()) {
             showStatus("Term Vector not available (empty).");
             return;
@@ -3414,7 +3414,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
         try {
           String fld = getString(fCombo, "text");
           Terms terms = MultiFields.getTerms(ir, fld);
-          TermsEnum te = terms.iterator(null);
+          TermsEnum te = terms.iterator();
           putProperty(fCombo, "te", te);
           putProperty(fCombo, "teField", fld);
           BytesRef term = te.next();
@@ -3458,7 +3458,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
           String rawString = rawTerm != null ? rawTerm.utf8ToString() : null;
           if (te == null || !teField.equals(fld) || !text.equals(rawString)) {
             Terms terms = MultiFields.getTerms(ir, fld);
-            te = terms.iterator(null);
+            te = terms.iterator();
             putProperty(fCombo, "te", te);
             putProperty(fCombo, "teField", fld);
             status = te.seekCeil(new BytesRef(text));
@@ -3480,7 +3480,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
               if (terms == null) {
                 continue;
               }
-              te = terms.iterator(null);
+              te = terms.iterator();
               rawTerm = te.next();
               putProperty(fCombo, "te", te);
               putProperty(fCombo, "teField", fld);
@@ -3528,7 +3528,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
           Term t = new Term(fld, text);
           if (ir.docFreq(t) == 0) { // missing term
             Terms terms = MultiFields.getTerms(ir, fld);
-            TermsEnum te = terms.iterator(null);
+            TermsEnum te = terms.iterator();
             te.seekCeil(new BytesRef(text));
             t = new Term(fld, te.term().utf8ToString());
           }
@@ -4096,7 +4096,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
     }
   }
 
-  public void explainStructure(Object qTabs) {
+  public void explainStructure(Object qTabs) throws IOException {
     Object qField = find("qField");
     String queryS = getString(qField, "text");
     if (queryS.trim().equals("")) {
@@ -4116,7 +4116,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
     _explainStructure(tree, q);
   }
   
-  private void _explainStructure(Object parent, Query q) {
+  private void _explainStructure(Object parent, Query q) throws IOException {
     String clazz = q.getClass().getName();
     if (clazz.startsWith("org.apache.lucene.")) {
       clazz = "lucene." + q.getClass().getSimpleName();
@@ -4275,7 +4275,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
     } else if (q instanceof MultiTermQuery) {
       MultiTermQuery mq = (MultiTermQuery)q;
       Set<Term> terms = new HashSet<Term>();
-      mq.extractTerms(terms);
+      mq.createWeight(is, false).extractTerms(terms);
       setString(n, "text", getString(n, "text") + ", terms: " + terms);
       try {
         addTermsEnum(n, TermRangeQuery.class, mq.getField(), mq);
@@ -4358,7 +4358,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
         String defField = getDefaultField(find("srchOptTabs"));
         setString(n, "text", "class=" + q.getClass().getName() + ", " + getString(n, "text") + ", toString=" + q.toString(defField));
         HashSet<Term> terms = new HashSet<Term>();
-        sq.extractTerms(terms);
+        sq.createWeight(is, false).extractTerms(terms);
         Object n1 = null;
         if (terms != null) {
           n1 = create("node");
@@ -4411,7 +4411,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
       Object n1 = create("node");
       String defField = getDefaultField(find("srchOptTabs"));
       Set<Term> terms = new HashSet<Term>();
-      q.extractTerms(terms);
+      q.createWeight(is, false).extractTerms(terms);
       setString(n1, "text", q.getClass().getName() + ": " + q.toString(defField));
       add(n, n1);
       if (!terms.isEmpty()) {
