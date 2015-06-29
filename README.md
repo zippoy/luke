@@ -9,7 +9,7 @@ Luke is the GUI tool for introspecting your Lucene / Solr index. It allows:
 
 * Viewing your documents and analyzing their field contents (for stored fields)
 * Searching in the index
-* Performing index maintanance: index sanity checking, index optimization (take a backup before running this!)
+* Performing index maintenance: index sanity checking, index optimization (take a backup before running this!)
 * Reading index from hdfs
 * Exporting the index or portion of it into an xml format
 * Testing your custom Lucene analyzers
@@ -18,15 +18,19 @@ Recent Changes
 ====
 See [CHANGES.txt](CHANGES.txt)
 
+Luke discussion group
+====
+[Luke google group](https://groups.google.com/forum/#!forum/luke-discuss)
+
 
 Brief project history
 ====
 
-* The original author is Andrzej Bialecki (https://code.google.com/p/luke)
-* The project has been mavenized by Neil Ireson (see google group discussion here: http://bit.ly/16Y8utO)
+* The original author is [Andrzej Bialecki](https://code.google.com/p/luke)
+* The project has been mavenized by Neil Ireson (see google group discussion [here](http://bit.ly/16Y8utO))
 * The project has been ported to Lucene trunk (marked as 5.0 at the time) by Dmitry Kan
 * The project has been back-ported to Lucene 4.3 by sonarname, who later decided not to continue supporting the project
-* There are updates to the (non-mavenized) project done by tarzanek (https://github.com/tarzanek/luke)
+* There are updates to the (non-mavenized) project done by [tarzanek](https://github.com/tarzanek/luke)
 
 This project's goal
 ====
