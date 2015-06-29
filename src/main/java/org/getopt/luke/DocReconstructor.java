@@ -21,7 +21,7 @@ import java.util.*;
 public class DocReconstructor extends Observable {
   private ProgressNotification progress = new ProgressNotification();
   private String[] fieldNames = null;
-  private AtomicReader reader = null;
+  private LeafReader reader = null;
   private int numTerms;
   private Bits live;
   
@@ -49,8 +49,8 @@ public class DocReconstructor extends Observable {
     }
     if (reader instanceof CompositeReader) {
       this.reader = SlowCompositeReaderWrapper.wrap(reader);
-    } else if (reader instanceof AtomicReader) {
-      this.reader = (AtomicReader)reader;
+    } else if (reader instanceof LeafReader) {
+      this.reader = (LeafReader)reader;
     } else {
       throw new Exception("Unsupported IndexReader class " + reader.getClass().getName());
     }
@@ -67,7 +67,7 @@ public class DocReconstructor extends Observable {
       while (fe.hasNext()) {
           String fld = fe.next();
         Terms t = fields.terms(fld);
-        TermsEnum te = t.iterator(null);
+        TermsEnum te = t.iterator();
         while (te.next() != null) {
           numTerms++;
         }
@@ -112,12 +112,12 @@ public class DocReconstructor extends Observable {
     for (int i = 0; i < fieldNames.length; i++) {
       Terms tvf = reader.getTermVector(docNum, fieldNames[i]);
       if (tvf != null) { // has vectors for this field
-        te = tvf.iterator(te);
+        te = tvf.iterator();
         progress.message = "Checking term vectors for '" + fieldNames[i] + "' ...";
         progress.curValue = i;
         setChanged();
         notifyObservers(progress);
-        List<IntPair> vectors = TermVectorMapper.map(tvf, te, false, true);
+        List<IntPair> vectors = TermVectorMapper.map(tvf, false, true);
         if (vectors != null) {
           GrowableStringArray gsa = res.getReconstructedFields().get(fieldNames[i]);
           if (gsa == null) {
@@ -147,7 +147,7 @@ public class DocReconstructor extends Observable {
       if (terms == null) { // no terms in this field
         continue;
       }
-      te = terms.iterator(te);
+      te = terms.iterator();
       BytesRef bytesRef;
       while ((bytesRef=te.next()) != null) {
         // first use bytesRef to extract the indexed term value
