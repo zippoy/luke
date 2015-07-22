@@ -85,6 +85,9 @@ public class DocumentsTab extends SplitPane implements Bindable {
   @BXML
   private FieldNormWindow fieldNormWindow;
 
+  @BXML
+  private EditDocWindow editDocWindow;
+
   private java.util.List<String> fieldNames = null;
 
   // this gets injected by LukeWindow at init
@@ -94,12 +97,14 @@ public class DocumentsTab extends SplitPane implements Bindable {
 
   private TermsEnum te;
   //private DocsAndPositionsEnum td;
-  private DocsEnum td;
+  //private DocsEnum td;
+  private PostingsEnum pe;
 
   private String fld;
   private Term lastTerm;
   private IndexReader ir;
-  private AtomicReader ar;
+  //private AtomicReader ar;
+  private LeafReader lr;
   private java.util.List<String> indexFields;
   private IndexInfo idxInfo;
   private FieldInfos infos;
@@ -116,6 +121,18 @@ public class DocumentsTab extends SplitPane implements Bindable {
       @Override
       public void perform(Component component) {
         prevDoc();
+      }
+    });
+    Action.getNamedActions().put("addDoc", new Action() {
+      @Override
+      public void perform(Component component) {
+        addDoc();
+      }
+    });
+    Action.getNamedActions().put("editDoc", new Action() {
+      @Override
+      public void perform(Component component) {
+        editDoc();
       }
     });
     Action.getNamedActions().put("showFirstTermDoc", new Action() {
@@ -188,13 +205,13 @@ public class DocumentsTab extends SplitPane implements Bindable {
     this.ir = idxInfo.getReader();
     if (ir instanceof CompositeReader) {
       //ar = new SlowCompositeReaderWrapper((CompositeReader) ir);
-      ar = SlowCompositeReaderWrapper.wrap(ir);
-    } else if (ir instanceof AtomicReader) {
-      ar = (AtomicReader) ir;
+      lr = SlowCompositeReaderWrapper.wrap(ir);
+    } else if (ir instanceof LeafReader) {
+      lr = (LeafReader) ir;
     }
 
-    if (ar != null) {
-      infos = ar.getFieldInfos();
+    if (lr != null) {
+      infos = lr.getFieldInfos();
     }
 
     this.indexFields = idxInfo.getFieldNames();
@@ -246,12 +263,12 @@ public class DocumentsTab extends SplitPane implements Bindable {
       }
       docNum.setText(String.valueOf(iNum));
 
-      td = null;
+      pe = null;
       tdNum.setText("?");
       tFreq.setText("?");
       tdMax.setText("?");
 
-      org.apache.lucene.util.Bits live = ar.getLiveDocs();
+      org.apache.lucene.util.Bits live = lr.getLiveDocs();
       if (live == null || live.get(iNum)) {
         Task<Object> populateTableTask = new Task<Object>() {
 
@@ -321,6 +338,18 @@ public class DocumentsTab extends SplitPane implements Bindable {
     showDoc(-1);
   }
 
+  private void addDoc() {
+    System.out.println("addDoc()");
+  }
+
+  private void editDoc() {
+    showEditDocWindow();
+  }
+
+  private void showEditDocWindow() {
+    editDocWindow.open(getDisplay(), getWindow());
+  }
+
   public void popTableWithDoc(int docid, Document doc) {
     docNum.setText(String.valueOf(docid));
     List<Map<String,Object>> tableData = new ArrayList<Map<String,Object>>();
@@ -376,7 +405,7 @@ public class DocumentsTab extends SplitPane implements Bindable {
       try {
         FieldInfo info = infos.fieldInfo(fName);
         if (info.hasNorms()) {
-          NumericDocValues norms = ar.getNormValues(fName);
+          NumericDocValues norms = lr.getNormValues(fName);
           String norm = String.valueOf(norms.get(docid));
           row.put(FIELDROW_KEY_NORM, norm);
         } else {
@@ -447,7 +476,7 @@ public class DocumentsTab extends SplitPane implements Bindable {
           fld = (String) fieldsList.getSelectedItem();
           //System.out.println("fld:" + fld);
           Terms terms = MultiFields.getTerms(ir, fld);
-          te = terms.iterator(null);
+          te = terms.iterator();
           BytesRef term = te.next();
           showTerm(new Term(fld, term));
         } catch (Exception e) {
@@ -489,10 +518,10 @@ public class DocumentsTab extends SplitPane implements Bindable {
       @Override
       public void taskExecuted(Task<Object> task) {
         try {
-          DocsEnum td = MultiFields.getTermDocsEnum(ir, null, lastTerm.field(), lastTerm.bytes());
-          td.nextDoc();
+          PostingsEnum pe = MultiFields.getTermDocsEnum(ir, null, lastTerm.field(), lastTerm.bytes());
+          pe.nextDoc();
           tdNum.setText("1");
-          DocumentsTab.this.td = td;
+          DocumentsTab.this.pe = pe;
           showTermDoc();
         } catch (Exception e) {
           e.printStackTrace();
@@ -532,11 +561,11 @@ public class DocumentsTab extends SplitPane implements Bindable {
       @Override
       public void taskExecuted(Task<Object> task) {
         try {
-          if (td == null) {
+          if (pe == null) {
             showFirstTermDoc();
             return;
           }
-          if (td.nextDoc() == DocsEnum.NO_MORE_DOCS)
+          if (pe.nextDoc() == DocsEnum.NO_MORE_DOCS)
             return;
 
           String sCnt = tdNum.getText();
@@ -614,7 +643,7 @@ public class DocumentsTab extends SplitPane implements Bindable {
     lastTerm = t;
     // putProperty(fText, "decText", s);
 
-    td = null;
+    pe = null;
     tdNum.setText("?");
     tFreq.setText("?");
 
@@ -688,7 +717,7 @@ public class DocumentsTab extends SplitPane implements Bindable {
           if (te == null || !DocumentsTab.this.fld.equals(fld) || !text.equals(rawString)) {
             // seek for requested term
             Terms terms = MultiFields.getTerms(ir, fld);
-            te = terms.iterator(null);
+            te = terms.iterator();
 
             DocumentsTab.this.fld = fld;
             status = te.seekCeil(new BytesRef(text));
@@ -712,7 +741,7 @@ public class DocumentsTab extends SplitPane implements Bindable {
               if (terms == null) {
                 continue;
               }
-              te = terms.iterator(null);
+              te = terms.iterator();
               rawTerm = te.next();
               DocumentsTab.this.fld = fld;
               //break;
@@ -761,13 +790,13 @@ public class DocumentsTab extends SplitPane implements Bindable {
       @Override
       public void taskExecuted(Task<Object> task) {
         try {
-          Document doc = ir.document(td.docID());
-          docNum.setText(String.valueOf(td.docID()));
-          iNum = td.docID();
+          Document doc = ir.document(pe.docID());
+          docNum.setText(String.valueOf(pe.docID()));
+          iNum = pe.docID();
 
-          tFreq.setText(String.valueOf(td.freq()));
+          tFreq.setText(String.valueOf(pe.freq()));
 
-          popTableWithDoc(td.docID(), doc);
+          popTableWithDoc(pe.docID(), doc);
         } catch (Exception e) {
           e.printStackTrace();
           // TODO:
@@ -789,23 +818,23 @@ public class DocumentsTab extends SplitPane implements Bindable {
 
   private void showPositionsWindow() {
     try {
-      if (td == null) {
+      if (pe == null) {
         Alert.alert(MessageType.WARNING, (String) resources.get("documentsTab_msg_docNotSelected"), getWindow());
       } else {
         // create new Enum to show positions info
-        DocsAndPositionsEnum pe = MultiFields.getTermPositionsEnum(ir, null, lastTerm.field(), lastTerm.bytes());
-        if (pe == null) {
+        PostingsEnum pe2 = MultiFields.getTermPositionsEnum(ir, null, lastTerm.field(), lastTerm.bytes());
+        if (pe2 == null) {
           Alert.alert(MessageType.INFO, (String) resources.get("documentsTab_msg_positionNotIndexed"), getWindow());
         } else {
           // enumerate docId to the current doc
-          while(pe.docID() != td.docID()) {
-            if (pe.nextDoc() == DocIdSetIterator.NO_MORE_DOCS) {
+          while(pe2.docID() != pe.docID()) {
+            if (pe2.nextDoc() == DocIdSetIterator.NO_MORE_DOCS) {
               // this must not happen!
               Alert.alert(MessageType.ERROR, (String) resources.get("documentsTab_msg_noPositionInfo"), getWindow());
             }
           }
           try {
-            posAndOffsetsWindow.initPositionInfo(pe, lastTerm);
+            posAndOffsetsWindow.initPositionInfo(pe2, lastTerm);
             posAndOffsetsWindow.open(getDisplay(), getWindow());
           } catch (Exception e) {
             // TODO:
@@ -932,7 +961,7 @@ public class DocumentsTab extends SplitPane implements Bindable {
               FieldInfo info = infos.fieldInfo(name);
               if (field == null) {
                 Alert.alert(MessageType.WARNING, (String) resources.get("documentsTab_msg_noDataAvailable"), getWindow());
-              } else if (!info.isIndexed() || !info.hasNorms()) {
+              } else if (info.getIndexOptions() == null || !info.hasNorms()) {
                 Alert.alert(MessageType.WARNING, (String) resources.get("documentsTab_msg_noNorm"), getWindow());
               } else {
                 showFieldNormWindow(name);
@@ -986,9 +1015,9 @@ public class DocumentsTab extends SplitPane implements Bindable {
 
   private static TFIDFSimilarity defaultSimilarity = new DefaultSimilarity();
   private void showFieldNormWindow(String fieldName) {
-    if (ar != null) {
+    if (lr != null) {
       try {
-        NumericDocValues norms = ar.getNormValues(fieldName);
+        NumericDocValues norms = lr.getNormValues(fieldName);
         fieldNormWindow.initFieldNorm(iNum, fieldName, norms);
         fieldNormWindow.open(getDisplay(), getWindow());
       } catch (Exception e) {

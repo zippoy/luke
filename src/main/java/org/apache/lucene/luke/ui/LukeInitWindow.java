@@ -39,8 +39,8 @@ public class LukeInitWindow extends Dialog implements Bindable {
   Checkbox readOnly;
   @BXML
   Checkbox keepCommits;
-  @BXML
-  Spinner tiiDiv;
+  //@BXML
+  //Spinner tiiDiv;
   @BXML
   TextInput directory;
   private LukeMediator lukeMediator;
@@ -55,8 +55,7 @@ public class LukeInitWindow extends Dialog implements Bindable {
     Action.getNamedActions().put("openIndex", new Action() {
       @Override
       public void perform(Component component) {
-        lukeMediator.getLukeWindow().openIndex(false, directory.getText(), readOnly.isSelected(), false, keepCommits.isSelected(), null,
-            (Integer) tiiDiv.getSelectedItem());
+        lukeMediator.getLukeWindow().openIndex(false, directory.getText(), readOnly.isSelected(), false, keepCommits.isSelected(), null);
       }
     });
   }

@@ -77,7 +77,7 @@ public class IndexInfo {
       ftc.fieldname = fld;
       Terms terms = fields.terms(fld);
       if (terms != null) { // count terms
-        te = terms.iterator(te);
+        te = terms.iterator();
         while (te.next() != null) {
           ftc.termCount++;
           numTerms++;
@@ -227,15 +227,15 @@ public class IndexInfo {
       String fld = fe.next();
       Terms terms = fields.terms(fld);
       TermsEnum te = null;
-      DocsEnum de = null;
+      PostingsEnum pe = null;
       if (terms != null) {
-        te = terms.iterator(te);
+        te = terms.iterator();
         te.next();
-        de = MultiFields.getTermDocsEnum(reader, liveDocs, fld, te.term());
+        pe = MultiFields.getTermDocsEnum(reader, liveDocs, fld, te.term());
         IndexableField field = null;
-        while (field == null && de.nextDoc() != DocsEnum.NO_MORE_DOCS) {
+        while (field == null && pe.nextDoc() != DocsEnum.NO_MORE_DOCS) {
           // look up first document which has this field value.
-          int docId = de.docID();
+          int docId = pe.docID();
           Document doc = reader.document(docId);
           field = doc.getField(fld);
         }

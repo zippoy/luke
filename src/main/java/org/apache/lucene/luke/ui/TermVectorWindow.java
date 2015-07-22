@@ -42,7 +42,7 @@ public class TermVectorWindow extends Dialog implements Bindable {
   public void initTermVector(String fieldName, Terms tv) throws IOException {
     field.setText(fieldName);
     tableData = new ArrayList<Map<String, String>>();
-    TermsEnum te = tv.iterator(null);
+    TermsEnum te = tv.iterator();
     BytesRef term = null;
 
     // populate table data with term vector info

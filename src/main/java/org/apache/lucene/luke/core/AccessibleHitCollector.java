@@ -3,7 +3,7 @@ package org.apache.lucene.luke.core;
 import org.apache.lucene.search.Collector;
 import org.apache.lucene.search.Scorer;
 
-public abstract class AccessibleHitCollector extends Collector {
+public abstract class AccessibleHitCollector implements Collector {
   protected Scorer scorer;
   protected boolean shouldScore;
   protected int docBase;

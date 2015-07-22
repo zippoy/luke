@@ -72,9 +72,6 @@ public class IndexGate {
   public static final int FORMAT_PRE_4 = -12;
 
   static {
-    knownExtensions.put(IndexFileNames.COMPOUND_FILE_EXTENSION, "compound file with various index data");
-    knownExtensions.put(IndexFileNames.COMPOUND_FILE_ENTRIES_EXTENSION, "compound file entries list");
-    knownExtensions.put(IndexFileNames.GEN_EXTENSION, "generation number - global file");
     knownExtensions.put(IndexFileNames.SEGMENTS, "per-commit list of segments and user data");
   }
   
@@ -186,7 +183,7 @@ public class IndexGate {
       @Override
       protected Object doBody(String segmentsFile) throws IOException {
         if (dir instanceof FSDirectory) {
-          File file = new File(((FSDirectory)dir).getDirectory(), segmentsFile);
+          File file = new File(((FSDirectory)dir).getDirectory().toFile(), segmentsFile);
           long lastModified = file.lastModified();
           return lastModified;
         }
@@ -211,11 +208,11 @@ public class IndexGate {
           if (indexFormat == CodecUtil.CODEC_MAGIC) {
             res.genericName = "Lucene 4.x";
             res.capabilities = "flexible, codec-specific";
-            int actualVersion = SegmentInfos.VERSION_40;
+            int actualVersion = SegmentInfos.VERSION_CURRENT;
             try {
               actualVersion = CodecUtil.checkHeaderNoMagic(in, "segments", SegmentInfos.VERSION_40, Integer.MAX_VALUE);
               res.version = Integer.toString(actualVersion);
-              if (actualVersion > SegmentInfos.VERSION_49) {
+              if (actualVersion > SegmentInfos.VERSION_CURRENT) {
                 res.capabilities += " (WARNING: newer version of Lucene than this tool)";
               }
             } catch (Exception e) {
@@ -234,6 +231,12 @@ public class IndexGate {
                 break;
               case SegmentInfos.VERSION_49:
                 res.genericName = "Lucene 4.9+";
+                break;
+              case SegmentInfos.VERSION_50:
+                res.genericName = "Lucene 5.0+";
+                break;
+              case SegmentInfos.VERSION_51:
+                res.genericName = "Lucene 5.1+";
                 break;
               default:
                 res.capabilities = "unknown";
@@ -273,7 +276,7 @@ public class IndexGate {
         final int actualFormat;
         try {
           if (format == CodecUtil.CODEC_MAGIC) {
-            actualFormat = CodecUtil.checkHeaderNoMagic(input, "segments", SegmentInfos.VERSION_40, SegmentInfos.VERSION_49);
+            actualFormat = CodecUtil.checkHeaderNoMagic(input, "segments", SegmentInfos.VERSION_40, SegmentInfos.VERSION_CURRENT);
           } else {
             actualFormat = -1;
           }
@@ -294,8 +297,7 @@ public class IndexGate {
 
 
   public static boolean preferCompoundFormat(Directory dir) throws Exception {
-    SegmentInfos infos = new SegmentInfos();
-    infos.read(dir);
+    SegmentInfos infos = SegmentInfos.readLatestCommit(dir);
     int compound = 0, nonCompound = 0;
     for (int i = 0; i < infos.size(); i++) {
       if (infos.info(i).info.getUseCompoundFile()) {
@@ -336,9 +338,11 @@ public class IndexGate {
     for (IndexCommit ic : commits) {
       known.addAll(ic.getFileNames());
     }
+    /* FIXME: Directory#fileExists was removed since lucene 5.1.0
     if (dir.fileExists(IndexFileNames.SEGMENTS_GEN)) {
       known.add(IndexFileNames.SEGMENTS_GEN);
     }
+    */
     List<String> names = new ArrayList<String>(known);
     Collections.sort(names);
     return names;
@@ -347,8 +351,7 @@ public class IndexGate {
   public static Codec getCodecOfFirstSegment(Directory dir)
     throws CorruptIndexException, IOException {
 
-    SegmentInfos infos = new SegmentInfos();
-    infos.read(dir);
+    SegmentInfos infos = SegmentInfos.readLatestCommit(dir);
 
     SegmentInfo info = (SegmentInfo) infos.info(0).info;
     return info.getCodec();

@@ -43,16 +43,6 @@
 					selected="true" />
 				<Checkbox bxml:id="dontOpenReader" buttonData="%lukeInitWindow_dontOpenReader" />
 				<Checkbox bxml:id="slowIO" buttonData="%lukeInitWindow_slowIO" />
-				<BoxPane orientation="horizontal">
-					<Label text="%lukeInitWindow_termInfosDiv" />
-					<Spinner bxml:id="tiiDiv" preferredWidth="40"
-						selectedIndex="2">
-						<spinnerData>
-							<content:NumericSpinnerData
-								lowerBound="-1" upperBound="999999" increment="1" />
-						</spinnerData>
-					</Spinner>
-				</BoxPane>
 			</BoxPane>
 			<Separator />
 			<BoxPane orientation="horizontal" styles="{horizontalAlignment:'right'}">

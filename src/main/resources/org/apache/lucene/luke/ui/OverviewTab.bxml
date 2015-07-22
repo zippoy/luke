@@ -89,12 +89,6 @@
 														styles="{backgroundColor:11,padding:2}" />
 												</TablePane.Row>
 												<TablePane.Row height="-1">
-													<Label text="%overviewTab_indexDivisor"
-														styles="{font:{bold:true},backgroundColor:'#dce0e7',padding:2}" />
-													<Label bxml:id="iTiiDiv" text="?"
-														styles="{backgroundColor:'#fcfdfd',padding:2}" />
-												</TablePane.Row>
-												<TablePane.Row height="-1">
 													<Label text="%overviewTab_dirImpl"
 														styles="{font:{bold:true},backgroundColor:'#f1f1f1',padding:2}" />
 													<Label bxml:id="dirImpl" text="?"

@@ -17,6 +17,9 @@
 	<bxml:define>
 		<bxml:include bxml:id="fieldNormWindow" src="FieldNormWindow.bxml" />
 	</bxml:define>
+    <bxml:define>
+        <bxml:include bxml:id="editDocWindow" src="EditDocWindow.bxml" />
+    </bxml:define>
 
 	<top>
 		<SplitPane orientation="horizontal" splitRatio="0.20" styles="{useShadow:true}">
@@ -47,6 +50,13 @@
 									</PushButton>
 									<Label bxml:id="maxDocs" text="?" styles="{padding:2}"/>
 								</BoxPane>
+                                <BoxPane>
+                                    <PushButton preferredHeight="20" buttonData="Add" action="addDoc"/>
+                                    <PushButton preferredHeight="20" buttonData="Reconstruct &amp; Edit" action="editDoc"/>
+                                </BoxPane>
+                                <BoxPane>
+                                    <PushButton preferredHeight="20" buttonData="More Like This"/>
+                                </BoxPane>
 							</BoxPane>
 						</TablePane.Row>
 					</rows>
