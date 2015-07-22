@@ -5,8 +5,8 @@ import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldType;
 import org.apache.lucene.document.FieldType.NumericType;
 import org.apache.lucene.index.*;
-import org.apache.lucene.index.FieldInfo.DocValuesType;
-import org.apache.lucene.index.FieldInfo.IndexOptions;
+import org.apache.lucene.index.DocValuesType;
+import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.luke.core.decoders.*;
 import org.apache.lucene.search.similarities.TFIDFSimilarity;
 import org.apache.lucene.store.Directory;
@@ -151,16 +151,16 @@ public class Util {
   }
   
   public static Collection<String> fieldNames(IndexReader r, boolean indexedOnly) throws IOException {
-    AtomicReader reader;
+    LeafReader reader;
     if (r instanceof CompositeReader) {
       reader = SlowCompositeReaderWrapper.wrap(r);
     } else {
-      reader = (AtomicReader)r;
+      reader = (LeafReader)r;
     }
     Set<String> res = new HashSet<String>();
     FieldInfos infos = reader.getFieldInfos();
     for (FieldInfo info : infos) {
-      if (indexedOnly && info.isIndexed()) {
+      if (indexedOnly && info.getIndexOptions() != IndexOptions.NONE) {
         res.add(info.name);
         continue;
       }
@@ -193,7 +193,7 @@ public class Util {
     Number numeric = null;
     if (fld == null) {
       t = new FieldType();
-      t.setIndexed(false);
+      t.setIndexOptions(IndexOptions.NONE);
       t.setStored(false);
       t.setStoreTermVectors(false);
       t.setOmitNorms(true);
@@ -207,12 +207,12 @@ public class Util {
       numeric = fld.numericValue();
     }
     StringBuffer flags = new StringBuffer();
-    if (info.isIndexed()) flags.append("I");
+    if (info.getIndexOptions() != IndexOptions.NONE) flags.append("I");
     else flags.append("-");
     IndexOptions opts = info.getIndexOptions();
-    if (info.isIndexed() && opts != null) {
+    if (info.getIndexOptions() != IndexOptions.NONE && opts != null) {
       switch (opts) {
-      case DOCS_ONLY:
+      case DOCS:
         flags.append("d---");
         break;
       case DOCS_AND_FREQS:
@@ -237,9 +237,11 @@ public class Util {
     else flags.append("-");
     if (info.hasNorms()) {
       flags.append("N");
-      flags.append(dvToString(info.getNormType()));
+      // TODO: FieldInfo#getNormType was deleted in Lucene 5
+      // flags.append(dvToString(info.getNormType()));
     }
-    else flags.append("----");
+    //else flags.append("----");
+    else flags.append("-");
     if (numeric != null) {
       flags.append("#");
       NumericType nt = t.numericType();
@@ -276,7 +278,7 @@ public class Util {
     } else {
       flags.append("----");
     }
-    if (info.hasDocValues()) {
+    if (info.getDocValuesType() != DocValuesType.NONE) {
       flags.append("D");
       flags.append(dvToString(info.getDocValuesType()));
     } else {
@@ -309,12 +311,14 @@ public class Util {
     return fl;
   }
 
+  /**
   public static String normType(FieldInfo info) {
     if (info == null || !info.hasNorms() || info.getNormType() == null) {
       return "---";
     }
     return info.getNormType().name();
   }
+   */
 
   public static Resolution getResolution(String key) {
     if (key == null || key.trim().length() == 0) {

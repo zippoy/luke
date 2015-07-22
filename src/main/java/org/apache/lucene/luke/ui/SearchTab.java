@@ -53,7 +53,7 @@ public class SearchTab extends SplitPane implements Bindable {
 
   private LukeMediator lukeMediator;
 
-  private Analyzer stdAnalyzer = new StandardAnalyzer(Version.LUCENE_CURRENT);
+  private Analyzer stdAnalyzer = new StandardAnalyzer();
 
   @BXML
   private TextArea queryTextArea;
@@ -189,7 +189,7 @@ public class SearchTab extends SplitPane implements Bindable {
 
   private void search(final Query q, final IndexSearcher is, AccessibleHitCollector hc, final int repeat) throws Exception {
     if (hc == null) {
-      hc = new AccessibleTopHitCollector(1000, true, true);
+      hc = new AccessibleTopHitCollector(1000);
     }
     final AccessibleHitCollector collector = hc;
     le = null;
@@ -288,7 +288,7 @@ public class SearchTab extends SplitPane implements Bindable {
     analyzer = createAnalyzer();
     Object srchOpts = null;
     String defField = getDefaultField(srchOpts);
-    QueryParser qp = new QueryParser(Version.LUCENE_CURRENT, defField, analyzer);
+    QueryParser qp = new QueryParser(defField, analyzer);
     // Object ckXmlParser = find(srchOpts, "ckXmlParser");
     // Object ckWild = find(srchOpts, "ckWild");
     // Object ckPosIncr = find(srchOpts, "ckPosIncr");
@@ -452,7 +452,7 @@ public class SearchTab extends SplitPane implements Bindable {
     // boolean orderRes = getBoolean(ckOrderRes, "selected");
     // Collector hc = null;
     // if (getBoolean(ckNormRes, "selected")) {
-    return new AccessibleTopHitCollector(1000, orderRes, scoreRes);
+    return new AccessibleTopHitCollector(1000);
     // } else if (getBoolean(ckAllRes, "selected")) {
     // return new AllHitsCollector(orderRes, scoreRes);
     // } else if (getBoolean(ckLimRes, "selected")) {

@@ -66,13 +66,6 @@ public class AnalyzerToolPlugin extends LukePlugin {
     Object aVersion = app.find(myUi, "aVersion");
     app.removeAll(aVersion);
     Version[] values = {
-            Version.LUCENE_3_0_0,
-            Version.LUCENE_3_1_0,
-            Version.LUCENE_3_2_0,
-            Version.LUCENE_3_3_0,
-            Version.LUCENE_3_4_0,
-            Version.LUCENE_3_5_0,
-            Version.LUCENE_3_6_0,
             Version.LUCENE_4_0_0,
             Version.LUCENE_4_1_0,
             Version.LUCENE_4_2_0,
@@ -84,14 +77,13 @@ public class AnalyzerToolPlugin extends LukePlugin {
             Version.LUCENE_4_8_0,
             Version.LUCENE_4_9_0,
             Version.LUCENE_4_10_0,
+            Version.LUCENE_5_0_0,
+            Version.LUCENE_5_1_0,
+            Version.LUCENE_5_2_0,
             Version.LATEST
     };
     for (int i = 0; i < values.length; i++) {
       Version v = values[i];
-      Object choice = app.create("choice");
-      app.setString(choice, "text", v.toString());
-      app.putProperty(choice, "version", v);
-      app.add(aVersion, choice);
       if (v.equals(Luke.LV)) {
         app.setInteger(aVersion, "selected", i);
       }
@@ -110,18 +102,12 @@ public class AnalyzerToolPlugin extends LukePlugin {
       Class clazz = Class.forName(classname);
       Analyzer analyzer = null;
       try {
-        Constructor<Analyzer> c = clazz.getConstructor(Version.class);
-        analyzer = c.newInstance(v);
-      } catch (Throwable t) {
-        try {
-          // no constructor with Version ?
-          analyzer = (Analyzer)clazz.newInstance();
-        } catch (Throwable t1) {
-          t1.printStackTrace();
-          app
-                .showStatus("Couldn't instantiate analyzer - public 0-arg or 1-arg constructor(Version) required");
-          return;
-        }
+        analyzer = (Analyzer)clazz.newInstance();
+      } catch (Throwable t1) {
+        t1.printStackTrace();
+        app
+          .showStatus("Couldn't instantiate analyzer - public 0-arg or 1-arg constructor(Version) required");
+        return;
       }
 
 

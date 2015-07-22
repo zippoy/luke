@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -59,7 +60,7 @@ public class HighFreqTerms {
     }     
 
     if (args.length > 0) {
-      dir = FSDirectory.open(new File(args[0]));
+      dir = FSDirectory.open(FileSystems.getDefault().getPath(args[0]));
     }
    
     for (int i = 1; i < args.length; i++) {
@@ -124,7 +125,7 @@ public class HighFreqTerms {
       for (String field : fieldNames) {
         Terms terms = fields.terms(field);
         if (terms != null) {
-          te = terms.iterator(te);
+          te = terms.iterator();
           fillQueue(te, tiq, field);
         }
       }
@@ -140,7 +141,7 @@ public class HighFreqTerms {
           String field = fieldIterator.next();
         Terms terms = fields.terms(field);
         if (terms != null) {
-          te = terms.iterator(te);
+          te = terms.iterator();
           fillQueue(te, tiq, field);
         }
       }
@@ -199,7 +200,7 @@ public class HighFreqTerms {
   private static long totalTermFreq(IndexReader r, String field, BytesRef text) throws IOException {
       final Terms terms = MultiFields.getTerms(r, field);
       if (terms != null) {
-        final TermsEnum termsEnum = terms.iterator(null);
+        final TermsEnum termsEnum = terms.iterator();
         if (termsEnum.seekExact(text)) {
           return termsEnum.totalTermFreq();
         }
@@ -209,13 +210,12 @@ public class HighFreqTerms {
 
   public static void fillQueue(TermsEnum termsEnum, TermStatsQueue tiq, String field) throws Exception {
   BytesRef term;
-  while ((term = termsEnum.next()) != null) {
-      BytesRef r = new BytesRef();
-      r.copyBytes(term);
+    while ((term = termsEnum.next()) != null) {
+      BytesRef r = BytesRef.deepCopyOf(term);
       tiq.insertWithOverflow(new TermStats(field, r, termsEnum.docFreq()));
     }
   }
- }
+}
 
 /**
  * Comparator

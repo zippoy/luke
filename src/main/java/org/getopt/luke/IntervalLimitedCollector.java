@@ -2,7 +2,7 @@ package org.getopt.luke;
 
 import java.io.IOException;
 
-import org.apache.lucene.index.AtomicReaderContext;
+import org.apache.lucene.index.LeafReaderContext;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.Scorer;
 import org.apache.lucene.search.TimeLimitingCollector;
@@ -10,24 +10,28 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.TopScoreDocCollector;
 import org.apache.lucene.search.TimeLimitingCollector.TimeExceededException;
 
+import org.apache.lucene.index.LeafReaderContext;
+import org.apache.lucene.search.*;
+import org.apache.lucene.search.TimeLimitingCollector.TimeExceededException;
+
+import java.io.IOException;
+
 public class IntervalLimitedCollector extends LimitedHitCollector {
   private long maxTime;
   private long lastDoc = 0;
   private TopScoreDocCollector tdc;
   private TopDocs topDocs = null;
   private TimeLimitingCollector thc;
-  
-  
-  public IntervalLimitedCollector(int maxTime, boolean outOfOrder, boolean shouldScore) {
+
+
+  public IntervalLimitedCollector(int maxTime) {
     this.maxTime = maxTime;
-    this.outOfOrder = outOfOrder;
-    this.shouldScore = shouldScore;
-    tdc = TopScoreDocCollector.create(1000, outOfOrder);
+    tdc = TopScoreDocCollector.create(1000);
     thc = new TimeLimitingCollector(tdc, TimeLimitingCollector.getGlobalCounter(), maxTime);
   }
 
   /* (non-Javadoc)
-   * @see org.getopt.luke.LimitedHitCollector#limitSize()
+   * @see LimitedHitCollector#limitSize()
    */
   @Override
   public long limitSize() {
@@ -35,7 +39,7 @@ public class IntervalLimitedCollector extends LimitedHitCollector {
   }
 
   /* (non-Javadoc)
-   * @see org.getopt.luke.LimitedHitCollector#limitType()
+   * @see LimitedHitCollector#limitType()
    */
   @Override
   public int limitType() {
@@ -51,7 +55,7 @@ public class IntervalLimitedCollector extends LimitedHitCollector {
   }
 
   /* (non-Javadoc)
-   * @see org.getopt.luke.AccessibleHitCollector#getScore(int)
+   * @see AccessibleHitCollector#getScore(int)
    */
   @Override
   public float getScore(int pos) {
@@ -67,40 +71,19 @@ public class IntervalLimitedCollector extends LimitedHitCollector {
   }
 
   @Override
-  public void collect(int docNum) throws IOException {
-    try {
-      thc.collect(docNum);
-    } catch (TimeExceededException tee) {
-      // re-throw
-      throw new LimitedException(TYPE_TIME, maxTime, tee.getTimeElapsed(), tee.getLastDocCollected());
-    }
-  }
-
-  @Override
-  public boolean acceptsDocsOutOfOrder() {
-    return outOfOrder;
-  }
-
-  @Override
-  public void setNextReader(AtomicReaderContext context) throws IOException {
-    this.docBase = context.docBase;
-    thc.setNextReader(context);
-  }
-
-  @Override
-  public void setScorer(Scorer scorer) throws IOException {
-    this.scorer = scorer;
-    if (shouldScore) {
-      thc.setScorer(scorer);
-    } else {
-      thc.setScorer(NoScoringScorer.INSTANCE);
-    }
-  }
-
-  @Override
   public void reset() {
     lastDoc = 0;
-    tdc = TopScoreDocCollector.create(1000, outOfOrder);
+    tdc = TopScoreDocCollector.create(1000);
     thc = new TimeLimitingCollector(tdc, TimeLimitingCollector.getGlobalCounter(), maxTime);
+  }
+
+  @Override
+  public LeafCollector getLeafCollector(LeafReaderContext leafReaderContext) throws IOException {
+    return thc.getLeafCollector(leafReaderContext);
+  }
+
+  @Override
+  public boolean needsScores() {
+    return thc.needsScores();
   }
 }

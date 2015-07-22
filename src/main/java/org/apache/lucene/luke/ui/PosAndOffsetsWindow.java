@@ -2,6 +2,7 @@ package org.apache.lucene.luke.ui;
 
 import org.apache.lucene.analysis.payloads.PayloadHelper;
 import org.apache.lucene.index.DocsAndPositionsEnum;
+import org.apache.lucene.index.PostingsEnum;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.luke.core.Util;
 import org.apache.lucene.util.BytesRef;
@@ -42,7 +43,7 @@ public class PosAndOffsetsWindow extends Dialog implements Bindable {
     this.resources = resources;
   }
 
-  public void initPositionInfo(DocsAndPositionsEnum pe, Term lastTerm) throws Exception {
+  public void initPositionInfo(PostingsEnum pe, Term lastTerm) throws Exception {
     setPayloadDecoders();
     tableData = new ArrayList<PositionAndOffset>(getTermPositionAndOffsets(pe));
     docNum.setText(String.valueOf(pe.docID()));
@@ -93,7 +94,7 @@ public class PosAndOffsetsWindow extends Dialog implements Bindable {
     public String payloadStr = "----";
   }
 
-  private PositionAndOffset[] getTermPositionAndOffsets(DocsAndPositionsEnum pe) throws Exception {
+  private PositionAndOffset[] getTermPositionAndOffsets(PostingsEnum pe) throws Exception {
     int freq = pe.freq();
 
     PositionAndOffset[] res = new PositionAndOffset[freq];

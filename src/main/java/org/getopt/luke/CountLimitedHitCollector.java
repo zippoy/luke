@@ -1,12 +1,12 @@
 package org.getopt.luke;
 
-import java.io.IOException;
-
-import org.apache.lucene.index.AtomicReaderContext;
-import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.LeafReaderContext;
+import org.apache.lucene.search.LeafCollector;
 import org.apache.lucene.search.Scorer;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.TopScoreDocCollector;
+
+import java.io.IOException;
 
 public class CountLimitedHitCollector extends LimitedHitCollector {
   private int maxSize;
@@ -14,13 +14,11 @@ public class CountLimitedHitCollector extends LimitedHitCollector {
   private int lastDoc;
   private TopScoreDocCollector tdc;
   private TopDocs topDocs = null;
-  
-  public CountLimitedHitCollector(int maxSize, boolean outOfOrder, boolean shouldScore) {
+
+  public CountLimitedHitCollector(int maxSize) {
     this.maxSize = maxSize;
-    this.outOfOrder = outOfOrder;
-    this.shouldScore = shouldScore;
     count = 0;
-    tdc = TopScoreDocCollector.create(maxSize, outOfOrder);
+    tdc = TopScoreDocCollector.create(maxSize);
   }
 
   @Override
@@ -34,22 +32,7 @@ public class CountLimitedHitCollector extends LimitedHitCollector {
   }
 
   /* (non-Javadoc)
-   * @see org.getopt.luke.AllHitsCollector#collect(int, float)
-   */
-  @Override
-  public void collect(int doc) throws IOException {
-    count++;
-    if (count > maxSize) {
-      count--;
-      throw new LimitedException(TYPE_SIZE, maxSize, count, lastDoc);
-    }
-    lastDoc = docBase + doc;
-    
-    tdc.collect(doc);
-  }
-
-  /* (non-Javadoc)
-   * @see org.getopt.luke.AccessibleHitCollector#getDocId(int)
+   * @see AccessibleHitCollector#getDocId(int)
    */
   @Override
   public int getDocId(int pos) {
@@ -60,7 +43,7 @@ public class CountLimitedHitCollector extends LimitedHitCollector {
   }
 
   /* (non-Javadoc)
-   * @see org.getopt.luke.AccessibleHitCollector#getScore(int)
+   * @see AccessibleHitCollector#getScore(int)
    */
   @Override
   public float getScore(int pos) {
@@ -71,7 +54,7 @@ public class CountLimitedHitCollector extends LimitedHitCollector {
   }
 
   /* (non-Javadoc)
-   * @see org.getopt.luke.AccessibleHitCollector#getTotalHits()
+   * @see AccessibleHitCollector#getTotalHits()
    */
   @Override
   public int getTotalHits() {
@@ -79,30 +62,40 @@ public class CountLimitedHitCollector extends LimitedHitCollector {
   }
 
   @Override
-  public boolean acceptsDocsOutOfOrder() {
-    return tdc.acceptsDocsOutOfOrder();
-  }
-
-  @Override
-  public void setNextReader(AtomicReaderContext context) throws IOException {
-    this.docBase = context.docBase;
-    tdc.setNextReader(context);
-  }
-
-  @Override
-  public void setScorer(Scorer scorer) throws IOException {
-    if (shouldScore) {
-      tdc.setScorer(scorer);
-    } else {
-      tdc.setScorer(NoScoringScorer.INSTANCE);
-    }
-  }
-
-  @Override
   public void reset() {
     count = 0;
     lastDoc = 0;
     topDocs = null;
-    tdc = TopScoreDocCollector.create(maxSize, outOfOrder);
+    tdc = TopScoreDocCollector.create(maxSize);
+  }
+
+  @Override
+  public LeafCollector getLeafCollector(final LeafReaderContext leafReaderContext) throws IOException {
+    this.docBase = leafReaderContext.docBase;
+    return new LeafCollector() {
+      @Override
+      public void setScorer(Scorer scorer) throws IOException {
+        if (shouldScore) {
+          tdc.getLeafCollector(leafReaderContext).setScorer(scorer);
+        } else {
+          tdc.getLeafCollector(leafReaderContext).setScorer(NoScoringScorer.INSTANCE);
+        }
+      }
+      @Override
+      public void collect(int doc) throws IOException {
+        count++;
+        if (count > maxSize) {
+          count--;
+          throw new LimitedException(TYPE_SIZE, maxSize, count, lastDoc);
+        }
+        lastDoc = docBase + doc;
+        tdc.getLeafCollector(leafReaderContext).collect(doc);
+      }
+    };
+  }
+
+  @Override
+  public boolean needsScores() {
+    return tdc.needsScores();
   }
 }

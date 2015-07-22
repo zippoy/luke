@@ -3,7 +3,8 @@
  */
 package org.apache.lucene.luke.core;
 
-import org.apache.lucene.index.AtomicReaderContext;
+import org.apache.lucene.index.LeafReaderContext;
+import org.apache.lucene.search.LeafCollector;
 import org.apache.lucene.search.Scorer;
 
 import java.io.IOException;
@@ -42,6 +43,37 @@ class AllHitsCollector extends AccessibleHitCollector {
     return (hits.get(i)).score;
   }
 
+  @Override
+  public LeafCollector getLeafCollector(LeafReaderContext leafReaderContext) throws IOException {
+    this.docBase = leafReaderContext.docBase;
+    return new LeafCollector() {
+      private Scorer scorer;
+      @Override
+      public void setScorer(Scorer scorer) throws IOException {
+        this.scorer = scorer;
+      }
+      @Override
+      public void collect(int doc) throws IOException {
+        float score = 1.0f;
+        if (shouldScore) {
+          try {
+            score = scorer.score();
+          } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+          }
+        }
+        hits.add(new AllHit(docBase + doc, score));
+      }
+    };
+  }
+
+
+  @Override
+  public boolean needsScores() {
+    return false;
+  }
+
   private static class AllHit {
     public int docId;
     public float score;
@@ -50,21 +82,6 @@ class AllHitsCollector extends AccessibleHitCollector {
       this.docId = docId;
       this.score = score;
     }
-  }
-
-  @Override
-  public boolean acceptsDocsOutOfOrder() {
-    return outOfOrder;
-  }
-
-  @Override
-  public void setNextReader(AtomicReaderContext context) throws IOException {
-    this.docBase = context.docBase;
-  }
-
-  @Override
-  public void setScorer(Scorer scorer) throws IOException {
-    this.scorer = scorer;
   }
 
   @Override

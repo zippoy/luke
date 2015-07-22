@@ -55,6 +55,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.net.URL;
+import java.nio.file.FileSystems;
 import java.util.Arrays;
 import java.util.HashSet;
 
@@ -239,7 +240,6 @@ public class LukeWindow extends Frame implements Bindable {
   /**
    * Populate a combobox with the current list of analyzers.
    *
-   * @param combo
    * @throws ClassNotFoundException
    * @throws java.io.IOException
    */
@@ -262,14 +262,12 @@ public class LukeWindow extends Frame implements Bindable {
   /**
    * Open indicated index and re-initialize all GUI and plugins.
    *
-   * @param pName
-   *          path to index
    * @param force
    *          if true, and the index is locked, unlock it first. If false, and the index is locked, an error will be reported.
    * @param readOnly
    *          open in read-only mode, and disallow modifications.
    */
-  public void openIndex(boolean force, String dirImpl, boolean readOnly, boolean ramDir, boolean keepCommits, IndexCommit point, int tiiDivisor) {
+  public void openIndex(boolean force, String dirImpl, boolean readOnly, boolean ramDir, boolean keepCommits, IndexCommit point) {
     String indexPath = lukeInitWindow.indexPath.getText();
     this.indexPath = indexPath;
 
@@ -304,7 +302,7 @@ public class LukeWindow extends Frame implements Bindable {
           return;
         }
         if (force) {
-          IndexWriter.unlock(d);
+          d.makeLock(IndexWriter.WRITE_LOCK_NAME).close();
         } else {
           errorMsg("Index is locked. Try 'Force unlock' when opening.");
           d.close();
@@ -314,7 +312,7 @@ public class LukeWindow extends Frame implements Bindable {
       }
       boolean existsSingle = false;
       try {
-        new SegmentInfos().read(d);
+        new SegmentInfos().readLatestCommit(d);
         existsSingle = true;
       } catch (Throwable e) {
         e.printStackTrace();
@@ -335,7 +333,7 @@ public class LukeWindow extends Frame implements Bindable {
               return;
             }
             if (force) {
-              IndexWriter.unlock(d1);
+              d1.makeLock(IndexWriter.WRITE_LOCK_NAME).close();
             } else {
               errorMsg("Index is locked. Try 'Force unlock' when opening.");
               d1.close();
@@ -345,7 +343,7 @@ public class LukeWindow extends Frame implements Bindable {
           }
           existsSingle = false;
           try {
-            new SegmentInfos().read(d1);
+            new SegmentInfos().readLatestCommit(d1);
             existsSingle = true;
           } catch (Throwable e) {
             e.printStackTrace();
@@ -369,8 +367,8 @@ public class LukeWindow extends Frame implements Bindable {
         // TODO:
         showStatus("Loading index into RAMDirectory ...");
         Directory dir1 = new RAMDirectory();
-        IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_31, new SimpleAnalyzer(Version.LUCENE_31));
-        IndexWriter iw1 = new IndexWriter(dir1, config);
+        IndexWriterConfig cfg = new IndexWriterConfig(new SimpleAnalyzer());
+        IndexWriter iw1 = new IndexWriter(dir1, cfg);
         iw1.addIndexes((Directory[]) dirs.toArray(new Directory[dirs.size()]));
         iw1.close();
         // TODO:
@@ -381,11 +379,7 @@ public class LukeWindow extends Frame implements Bindable {
       java.util.ArrayList<IndexReader> readers = new java.util.ArrayList<IndexReader>();
       for (Directory dd : dirs) {
         IndexReader reader;
-        if (tiiDivisor > 1) {
-          reader = IndexReader.open(dd, tiiDivisor);
-        } else {
-          reader = IndexReader.open(dd);
-        }
+        reader = DirectoryReader.open(dd);
         readers.add(reader);
       }
       if (readers.size() == 1) {
@@ -430,7 +424,7 @@ public class LukeWindow extends Frame implements Bindable {
     }
     FSDirectory res = null;
     if (dirImpl == null || dirImpl.equals(FSDirectory.class.getName()) || dirImpl.equals(FSDirectory.class.getSimpleName())) {
-      return FSDirectory.open(f);
+      return FSDirectory.open(FileSystems.getDefault().getPath(file));
     }
     try {
       Class implClass = Class.forName(dirImpl);
@@ -443,7 +437,7 @@ public class LukeWindow extends Frame implements Bindable {
     if (res != null)
       return res;
     // fall-back to FSDirectory.
-    return FSDirectory.open(f);
+    return FSDirectory.open(FileSystems.getDefault().getPath(file));
   }
 
   public void showCommitFiles(Object commitTable) throws Exception {

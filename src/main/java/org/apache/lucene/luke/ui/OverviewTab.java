@@ -74,8 +74,6 @@ public class OverviewTab extends SplitPane implements Bindable {
   @BXML
   private Label iVer;
   @BXML
-  private Label iTiiDiv;
-  @BXML
   private Label iCommit;
   @BXML
   private Label iUser;
@@ -286,19 +284,6 @@ public class OverviewTab extends SplitPane implements Bindable {
       }
       iFormat.setText(formatText);
       iCaps.setText(formatCaps);
-
-      String divText = "N/A";
-
-      if (ir instanceof DirectoryReader) {
-      //  java.util.List<AtomicReaderContext> readers = ((DirectoryReader) ir).leaves();
-        java.util.List<AtomicReaderContext> readers = ir.leaves();
-        if (readers.size() > 0) {
-          if (readers.get(0).reader() instanceof SegmentReader) {
-            divText = String.valueOf(((SegmentReader) readers.get(0).reader()).getTermInfosIndexDivisor());
-          }
-        }
-      }
-      iTiiDiv.setText(divText);
 
       String commitText = "N/A";
       try {

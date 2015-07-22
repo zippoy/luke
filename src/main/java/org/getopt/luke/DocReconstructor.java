@@ -13,17 +13,17 @@ import java.util.*;
  * index, and these terms may have been changed (e.g. lowercased, stemmed),
  * and many other input tokens may have been skipped altogether by the
  * Analyzer, when fields were originally added to the index.
- * 
+ *
  * @author ab
  *
  */
 public class DocReconstructor extends Observable {
-  private ProgressNotification progress = new ProgressNotification();
+  //private ProgressNotification progress = new ProgressNotification();
   private String[] fieldNames = null;
-  private AtomicReader reader = null;
+  private LeafReader reader = null;
   private int numTerms;
   private Bits live;
-  
+
   /**
    * Prepare a document reconstructor.
    * @param reader IndexReader to read from.
@@ -32,7 +32,7 @@ public class DocReconstructor extends Observable {
   public DocReconstructor(IndexReader reader) throws Exception {
     this(reader, null, -1);
   }
-  
+
   /**
    * Prepare a document reconstructor.
    * @param reader IndexReader to read from.
@@ -48,8 +48,8 @@ public class DocReconstructor extends Observable {
     }
     if (reader instanceof CompositeReader) {
       this.reader = SlowCompositeReaderWrapper.wrap(reader);
-    } else if (reader instanceof AtomicReader) {
-      this.reader = (AtomicReader)reader;
+    } else if (reader instanceof LeafReader) {
+      this.reader = (LeafReader)reader;
     } else {
       throw new Exception("Unsupported IndexReader class " + reader.getClass().getName());
     }
@@ -64,9 +64,9 @@ public class DocReconstructor extends Observable {
       numTerms = 0;
       Iterator<String> fe = fields.iterator();
       while (fe.hasNext()) {
-          String fld = fe.next();
+        String fld = fe.next();
         Terms t = fields.terms(fld);
-        TermsEnum te = t.iterator(null);
+        TermsEnum te = t.iterator();
         while (te.next() != null) {
           numTerms++;
         }
@@ -75,7 +75,7 @@ public class DocReconstructor extends Observable {
     }
     live = MultiFields.getLiveDocs(reader);
   }
-  
+
   /**
    * Reconstruct document fields.
    * @param docNum document number. If this document is deleted, but the index
@@ -103,20 +103,22 @@ public class DocReconstructor extends Observable {
     // collect values from unstored fields
     HashSet<String> fields = new HashSet<String>(Arrays.asList(fieldNames));
     // try to use term vectors if available
-    progress.maxValue = fieldNames.length;
-    progress.curValue = 0;
-    progress.minValue = 0;
+    // TODO
+    //progress.maxValue = fieldNames.length;
+    //progress.curValue = 0;
+    //progress.minValue = 0;
     TermsEnum te = null;
     DocsAndPositionsEnum dpe = null;
     for (int i = 0; i < fieldNames.length; i++) {
       Terms tvf = reader.getTermVector(docNum, fieldNames[i]);
       if (tvf != null) { // has vectors for this field
-        te = tvf.iterator(te);
-        progress.message = "Checking term vectors for '" + fieldNames[i] + "' ...";
-        progress.curValue = i;
+        te = tvf.iterator();
+        // TODO
+        //progress.message = "Checking term vectors for '" + fieldNames[i] + "' ...";
+        //progress.curValue = i;
         setChanged();
-        notifyObservers(progress);
-        List<IntPair> vectors = TermVectorMapper.map(tvf, te, false, true);
+        //notifyObservers(progress);
+        List<IntPair> vectors = TermVectorMapper.map(tvf, false, true);
         if (vectors != null) {
           GrowableStringArray gsa = res.getReconstructedFields().get(fieldNames[i]);
           if (gsa == null) {
@@ -134,19 +136,21 @@ public class DocReconstructor extends Observable {
     }
     // this loop collects data only from left-over fields
     // not yet collected through term vectors
-    progress.maxValue = fields.size();
-    progress.curValue = 0;
-    progress.minValue = 0;
+    // TODO
+    //progress.maxValue = fields.size();
+    //progress.curValue = 0;
+    //progress.minValue = 0;
     for (String fld : fields) {
-      progress.message = "Collecting terms in " + fld + " ...";
-      progress.curValue++;
+      // TODO
+      //progress.message = "Collecting terms in " + fld + " ...";
+      //progress.curValue++;
       setChanged();
-      notifyObservers(progress);
+      //notifyObservers(progress);
       Terms terms = MultiFields.getTerms(reader, fld);
       if (terms == null) { // no terms in this field
         continue;
       }
-      te = terms.iterator(te);
+      te = terms.iterator();
       while (te.next() != null) {
         DocsAndPositionsEnum newDpe = te.docsAndPositions(live, dpe, 0);
         if (newDpe == null) { // no position info for this field
@@ -159,7 +163,7 @@ public class DocReconstructor extends Observable {
         }
         String term = te.term().utf8ToString();
         GrowableStringArray gsa = (GrowableStringArray)
-              res.getReconstructedFields().get(fld);
+          res.getReconstructedFields().get(fld);
         if (gsa == null) {
           gsa = new GrowableStringArray();
           res.getReconstructedFields().put(fld, gsa);
@@ -170,13 +174,14 @@ public class DocReconstructor extends Observable {
         }
       }
     }
-    progress.message = "Done.";
-    progress.curValue = 100;
+    // TODO
+    //progress.message = "Done.";
+    //progress.curValue = 100;
     setChanged();
-    notifyObservers(progress);
+    //notifyObservers(progress);
     return res;
   }
-  
+
   /**
    * This class represents a reconstructed document.
    * @author ab
@@ -189,18 +194,18 @@ public class DocReconstructor extends Observable {
       storedFields = new HashMap<String, IndexableField[]>();
       reconstructedFields = new HashMap<String, GrowableStringArray>();
     }
-    
+
     /**
      * Construct an instance of this class using existing field data.
      * @param storedFields field data of stored fields
      * @param reconstructedFields field data of unstored fields
      */
     public Reconstructed(Map<String, IndexableField[]> storedFields,
-        Map<String, GrowableStringArray> reconstructedFields) {
+                         Map<String, GrowableStringArray> reconstructedFields) {
       this.storedFields = storedFields;
       this.reconstructedFields = reconstructedFields;
     }
-    
+
     /**
      * Get an alphabetically sorted list of field names.
      */
@@ -213,7 +218,7 @@ public class DocReconstructor extends Observable {
       Collections.sort(res);
       return res;
     }
-    
+
     public boolean hasField(String name) {
       return storedFields.containsKey(name) || reconstructedFields.containsKey(name);
     }
