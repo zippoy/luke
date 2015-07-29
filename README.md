@@ -22,6 +22,10 @@ Luke discussion group
 ====
 [Luke google group](https://groups.google.com/forum/#!forum/luke-discuss)
 
+Intro video about features
+====
+This lightning talk was delivered by Dmitry Kan on ApacheCon 2015 in Austin, Texas.
+[![ScreenShot](https://github.com/DmitryKey/luke/blob/master/docs/img/ApacheCon_Luke_lightning_talk.png)](https://www.youtube.com/watch?list=PLGeM09tlguZTaS5FNoJGYEohaubtIvErS&v=fQAAzpk4oQ4#t=392)
 
 Brief project history
 ====
