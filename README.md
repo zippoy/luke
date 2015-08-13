@@ -43,10 +43,6 @@ This project's goal
 2. To revive the project and establish a single point of trust for the development and updates of the tool. This said,
    everyone is welcome to join.
 
-Recent Changes
-====
-
-
 Committers
 ====
 Dmitry Kan
