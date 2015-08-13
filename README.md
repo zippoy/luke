@@ -3,8 +3,6 @@ luke
 
 ![Luke, the Lucene Toolbox Project](src/main/resources/img/luke-big.gif)
 
-This is mavenised version of Luke tool maintained and further developed by Dmitry Kan (this repo owner).
-
 Luke is the GUI tool for introspecting your Lucene / Solr index. It allows:
 
 * Viewing your documents and analyzing their field contents (for stored fields)
@@ -45,8 +43,14 @@ This project's goal
 2. To revive the project and establish a single point of trust for the development and updates of the tool. This said,
    everyone is welcome to join.
 
-Launching luke
+Recent Changes
 ====
+
+
+Committers
+====
+Dmitry Kan
+Tomoko Uchida
 
 Luke has become somewhat greedy on the perm gen size and thus requires an extra parameter to start:
 >java -XX:MaxPermSize=512m -jar luke-with-deps.jar
