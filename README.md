@@ -48,6 +48,8 @@ Committers
 Dmitry Kan
 Tomoko Uchida
 
+Launching luke
+====
 Luke has become somewhat greedy on the perm gen size and thus requires an extra parameter to start:
 >java -XX:MaxPermSize=512m -jar luke-with-deps.jar
 
