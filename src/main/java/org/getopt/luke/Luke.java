@@ -265,7 +265,10 @@ public class Luke extends Thinlet implements ClipboardOwner {
     }
     int lastAnalyzerIdx = 0;
     String lastAnalyzer = Prefs.getProperty(Prefs.P_ANALYZER);
-    if (lastAnalyzer != null) lastAnalyzerIdx = getIndex(combo, lastAnalyzer);
+    if (lastAnalyzer != null) {
+    	setString(combo, "text", lastAnalyzer);
+    	lastAnalyzerIdx=Arrays.asList(aNames).indexOf(lastAnalyzer);
+    } 
     if (lastAnalyzerIdx < 0) lastAnalyzerIdx = 0;
     setInteger(combo, "selected", lastAnalyzerIdx);
   }
