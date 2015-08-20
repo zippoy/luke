@@ -3,13 +3,11 @@ luke
 
 ![Luke, the Lucene Toolbox Project](src/main/resources/img/luke-big.gif)
 
-This is mavenised version of Luke tool maintained and further developed by Dmitry Kan (this repo owner).
-
 Luke is the GUI tool for introspecting your Lucene / Solr index. It allows:
 
 * Viewing your documents and analyzing their field contents (for stored fields)
 * Searching in the index
-* Performing index maintanance: index sanity checking, index optimization (take a backup before running this!)
+* Performing index maintenance: index sanity checking, index optimization (take a backup before running this!)
 * Reading index from hdfs
 * Exporting the index or portion of it into an xml format
 * Testing your custom Lucene analyzers
@@ -18,15 +16,23 @@ Recent Changes
 ====
 See [CHANGES.txt](CHANGES.txt)
 
+Luke discussion group
+====
+[Luke google group](https://groups.google.com/forum/#!forum/luke-discuss)
+
+Intro video about features
+====
+This lightning talk was delivered by Dmitry Kan on ApacheCon 2015 in Austin, Texas.
+[![ScreenShot](https://github.com/DmitryKey/luke/blob/master/docs/img/ApacheCon_Luke_lightning_talk.png)](https://www.youtube.com/watch?list=PLGeM09tlguZTaS5FNoJGYEohaubtIvErS&v=fQAAzpk4oQ4#t=392)
 
 Brief project history
 ====
 
-* The original author is Andrzej Bialecki (https://code.google.com/p/luke)
-* The project has been mavenized by Neil Ireson (see google group discussion here: http://bit.ly/16Y8utO)
+* The original author is [Andrzej Bialecki](https://code.google.com/p/luke)
+* The project has been mavenized by Neil Ireson (see google group discussion [here](http://bit.ly/16Y8utO))
 * The project has been ported to Lucene trunk (marked as 5.0 at the time) by Dmitry Kan
 * The project has been back-ported to Lucene 4.3 by sonarname, who later decided not to continue supporting the project
-* There are updates to the (non-mavenized) project done by tarzanek (https://github.com/tarzanek/luke)
+* There are updates to the (non-mavenized) project done by [tarzanek](https://github.com/tarzanek/luke)
 
 This project's goal
 ====
@@ -37,9 +43,13 @@ This project's goal
 2. To revive the project and establish a single point of trust for the development and updates of the tool. This said,
    everyone is welcome to join.
 
+Committers
+====
+Dmitry Kan
+Tomoko Uchida
+
 Launching luke
 ====
-
 Luke has become somewhat greedy on the perm gen size and thus requires an extra parameter to start:
 >java -XX:MaxPermSize=512m -jar luke-with-deps.jar
 

@@ -28,7 +28,6 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldType;
 import org.apache.lucene.index.*;
-import org.apache.lucene.index.FieldInfo.IndexOptions;
 import org.apache.lucene.index.TermsEnum.SeekStatus;
 import org.apache.lucene.misc.SweetSpotSimilarity;
 import org.apache.lucene.queries.mlt.MoreLikeThis;
@@ -44,10 +43,7 @@ import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.search.similarities.TFIDFSimilarity;
 import org.apache.lucene.search.spans.*;
 import org.apache.lucene.store.*;
-import org.apache.lucene.util.AttributeSource;
-import org.apache.lucene.util.BytesRef;
-import org.apache.lucene.util.NumericUtils;
-import org.apache.lucene.util.Version;
+import org.apache.lucene.util.*;
 import org.apache.lucene.util.automaton.Automaton;
 import org.apache.lucene.util.automaton.Transition;
 import org.getopt.luke.DocReconstructor.Reconstructed;
@@ -67,6 +63,8 @@ import java.awt.datatransfer.Transferable;
 import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -93,7 +91,8 @@ public class Luke extends Thinlet implements ClipboardOwner {
   private Directory dir = null;
   String pName = null;
   private IndexReader ir = null;
-  private AtomicReader ar = null;
+  //private AtomicReader ar = null;
+  private LeafReader ar = null;
   private IndexSearcher is = null;
   private boolean slowAccess = false;
   private List<String> fn = null;
@@ -115,7 +114,6 @@ public class Luke extends Thinlet implements ClipboardOwner {
   private boolean keepCommits = false;
   // never read
   //private boolean multi = false;
-  private int tiiDiv = 1;
   private IndexCommit currentCommit = null;
   private Similarity similarity = null;
   private Object lastST;
@@ -633,12 +631,6 @@ public class Luke extends Thinlet implements ClipboardOwner {
 
     boolean force = getBoolean(find(dialog, "force"), "selected");
     boolean noReader = getBoolean(find(dialog, "cbNoReader"), "selected");
-    tiiDiv = 1;
-    try {
-      tiiDiv = Integer.parseInt(getString(find(dialog, "tiiDiv"), "text"));
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
     Object dirImpl = getSelectedItem(find(dialog, "dirImpl"));
     String dirClass = null;
     if (dirImpl == null) {
@@ -686,7 +678,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
         errorMsg("ERROR: " + e.toString());
       }
     } else {
-      openIndex(pName, force, dirClass, readOnly, ram, keepCommits, null, tiiDiv);
+      openIndex(pName, force, dirClass, readOnly, ram, keepCommits, null);
     }
   }
   
@@ -783,7 +775,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
   
   private IndexWriter createIndexWriter() {
     try {
-      IndexWriterConfig cfg = new IndexWriterConfig(LV, new WhitespaceAnalyzer(LV));
+      IndexWriterConfig cfg = new IndexWriterConfig(new WhitespaceAnalyzer());
       IndexDeletionPolicy policy;
       if (keepCommits) {
         policy = new KeepAllIndexDeletionPolicy();
@@ -827,7 +819,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
       return;
     }
     openIndex(pName, false, dir.getClass().getName(), readOnly, ram,
-        keepCommits, currentCommit, tiiDiv);
+        keepCommits, currentCommit);
   }
   
   /**
@@ -838,7 +830,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
    * @param ro open in read-only mode, and disallow modifications.
    */
   public void openIndex(String name, boolean force, String dirImpl, boolean ro,
-      boolean ramdir, boolean keepCommits, IndexCommit point, int tiiDivisor) {
+      boolean ramdir, boolean keepCommits, IndexCommit point) {
     pName = name;
     readOnly = ro;
     removeAll();
@@ -864,7 +856,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
       if (IndexWriter.isLocked(d)) {
         if (!ro) {
           if (force) {
-            IndexWriter.unlock(d);
+            d.makeLock(IndexWriter.WRITE_LOCK_NAME).close();
           } else {
             errorMsg("Index is locked. Try 'Force unlock' when opening.");
             d.close();
@@ -876,7 +868,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
       boolean existsSingle = false;
       // IR.indexExists doesn't report the cause of error
       try {
-        new SegmentInfos().read(d);
+        new SegmentInfos().readLatestCommit(d);
         existsSingle = true;
       } catch (Throwable e) {
         e.printStackTrace();
@@ -893,7 +885,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
           if (IndexWriter.isLocked(d1)) {
             if (!ro) {
               if (force) {
-                IndexWriter.unlock(d1);
+                d1.makeLock(IndexWriter.WRITE_LOCK_NAME).close();
               } else {
                 errorMsg("Index is locked. Try 'Force unlock' when opening.");
                 d1.close();
@@ -904,7 +896,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
           }
           existsSingle = false;
           try {
-            new SegmentInfos().read(d1);
+            new SegmentInfos().readLatestCommit(d1);
             existsSingle = true;
           } catch (Throwable e) {
             lastException = e;
@@ -932,7 +924,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
       if (ramdir) {
         showStatus("Loading index into RAMDirectory ...");
         Directory dir1 = new RAMDirectory();
-        IndexWriterConfig cfg = new IndexWriterConfig(LV, new WhitespaceAnalyzer(LV));
+        IndexWriterConfig cfg = new IndexWriterConfig(new WhitespaceAnalyzer());
         IndexWriter iw1 = new IndexWriter(dir1, cfg);
         iw1.addIndexes((Directory[])dirs.toArray(new Directory[dirs.size()]));
         iw1.close();
@@ -950,11 +942,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
       ArrayList<DirectoryReader> readers = new ArrayList<DirectoryReader>();
       for (Directory dd : dirs) {
         DirectoryReader reader;
-        if (tiiDivisor > 1) {
-          reader = DirectoryReader.open(dd, tiiDivisor);
-        } else {
-          reader = DirectoryReader.open(dd);
-        }
+        reader = DirectoryReader.open(dd);
         readers.add(reader);
       }
       if (readers.size() == 1) {
@@ -993,15 +981,15 @@ public class Luke extends Thinlet implements ClipboardOwner {
     }
     Directory res = null;
     if (dirImpl == null || dirImpl.equals(Directory.class.getName()) || dirImpl.equals(FSDirectory.class.getName())) {
-      return FSDirectory.open(f);
+      return FSDirectory.open(FileSystems.getDefault().getPath(file));
     }
     try {
       Class implClass = Class.forName(dirImpl);
-      Constructor<Directory> constr = implClass.getConstructor(File.class);
+      Constructor<Directory> constr = implClass.getConstructor(Path.class);
       if (constr != null) {
-        res = constr.newInstance(f);
+        res = constr.newInstance(FileSystems.getDefault().getPath(file));
       } else {
-        constr = implClass.getConstructor(File.class, LockFactory.class);
+        constr = implClass.getConstructor(Path.class, LockFactory.class);
         res = constr.newInstance(f, (LockFactory)null);
       }
     } catch (Throwable e) {
@@ -1009,7 +997,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
       return null;
     }
     if (res != null) return res;
-    return FSDirectory.open(f);
+    return FSDirectory.open(FileSystems.getDefault().getPath(file));
   }
   
   /**
@@ -1125,8 +1113,8 @@ public class Luke extends Thinlet implements ClipboardOwner {
       showFiles(dir, null);
       if (ir instanceof CompositeReader) {
         ar = SlowCompositeReaderWrapper.wrap(ir);
-      } else if (ir instanceof AtomicReader) {
-        ar = (AtomicReader)ir;
+      } else if (ir instanceof LeafReader) {
+        ar = (LeafReader)ir;
       }
       if (ar != null) {
         infos = ar.getFieldInfos();
@@ -1178,18 +1166,6 @@ public class Luke extends Thinlet implements ClipboardOwner {
         verText = Long.toHexString(((DirectoryReader)ir).getVersion());
       }
       setString(iVer, "text", verText);
-      Object iTiiDiv = find(pOver, "iTiiDiv");
-      String divText = "N/A";
-      if (ir instanceof DirectoryReader) {
-        List<AtomicReaderContext> readers = ((DirectoryReader) ir).leaves(); //.getSequentialSubReaders();
-        if (readers.size() > 0)
-        {
-          if (readers.get(0).reader() instanceof SegmentReader) {
-          divText = String.valueOf(((SegmentReader) readers.get(0).reader()).getTermInfosIndexDivisor());
-          }
-        }
-      }
-      setString(iTiiDiv, "text", divText);
       Object iCommit = find(pOver, "iCommit");
       String commitText = "N/A";
       if (ic != null) {
@@ -1422,7 +1398,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
     String segName = commit.getSegmentsFileName();
     SegmentInfos infos = new SegmentInfos();
     try {
-      infos.read(dir, segName);
+      infos.readCommit(dir, segName);
     } catch (Exception e) {
       e.printStackTrace();
       errorMsg("Error reading segment infos for '" + segName + ": " + e.toString());
@@ -1444,7 +1420,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
       setChoice(cell, "alignment", "right");
       cell = create("cell");
       add(r, cell);
-      setString(cell, "text", String.valueOf(si.info.getDocCount()));
+      setString(cell, "text", String.valueOf(si.info.maxDoc()));
       setChoice(cell, "alignment", "right");
       cell = create("cell");
       add(r, cell);
@@ -1479,7 +1455,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
       showStatus("Missing SegmentInfoPerCommit???");
       return;
     }
-    Map<String,String> map = si.info.attributes();
+    Map<String,String> map = si.info.getAttributes();
     if (map != null) {
       for (Entry<String,String> e : map.entrySet()) {
         Object r = create("row");
@@ -1541,7 +1517,8 @@ public class Luke extends Thinlet implements ClipboardOwner {
       Collections.sort(files);
       map.put("---files---", files.toString());
       if (si.info.getUseCompoundFile()) {
-        Directory d = new CompoundFileDirectory(dir, IndexFileNames.segmentFileName(si.info.name, "", IndexFileNames.COMPOUND_FILE_EXTENSION), IOContext.READ, false);
+        //Directory d = new CompoundFileDirectory(dir, IndexFileNames.segmentFileName(si.info.name, "", IndexFileNames.COMPOUND_FILE_EXTENSION), IOContext.READ, false);
+        Directory d = si.info.getCodec().compoundFormat().getCompoundReader(dir, si.info, IOContext.READ);
         files.clear();
         files.addAll(Arrays.asList(d.listAll()));
         d.close();
@@ -1567,7 +1544,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
     }
     // fieldInfos
     try {
-      SegmentReader sr = new SegmentReader(si, 1, IOContext.READ);
+      SegmentReader sr = new SegmentReader(si, IOContext.READ);
       FieldInfos fis = sr.getFieldInfos();
       map = new LinkedHashMap<String,String>();
       List<String> flds = new ArrayList<String>(fis.size());
@@ -1998,11 +1975,11 @@ public class Luke extends Thinlet implements ClipboardOwner {
         PanelPrintWriter ppw = new PanelPrintWriter(Luke.this, panel);
         Object ckRes = find(dialog, "ckRes");
         CheckIndex.Status status = null;
-        CheckIndex ci = new CheckIndex(dir);
-        ci.setInfoStream(ppw);
-        putProperty(dialog, "checkIndex", ci);
-        putProperty(dialog, "ppw", ppw);
         try {
+          CheckIndex ci = new CheckIndex(dir);
+          ci.setInfoStream(ppw);
+          putProperty(dialog, "checkIndex", ci);
+          putProperty(dialog, "ppw", ppw);
           status = ci.checkIndex();
         } catch (Exception e) {
           ppw.println("ERROR: caught exception, giving up.\n\n");
@@ -2060,7 +2037,10 @@ public class Luke extends Thinlet implements ClipboardOwner {
         Object fixRes = find(dialog, "fixRes");
         PanelPrintWriter ppw = (PanelPrintWriter)getProperty(dialog, "ppw");
         try {
-          ci.fixIndex(status);
+          // CheckIndex.fixIndex() was renamed.
+          // https://issues.apache.org/jira/browse/LUCENE-5924
+          // ci.fixIndex(status);
+          ci.exorciseIndex(status);
           setString(fixRes, "text", "DONE. Review the output above.");
         } catch (Exception e) {
           ppw.println("\nERROR during Fix Index:");
@@ -2275,7 +2255,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
         return;
       }
     }
-    Ranges ranges = null;
+    FixedBitSet ranges = null;
     if (getBoolean(ckRanges, "selected")) {
       String rs = getString(list, "text");
       if (rs.trim().length() > 0) {
@@ -2318,7 +2298,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
   XMLExporter exporter = null;
   
   public void _runExport(final File out, final boolean gzip, Observer obs,
-      final Object dialog, final Ranges ranges) throws IOException {
+      final Object dialog, final FixedBitSet ranges) throws IOException {
     exporter = new XMLExporter(ir, pName, decoders);
     exporter.addObserver(obs);
     Thread t = new Thread() {
@@ -2413,7 +2393,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
           } else {
             policy = new KeepLastIndexDeletionPolicy();
           }
-          IndexWriterConfig cfg = new IndexWriterConfig(LV, new WhitespaceAnalyzer(LV));
+          IndexWriterConfig cfg = new IndexWriterConfig(new WhitespaceAnalyzer());
           if (!useLast) {
             IndexCommit ic = ((DirectoryReader)ir).getIndexCommit();
             if (ic != null) {
@@ -2421,7 +2401,8 @@ public class Luke extends Thinlet implements ClipboardOwner {
             }
           }
           cfg.setIndexDeletionPolicy(policy);
-          cfg.setTermIndexInterval(tii);
+          // TODO: IndexWriterConfig.setTermIndexInterval(tii) was removed since 5.x. Can we safaly remove this line?
+          // cfg.setTermIndexInterval(tii);
           cfg.setUseCompoundFile(useCompound);
           cfg.setInfoStream(ppw);
           iw = new IndexWriter(dir, cfg);
@@ -2618,7 +2599,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
                 setBoolean(cbStored, "selected", t.stored());
                 // Lucene 3.0 doesn't support compressed fields
                 //setBoolean(cbCmp, "selected", false);
-                setBoolean(cbIndexed, "selected", t.indexed());
+                setBoolean(cbIndexed, "selected", (t.indexOptions() != null));
                 setBoolean(cbTokenized, "selected", t.tokenized());
                 setBoolean(cbTVF, "selected", t.storeTermVectors());
                 setBoolean(cbTVFp, "selected", t.storeTermVectorPositions());
@@ -2707,14 +2688,13 @@ public class Luke extends Thinlet implements ClipboardOwner {
       // XXX omitTF needs fixing
       // f.setOmitTermFreqAndPositions(getBoolean(cbOTF, "selected"));
       if (getBoolean(cbOTF, "selected")) {
-        ft.setIndexOptions(IndexOptions.DOCS_ONLY);
+        ft.setIndexOptions(IndexOptions.DOCS);
       } else {
         ft.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS);
       }
       ft.setStored(getBoolean(cbStored, "selected"));
-      ft.setIndexed(getBoolean(cbIndexed, "selected"));
       ft.setTokenized(getBoolean(cbTokenized, "selected"));
-      if (ft.stored() == false && ft.indexed() == false) {
+      if (ft.stored() == false && ft.indexOptions() == null) {
         errorMsg("Field '" + name + "' is neither stored nor indexed.");
         return false;
       }
@@ -2850,7 +2830,9 @@ public class Luke extends Thinlet implements ClipboardOwner {
         sb.append(s);
       }
       try {
-        similar = (BooleanQuery)mlt.like(new StringReader(sb.toString()), "field");
+        // https://issues.apache.org/jira/browse/LUCENE-5725
+        // similar = (BooleanQuery)mlt.like(new StringReader(sb.toString()), "field");
+        similar = (BooleanQuery)mlt.like("field", new StringReader(sb.toString()));
       } catch (Exception e) {
         e.printStackTrace();
         errorMsg("FAILED: " + e.getMessage());
@@ -3005,7 +2987,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
             showStatus("Term Vector not available in field " + fName + " for this doc.");
             return;
           }
-          List<IntPair> tvs = TermVectorMapper.map(tfv, null, true, false);
+          List<IntPair> tvs = TermVectorMapper.map(tfv, true, false);
           if (tvs == null || tvs.isEmpty()) {
             showStatus("Term Vector not available (empty).");
             return;
@@ -3109,7 +3091,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
       return;
     }
     FieldInfo info = infos.fieldInfo(f.name());
-    if (!info.isIndexed()) {
+    if (info.getIndexOptions() == null) {
       showStatus("Cannot examine norm value - this field is not indexed.");
       return;
     }
@@ -3434,7 +3416,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
         try {
           String fld = getString(fCombo, "text");
           Terms terms = MultiFields.getTerms(ir, fld);
-          TermsEnum te = terms.iterator(null);
+          TermsEnum te = terms.iterator();
           putProperty(fCombo, "te", te);
           putProperty(fCombo, "teField", fld);
           BytesRef term = te.next();
@@ -3478,7 +3460,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
           String rawString = rawTerm != null ? rawTerm.utf8ToString() : null;
           if (te == null || !teField.equals(fld) || !text.equals(rawString)) {
             Terms terms = MultiFields.getTerms(ir, fld);
-            te = terms.iterator(null);
+            te = terms.iterator();
             putProperty(fCombo, "te", te);
             putProperty(fCombo, "teField", fld);
             status = te.seekCeil(new BytesRef(text));
@@ -3500,7 +3482,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
               if (terms == null) {
                 continue;
               }
-              te = terms.iterator(null);
+              te = terms.iterator();
               rawTerm = te.next();
               putProperty(fCombo, "te", te);
               putProperty(fCombo, "teField", fld);
@@ -3548,7 +3530,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
           Term t = new Term(fld, text);
           if (ir.docFreq(t) == 0) { // missing term
             Terms terms = MultiFields.getTerms(ir, fld);
-            TermsEnum te = terms.iterator(null);
+            TermsEnum te = terms.iterator();
             te.seekCeil(new BytesRef(text));
             t = new Term(fld, te.term().utf8ToString());
           }
@@ -3910,7 +3892,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
           is = new IndexSearcher(ir);
           Object sTable = find("sTable");
           removeAll(sTable);
-          AllHitsCollector ahc = new AllHitsCollector(orderRes, scoreRes);
+          AllHitsCollector ahc = new AllHitsCollector();
           _search(q, is, ahc, sTable, repeat);
         } catch (Exception e) {
           e.printStackTrace();
@@ -3939,46 +3921,28 @@ public class Luke extends Thinlet implements ClipboardOwner {
     String arg = getString(find(srchOpts, "snoName"), "text");
     if (arg == null) arg = "";
     try {
-      Constructor zeroArg = null, zeroArgV = null, oneArg = null, oneArgV = null;
+      Constructor zeroArg = null, oneArg = null;
       try {
-        zeroArgV = Class.forName(sAType).getConstructor(new Class[]{Version.class});
-      } catch (NoSuchMethodException e) {
-        zeroArgV = null;
-        try {
-          zeroArg = Class.forName(sAType).getConstructor(new Class[0]);
-        } catch (NoSuchMethodException e1) {
-          zeroArg = null;
-        }
+        zeroArg = Class.forName(sAType).getConstructor(new Class[0]);
+      } catch (NoSuchMethodException e1) {
+        zeroArg = null;
       }
       try {
-        oneArgV = Class.forName(sAType).getConstructor(new Class[]{Version.class, String.class});
-      } catch (NoSuchMethodException e) {
-        oneArgV = null;
-        try {
-          oneArg = Class.forName(sAType).getConstructor(new Class[]{String.class});
-        } catch (NoSuchMethodException e1) {
-          oneArg = null;
-        }
+        oneArg = Class.forName(sAType).getConstructor(new Class[]{String.class});
+      } catch (NoSuchMethodException e1) {
+        oneArg = null;
       }
       if (arg.length() == 0) {
-        if (zeroArgV != null) {
-          res = (Analyzer)zeroArgV.newInstance(LV);
-        } else if (zeroArg != null) {
+        if (zeroArg != null) {
           res = (Analyzer)zeroArg.newInstance();
-        } else if (oneArgV != null) {
-          res = (Analyzer)oneArgV.newInstance(new Object[]{LV, arg});
         } else if (oneArg != null) {
           res = (Analyzer)oneArg.newInstance(new Object[]{arg});
         } else {
           throw new Exception("Must have a zero-arg or (Version) or (Version, String) constructor");
         }
       } else {
-        if (oneArgV != null) {
-          res = (Analyzer)oneArgV.newInstance(new Object[]{LV, arg});
-        } else if (oneArg != null) {
+        if (oneArg != null) {
           res = (Analyzer)oneArg.newInstance(new Object[]{arg});
-        } else if (zeroArgV != null) {
-          res = (Analyzer)zeroArgV.newInstance(new Object[]{LV});
         } else if (zeroArg != null) {
           res = (Analyzer)zeroArg.newInstance(new Object[0]);
         } else {
@@ -4019,7 +3983,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
       return null;
     }
     String defField = getDefaultField(srchOpts);
-    QueryParser qp = new QueryParser(LV, defField, analyzer);
+    QueryParser qp = new QueryParser(defField, analyzer);
     Object ckXmlParser = find(srchOpts, "ckXmlParser");
     Object ckWild = find(srchOpts, "ckWild");
     Object ckPosIncr = find(srchOpts, "ckPosIncr");
@@ -4115,17 +4079,17 @@ public class Luke extends Thinlet implements ClipboardOwner {
     boolean orderRes = getBoolean(ckOrderRes, "selected");
     Collector hc = null;
     if (getBoolean(ckNormRes, "selected")) {
-      return new AccessibleTopHitCollector(1000, orderRes, scoreRes);
+      return new AccessibleTopHitCollector(1000);
     } else if (getBoolean(ckAllRes, "selected")) {
-      return new AllHitsCollector(orderRes, scoreRes);
+      return new AllHitsCollector();
     } else if (getBoolean(ckLimRes, "selected")) {
       // figure out the type
       if (getBoolean(ckLimCount, "selected")) {
         int lim = Integer.parseInt(getString(limCount, "text"));
-        return new CountLimitedHitCollector(lim, orderRes, scoreRes);
+        return new CountLimitedHitCollector(lim);
       } else if (getBoolean(ckLimTime, "selected")) {
         int lim = Integer.parseInt(getString(limTime, "text"));
-        return new IntervalLimitedCollector(lim, orderRes, scoreRes);
+        return new IntervalLimitedCollector(lim);
       } else {
         throw new Exception("Unknown LimitedHitCollector type");
       }
@@ -4134,7 +4098,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
     }
   }
 
-  public void explainStructure(Object qTabs) {
+  public void explainStructure(Object qTabs) throws IOException {
     Object qField = find("qField");
     String queryS = getString(qField, "text");
     if (queryS.trim().equals("")) {
@@ -4154,7 +4118,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
     _explainStructure(tree, q);
   }
   
-  private void _explainStructure(Object parent, Query q) {
+  private void _explainStructure(Object parent, Query q) throws IOException {
     String clazz = q.getClass().getName();
     if (clazz.startsWith("org.apache.lucene.")) {
       clazz = "lucene." + q.getClass().getSimpleName();
@@ -4313,7 +4277,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
     } else if (q instanceof MultiTermQuery) {
       MultiTermQuery mq = (MultiTermQuery)q;
       Set<Term> terms = new HashSet<Term>();
-      mq.extractTerms(terms);
+      mq.createWeight(is, false).extractTerms(terms);
       setString(n, "text", getString(n, "text") + ", terms: " + terms);
       try {
         addTermsEnum(n, TermRangeQuery.class, mq.getField(), mq);
@@ -4328,8 +4292,8 @@ public class Luke extends Thinlet implements ClipboardOwner {
       setString(n, "text", getString(n, "text") + ", " + cq.toString());
       Object n1 = create("node");
       add(n, n1);
-      if (cq.getFilter() != null) {
-        setString(n1, "text", "Filter: " + cq.getFilter().toString());
+      if (cq.getQuery() != null) {
+        setString(n1, "text", "Filter: " + cq.getQuery().toString());
       } else if (cq.getQuery() != null) {
         _explainStructure(n, cq.getQuery());
       }
@@ -4396,7 +4360,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
         String defField = getDefaultField(find("srchOptTabs"));
         setString(n, "text", "class=" + q.getClass().getName() + ", " + getString(n, "text") + ", toString=" + q.toString(defField));
         HashSet<Term> terms = new HashSet<Term>();
-        sq.extractTerms(terms);
+        sq.createWeight(is, false).extractTerms(terms);
         Object n1 = null;
         if (terms != null) {
           n1 = create("node");
@@ -4449,7 +4413,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
       Object n1 = create("node");
       String defField = getDefaultField(find("srchOptTabs"));
       Set<Term> terms = new HashSet<Term>();
-      q.extractTerms(terms);
+      q.createWeight(is, false).extractTerms(terms);
       setString(n1, "text", q.getClass().getName() + ": " + q.toString(defField));
       add(n, n1);
       if (!terms.isEmpty()) {
@@ -4644,7 +4608,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
   private void _search(final Query q, final IndexSearcher is,
           AccessibleHitCollector hc, final Object sTable, final int repeat) throws Exception {
     if (hc == null) {
-      hc = new AccessibleTopHitCollector(1000, true, true);
+      hc = new AccessibleTopHitCollector(1000);
     }
     final AccessibleHitCollector collector = hc;
     le = null;
@@ -5263,7 +5227,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
           return null;
         }
       }
-      if (pName != null) luke.openIndex(pName, force, null, ro, ramdir, false, null, 1);
+      if (pName != null) luke.openIndex(pName, force, null, ro, ramdir, false, null);
       if(xmlQueryParserFactoryClassName != null) luke.setParserFactoryClassName(xmlQueryParserFactoryClassName);
       if (script != null) {
         LukePlugin plugin = luke.getPlugin("org.getopt.luke.plugins.ScriptingPlugin");

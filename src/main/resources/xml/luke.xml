@@ -49,7 +49,6 @@
                                         <label halign="right" font="10" text="Index version:"/><label font="10" name="iVer" text="?"/>
                                         <label halign="right" font="10" text="Index format:"/><label font="10" name="iFormat" text="?"/>
                                         <label halign="right" font="10" text="Index functionality:"/><label font="10" name="iCaps" text="?"/>
-                                        <label halign="right" font="10" text="TermInfos index divisor:"/><label font="10" name="iTiiDiv" text="?"/>
                                         <label halign="right" font="10" text="Directory implementation:"/><label font="10" name="dirImpl" text="?"/>
                                         <label halign="right" font="10" text="Currently opened commit point:"/><label font="10" name="iCommit" text=""/>
                                         <label halign="right" font="10" text="Current commit user data:"/><label font="10" name="iUser" text=""/>

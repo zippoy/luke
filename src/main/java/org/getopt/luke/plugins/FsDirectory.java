@@ -174,30 +174,14 @@ public class FsDirectory extends Directory {
 
   public Lock makeLock(final String name) {
       if (lock == null) {
-          lock = lockFactory.makeLock(name);
+          lock = lockFactory.makeLock(this, name);
       }
       return lock;
   }
 
-    @Override
-    public void clearLock(String s) throws IOException {
-        lock.close();
-        lock = null;
-    }
-
     public synchronized void close() throws IOException {
     fs.close();
   }
-
-    @Override
-    public void setLockFactory(LockFactory _lockFactory) throws IOException {
-        lockFactory = _lockFactory;
-    }
-
-    @Override
-    public LockFactory getLockFactory() {
-        return lockFactory;
-    }
 
     public String toString() {
     return this.getClass().getName() + "@" + directory;
@@ -300,9 +284,9 @@ public class FsDirectory extends Directory {
     private File localFile;
 
     public DfsIndexOutput(Path path, int ioFileBufferSize) throws IOException {
-        super(new FileOutputStream(new File(path.toUri())), ioFileBufferSize);
+      super("", new FileOutputStream(new File(path.toUri())), ioFileBufferSize);
 
-        // create a temporary local file and set it to delete on exit
+      // create a temporary local file and set it to delete on exit
       String randStr = Integer.toString(new Random().nextInt(Integer.MAX_VALUE));
       localFile = File.createTempFile("index_" + randStr, ".tmp");
       localFile.deleteOnExit();

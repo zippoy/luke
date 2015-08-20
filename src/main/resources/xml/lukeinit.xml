@@ -26,10 +26,6 @@
               <checkbox font="10" name="cbKeepCommits" text="Keep all commit points" selected="true"/>
               <checkbox font="10" name="cbNoReader" text="Don't open IndexReader (when opening corrupted index)"/>
               <checkbox font="10" name="cbSlowIO" text="Slow IO - avoid and track expensive IO operations"/>
-              <panel gap="2">
-                <label font="10" text="Custom TermInfos divisor:"/>
-                <textfield font="10" columns="4" name="tiiDiv" text="1"/>
-              </panel>
         </panel>
 	<separator/>
 	<panel weightx="1" halign="right" gap="8" top="3" right="3" bottom="2">

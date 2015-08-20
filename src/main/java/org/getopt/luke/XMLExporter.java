@@ -7,14 +7,16 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Bits;
 import org.apache.lucene.util.BytesRef;
+import org.apache.lucene.util.FixedBitSet;
 import org.getopt.luke.decoders.Decoder;
 
 import java.io.*;
+import java.nio.file.FileSystems;
 import java.util.*;
 import java.util.zip.GZIPOutputStream;
 
 public class XMLExporter extends Observable {
-  private AtomicReader atomicReader = null;
+  private LeafReader leafReader = null;
   private IndexReader indexReader;
   private String indexPath;
   private boolean abort = false;
@@ -29,12 +31,12 @@ public class XMLExporter extends Observable {
           Map<String, Decoder> decoders) throws IOException {
     this.indexReader = indexReader;
     if (indexReader instanceof CompositeReader) {
-      this.atomicReader = SlowCompositeReaderWrapper.wrap(indexReader);
-    } else if (indexReader instanceof AtomicReader) {
-      this.atomicReader =  (AtomicReader)indexReader;
+      this.leafReader = SlowCompositeReaderWrapper.wrap(indexReader);
+    } else if (indexReader instanceof LeafReader) {
+      this.leafReader =  (LeafReader)indexReader;
     }
-    if (this.atomicReader != null) {
-      infos = atomicReader.getFieldInfos();
+    if (this.leafReader != null) {
+      infos = leafReader.getFieldInfos();
     }
     this.indexPath = indexPath;
     this.decoders = decoders;
@@ -75,11 +77,11 @@ public class XMLExporter extends Observable {
    * @throws Exception
    */
   public boolean export(OutputStream output, boolean decode, boolean preamble, boolean info,
-      String rootElementName, Ranges ranges) throws Exception {
+      String rootElementName, FixedBitSet ranges) throws Exception {
     running = true;
     pn.message = "Export running ...";
     pn.minValue = 0;
-    pn.maxValue = atomicReader.maxDoc();
+    pn.maxValue = leafReader.maxDoc();
     pn.curValue = 0;
     setChanged();
     notifyObservers(pn);
@@ -91,11 +93,11 @@ public class XMLExporter extends Observable {
     }
     BufferedWriter bw;
     boolean rootWritten = false;
-    int delta = atomicReader.maxDoc() / 100;
+    int delta = leafReader.maxDoc() / 100;
     if (delta == 0) delta = 1;
     int cnt = 0;
     bw = new BufferedWriter(new OutputStreamWriter(output, "UTF-8"));
-    Bits live = atomicReader.getLiveDocs();
+    Bits live = leafReader.getLiveDocs();
     try {
       // write out XML preamble
       if (preamble) {
@@ -110,12 +112,12 @@ public class XMLExporter extends Observable {
       Document doc = null;
       int i = -1;
       if (ranges == null) {
-        ranges = new Ranges();
-        ranges.set(0, atomicReader.maxDoc());
+        ranges = new FixedBitSet(leafReader.maxDoc());
+        ranges.set(0, leafReader.maxDoc());
       }
       if (ranges.cardinality() > 0) {
         while ( (i = ranges.nextSetBit(++i)) != -1) {
-          if (i >= atomicReader.maxDoc()) {
+          if (i >= leafReader.maxDoc()) {
             break;
           }
           if (abort) {
@@ -127,7 +129,7 @@ public class XMLExporter extends Observable {
             break;
           }
           if (live != null && !live.get(i)) continue; // skip deleted docs
-          doc = atomicReader.document(i);
+          doc = leafReader.document(i);
           // write out fields
           writeDoc(bw, i, doc, decode, live);
           pn.curValue = i + 1;
@@ -181,7 +183,7 @@ public class XMLExporter extends Observable {
         continue;
       }
       bw.write("<field name='" + Util.xmlEscape(fields[0].name()));
-      NumericDocValues dv = atomicReader.getNormValues(fields[0].name());
+      NumericDocValues dv = leafReader.getNormValues(fields[0].name());
       if (dv != null) {
         // export raw value - we don't know what similarity was used
         String type = dv.toString();
@@ -213,7 +215,7 @@ public class XMLExporter extends Observable {
         }
         bw.write("<val>" + Util.xmlEscape(val) + "</val>\n");
       }
-      Terms tfv = atomicReader.getTermVector(docNum, fieldName);
+      Terms tfv = leafReader.getTermVector(docNum, fieldName);
       if (tfv != null) {
         writeTermVector(bw, tfv, liveDocs);
       }
@@ -224,7 +226,7 @@ public class XMLExporter extends Observable {
   
   private void writeTermVector(BufferedWriter bw, Terms tfv, Bits liveDocs) throws Exception {
     bw.write("<tv>\n");
-    TermsEnum te = tfv.iterator(null);
+    TermsEnum te = tfv.iterator();
     DocsAndPositionsEnum dpe = null;
     StringBuilder positions = new StringBuilder();
     StringBuilder offsets = new StringBuilder();
@@ -274,11 +276,11 @@ public class XMLExporter extends Observable {
       bw.write("  <field name='" + Util.xmlEscape(fname) + "'/>\n");
     }
     bw.write(" </fields>\n");
-    bw.write(" <numDocs>" + atomicReader.numDocs() + "</numDocs>\n");
-    bw.write(" <maxDoc>" + atomicReader.maxDoc() + "</maxDoc>\n");
-    bw.write(" <numDeletedDocs>" + atomicReader.numDeletedDocs() + "</numDeletedDocs>\n");
+    bw.write(" <numDocs>" + leafReader.numDocs() + "</numDocs>\n");
+    bw.write(" <maxDoc>" + leafReader.maxDoc() + "</maxDoc>\n");
+    bw.write(" <numDeletedDocs>" + leafReader.numDeletedDocs() + "</numDeletedDocs>\n");
     bw.write(" <numTerms>" + indexInfo.getNumTerms() + "</numTerms>\n");
-    bw.write(" <hasDeletions>" + atomicReader.hasDeletions() + "</hasDeletions>\n");
+    bw.write(" <hasDeletions>" + leafReader.hasDeletions() + "</hasDeletions>\n");
     bw.write(" <lastModified>" + indexInfo.getLastModified() + "</lastModified>\n");
     bw.write(" <indexVersion>" + indexInfo.getVersion() + "</indexVersion>\n");
     bw.write(" <indexFormat>\n");
@@ -355,7 +357,7 @@ public class XMLExporter extends Observable {
       System.err.println("\t\tExample: 0-5,15,32-100,101,103,105-500");
       System.exit(-1);
     }
-    Directory dir = FSDirectory.open(new File(args[0]));
+    Directory dir = FSDirectory.open(FileSystems.getDefault().getPath(args[0]));
     if (!DirectoryReader.indexExists(dir)) {
       throw new Exception("There is no valid Lucene index here: '" + args[0] + "'");
     }
@@ -367,7 +369,7 @@ public class XMLExporter extends Observable {
       throw new Exception("Output file already exists: '" + out.getAbsolutePath() + "'");
     }
     boolean gzip = false;
-    Ranges ranges = null;
+    FixedBitSet ranges = null;
     boolean onlyInfo = false;
     for (int i = 2; i < args.length; i++) {
       if (args[i].equals("-gzip")) {
@@ -392,7 +394,7 @@ public class XMLExporter extends Observable {
       os = new GZIPOutputStream(os);
     }
     if (onlyInfo) {
-      ranges = new Ranges();
+      ranges = new FixedBitSet(64);
     }
     exporter.export(os, false, false, true, "index", ranges);
     os.flush();
