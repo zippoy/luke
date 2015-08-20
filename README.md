@@ -45,8 +45,8 @@ This project's goal
 
 Committers
 ====
-Dmitry Kan
-Tomoko Uchida
+* [Dmitry Kan](https://github.com/DmitryKey)
+* [Tomoko Uchida](https://github.com/mocobeta)
 
 Launching luke
 ====
