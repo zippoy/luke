@@ -196,7 +196,7 @@ public class IndexGate {
             int actualVersion = SegmentInfos.VERSION_51;
             try {
               actualVersion = CodecUtil.checkHeaderNoMagic(in, "segments", SegmentInfos.VERSION_40, Integer.MAX_VALUE);
-              if (actualVersion > SegmentInfos.VERSION_51) {
+              if (actualVersion > SegmentInfos.VERSION_53) {
                 res.capabilities += " (WARNING: newer version of Lucene than this tool)";
                 System.out.println("WARNING: newer version of Lucene than this tool supports");
               }
@@ -207,19 +207,19 @@ public class IndexGate {
             switch(actualVersion) {
               case SegmentInfos.VERSION_40:
                 res.genericName = "Lucene 4.0 or later";
-                res.version = "4.0 or lager";
+                res.version = "4.0 or later";
                 break;
               case SegmentInfos.VERSION_46:
                 res.genericName = "Lucene 4.6 or later";
-                res.version = "4.6 or lager";
+                res.version = "4.6 or later";
                 break;
               case SegmentInfos.VERSION_48:
                 res.genericName = "Lucene 4.8 or later";
-                res.version = "4.8 or lager";
+                res.version = "4.8 or later";
                 break;
               case SegmentInfos.VERSION_49:
                 res.genericName = "Lucene 4.9 or later";
-                res.version = "4.9 or lager";
+                res.version = "4.9 or later";
                 break;
               case SegmentInfos.VERSION_50:
                 res.genericName = "Lucene 5.0";
@@ -229,6 +229,10 @@ public class IndexGate {
                 res.genericName = "Lucene 5.1 or later";
                 res.version = "5.1 or later";
                 break;
+              case SegmentInfos.VERSION_53:
+                  res.genericName = "Lucene 5.3 or later";
+                  res.version = "5.3 or later";
+                  break;
             }
           } else {
             res.genericName = "Lucene 3.x or prior";

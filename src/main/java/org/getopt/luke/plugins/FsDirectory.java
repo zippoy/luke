@@ -22,6 +22,7 @@ import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Element;
 import net.sf.ehcache.store.MemoryStoreEvictionPolicy;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.*;
 import org.apache.log4j.Level;
@@ -172,9 +173,14 @@ public class FsDirectory extends Directory {
     return new DfsIndexInput(new Path(directory, name), bufSize, reporter);
   }
 
-  public Lock makeLock(final String name) {
+  public Lock obtainLock(final String name) {
       if (lock == null) {
-          lock = lockFactory.makeLock(this, name);
+        try {
+          lock = lockFactory.obtainLock(this, name);
+        }
+        catch(IOException e) {
+          throw new RuntimeException( e );
+        }
       }
       return lock;
   }
