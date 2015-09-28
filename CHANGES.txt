@@ -1,3 +1,17 @@
+* Upgrade to 5.3.0
+https://github.com/DmitryKey/luke/pull/38
+
+This release runs on Java8 and does not run on Java7.
+
+This release includes a number of pull requests and github issues. Worth mentioning:
+
+https://github.com/DmitryKey/luke/pull/38 upgrade to 5.3.0 itself
+
+https://github.com/DmitryKey/luke/pull/28 Added LUKE_PATH env variable to luke.sh
+https://github.com/DmitryKey/luke/pull/35 Added copy, cut, paste etc. shortcuts, using Mac command key
+https://github.com/DmitryKey/luke/pull/34 Fixed lastAnalyzer retrieval (this feature remembers the last used analyzer on the Search tab)
+https://github.com/DmitryKey/luke/issues/31 200 stargazers on github (by the time of this release the number crossed 250). Luke community is growing.
+
 * Upgrade to 5.2.0
 https://github.com/DmitryKey/luke/pull/27
 

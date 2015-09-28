@@ -1,1 +1,1 @@
-java -XX:MaxPermSize=512m -jar .\target\luke-with-deps.jar
+java -jar .\target\luke-with-deps.jar
