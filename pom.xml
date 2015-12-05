@@ -37,6 +37,14 @@
                 <enabled>false</enabled>
             </releases>
         </repository>
+        <repository>
+            <id>restlet</id>
+            <name>Restlet</name>
+            <url>http://maven.restlet.com</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </repository>
     </repositories>
 
     <dependencies>
