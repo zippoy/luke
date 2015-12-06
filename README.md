@@ -3,7 +3,7 @@ luke
 
 ![Luke, the Lucene Toolbox Project](src/main/resources/img/luke-big.gif)
 
-Luke is the GUI tool for introspecting your Lucene / Solr index. It allows:
+Luke is the GUI tool for introspecting your Lucene / Solr / Elasticsearch index. It allows:
 
 * Viewing your documents and analyzing their field contents (for stored fields)
 * Searching in the index
