@@ -193,7 +193,7 @@ public class IndexGate {
           if (indexFormat == CodecUtil.CODEC_MAGIC) {
             res.genericName = "Lucene 5.x";
             res.capabilities = "flexible, codec-specific";
-            int actualVersion = SegmentInfos.VERSION_51;
+            int actualVersion = SegmentInfos.VERSION_53;
             try {
               actualVersion = CodecUtil.checkHeaderNoMagic(in, "segments", SegmentInfos.VERSION_40, Integer.MAX_VALUE);
               if (actualVersion > SegmentInfos.VERSION_53) {
@@ -230,9 +230,9 @@ public class IndexGate {
                 res.version = "5.1 or later";
                 break;
               case SegmentInfos.VERSION_53:
-                  res.genericName = "Lucene 5.3 or later";
-                  res.version = "5.3 or later";
-                  break;
+                res.genericName = "Lucene 5.3 or later";
+                res.version = "5.3 or later";
+                break;
             }
           } else {
             res.genericName = "Lucene 3.x or prior";

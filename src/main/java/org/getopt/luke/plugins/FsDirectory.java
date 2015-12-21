@@ -173,23 +173,18 @@ public class FsDirectory extends Directory {
     return new DfsIndexInput(new Path(directory, name), bufSize, reporter);
   }
 
-  public Lock obtainLock(final String name) {
-      if (lock == null) {
-        try {
-          lock = lockFactory.obtainLock(this, name);
-        }
-        catch(IOException e) {
-          throw new RuntimeException( e );
-        }
-      }
-      return lock;
+  public Lock obtainLock(final String name) throws IOException {
+    if (lock == null) {
+      lock = lockFactory.obtainLock(this, name);
+    }
+    return lock;
   }
 
-    public synchronized void close() throws IOException {
+  public synchronized void close() throws IOException {
     fs.close();
   }
 
-    public String toString() {
+  public String toString() {
     return this.getClass().getName() + "@" + directory;
   }
 
