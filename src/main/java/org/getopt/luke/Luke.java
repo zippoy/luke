@@ -31,14 +31,14 @@ import org.apache.lucene.index.*;
 import org.apache.lucene.index.TermsEnum.SeekStatus;
 import org.apache.lucene.misc.SweetSpotSimilarity;
 import org.apache.lucene.queries.mlt.MoreLikeThis;
+import org.apache.lucene.queries.payloads.PayloadNearQuery;
+import org.apache.lucene.queries.payloads.PayloadTermQuery;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.queryparser.xml.CoreParser;
 import org.apache.lucene.queryparser.xml.CorePlusExtensionsParser;
 import org.apache.lucene.search.*;
 import org.apache.lucene.search.BooleanClause.Occur;
-import org.apache.lucene.queries.payloads.PayloadNearQuery;
-import org.apache.lucene.queries.payloads.PayloadTermQuery;
-import org.apache.lucene.search.similarities.DefaultSimilarity;
+import org.apache.lucene.search.similarities.ClassicSimilarity;
 import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.search.similarities.TFIDFSimilarity;
 import org.apache.lucene.search.spans.*;
@@ -54,8 +54,12 @@ import org.getopt.luke.xmlQuery.XmlQueryParserFactory;
 import thinlet.FrameLauncher;
 import thinlet.Thinlet;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.JFileChooser;
+import javax.swing.UIManager;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.GraphicsEnvironment;
+import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.StringSelection;
@@ -70,7 +74,6 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.List;
 import java.util.Map.Entry;
 import java.util.zip.GZIPOutputStream;
 
@@ -4040,7 +4043,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
     Object simClass = find(srchOpts, "simClass");
     Object ckSimCust = find(srchOpts, "ckSimCust");
     if (getBoolean(ckSimDef, "selected")) {
-      return new DefaultSimilarity();
+      return new ClassicSimilarity();
     } else if (getBoolean(ckSimSweet, "selected")) {
       return new SweetSpotSimilarity();
     } else if (getBoolean(ckSimOther, "selected")) {
@@ -4057,12 +4060,12 @@ public class Luke extends Thinlet implements ClipboardOwner {
         showStatus("ERROR: invalid Similarity, using default");
         setBoolean(ckSimDef, "selected", true);
         setBoolean(ckSimOther, "selected", false);
-        return new DefaultSimilarity();
+        return new ClassicSimilarity();
       }
     } else if (getBoolean(ckSimCust, "selected")) {
       return similarity;
     } else {
-      return new DefaultSimilarity();
+      return new ClassicSimilarity();
     }
   }
 
@@ -5104,7 +5107,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
     return similarity;
   }
   
-  private static TFIDFSimilarity defaultSimilarity = new DefaultSimilarity();
+  private static ClassicSimilarity defaultSimilarity = new ClassicSimilarity();
   
   /**
    * Set the current custom similarity implementation.
