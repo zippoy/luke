@@ -39,8 +39,8 @@ This project's goal
 
 0. Keep the project mavenized (compatible with Apache Lucene and Solr style)
 1. To port the thinlet UI to an ASL compliant license framework so that it can be contributed back to Apache Lucene.
-   Current work is done with Apache Pivot (https://github.com/dmitrykey/luke/tree/pivot-luke).
-2. To revive the project and establish a single point of trust for the development and updates of the tool. This said,
+   Current work is done with Apache Pivot (https://github.com/dmitrykey/luke/tree/pivot-luke). Grab a released version of pivoted luke for lucene 5.2.1 here: https://github.com/DmitryKey/luke/releases/tag/pivot-luke-5.2.1
+2. Maintain a single point of trust for the development and updates of the tool. That said,
    everyone is welcome to join.
 
 Committers
