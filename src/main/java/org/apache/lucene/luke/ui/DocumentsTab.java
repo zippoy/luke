@@ -518,7 +518,7 @@ public class DocumentsTab extends SplitPane implements Bindable {
       @Override
       public void taskExecuted(Task<Object> task) {
         try {
-          PostingsEnum pe = MultiFields.getTermDocsEnum(ir, null, lastTerm.field(), lastTerm.bytes());
+          PostingsEnum pe = MultiFields.getTermDocsEnum(ir, lastTerm.field(), lastTerm.bytes());
           pe.nextDoc();
           tdNum.setText("1");
           DocumentsTab.this.pe = pe;
@@ -822,7 +822,7 @@ public class DocumentsTab extends SplitPane implements Bindable {
         Alert.alert(MessageType.WARNING, (String) resources.get("documentsTab_msg_docNotSelected"), getWindow());
       } else {
         // create new Enum to show positions info
-        PostingsEnum pe2 = MultiFields.getTermPositionsEnum(ir, null, lastTerm.field(), lastTerm.bytes());
+        PostingsEnum pe2 = MultiFields.getTermPositionsEnum(ir, lastTerm.field(), lastTerm.bytes());
         if (pe2 == null) {
           Alert.alert(MessageType.INFO, (String) resources.get("documentsTab_msg_positionNotIndexed"), getWindow());
         } else {

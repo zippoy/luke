@@ -7,7 +7,6 @@ import org.apache.lucene.index.IndexGate.FormatDetails;
 import org.apache.lucene.luke.core.decoders.*;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.store.Directory;
-import org.apache.lucene.util.Bits;
 
 import java.util.*;
 
@@ -215,7 +214,6 @@ public class IndexInfo {
     decoders = new HashMap<String, Decoder>();
 
     Fields fields = MultiFields.getFields(reader);
-    Bits liveDocs = MultiFields.getLiveDocs(reader);
 
     // if there are no postings, throw an exception
     if (fields == null) {
@@ -231,7 +229,7 @@ public class IndexInfo {
       if (terms != null) {
         te = terms.iterator();
         te.next();
-        pe = MultiFields.getTermDocsEnum(reader, liveDocs, fld, te.term());
+        pe = MultiFields.getTermDocsEnum(reader, fld, te.term());
         IndexableField field = null;
         while (field == null && pe.nextDoc() != DocsEnum.NO_MORE_DOCS) {
           // look up first document which has this field value.

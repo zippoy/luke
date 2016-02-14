@@ -30,7 +30,6 @@ import org.apache.lucene.luke.core.decoders.StringDecoder;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.RAMDirectory;
-import org.apache.lucene.util.Version;
 import org.apache.pivot.beans.BXML;
 import org.apache.pivot.beans.BXMLSerializer;
 import org.apache.pivot.beans.Bindable;
@@ -38,19 +37,10 @@ import org.apache.pivot.collections.Map;
 import org.apache.pivot.serialization.SerializationException;
 import org.apache.pivot.util.Resources;
 import org.apache.pivot.wtk.*;
-import org.apache.pivot.wtk.Checkbox;
-import org.apache.pivot.wtk.Component;
-import org.apache.pivot.wtk.Container;
-import org.apache.pivot.wtk.Frame;
-import org.apache.pivot.wtk.Label;
-import org.apache.pivot.wtk.MenuBar;
 import org.apache.pivot.wtk.Mouse.Button;
-import org.apache.pivot.wtk.ScrollPane;
 import org.apache.pivot.wtk.TablePane.Row;
-import org.apache.pivot.wtk.TextArea;
-import org.apache.pivot.wtk.Window;
 
-import java.awt.*;
+import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
@@ -58,8 +48,6 @@ import java.net.URL;
 import java.nio.file.FileSystems;
 import java.util.Arrays;
 import java.util.HashSet;
-
-import org.apache.pivot.wtk.Mouse.Button;
 
 public class LukeWindow extends Frame implements Bindable {
 
@@ -302,7 +290,7 @@ public class LukeWindow extends Frame implements Bindable {
           return;
         }
         if (force) {
-          d.makeLock(IndexWriter.WRITE_LOCK_NAME).close();
+          d.obtainLock(IndexWriter.WRITE_LOCK_NAME).close();
         } else {
           errorMsg("Index is locked. Try 'Force unlock' when opening.");
           d.close();
@@ -333,7 +321,7 @@ public class LukeWindow extends Frame implements Bindable {
               return;
             }
             if (force) {
-              d1.makeLock(IndexWriter.WRITE_LOCK_NAME).close();
+              d1.obtainLock(IndexWriter.WRITE_LOCK_NAME).close();
             } else {
               errorMsg("Index is locked. Try 'Force unlock' when opening.");
               d1.close();
