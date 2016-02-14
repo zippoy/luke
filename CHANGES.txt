@@ -1,3 +1,9 @@
+* Upgrade to 5.4.0
+Fixed in this release:
+
+#43 Build failure due to missing org.restlet-2.3.0
+#46 upgrade to 5.4 (thanks to this pull request: https://github.com/DmitryKey/luke/pull/47)
+
 * Upgrade to 5.3.0
 https://github.com/DmitryKey/luke/pull/38
 
