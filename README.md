@@ -50,8 +50,7 @@ Committers
 
 Launching luke
 ====
-Luke has become somewhat greedy on the perm gen size and thus requires an extra parameter to start:
->java -XX:MaxPermSize=512m -jar luke-with-deps.jar
+Use [luke.sh](luke.sh) or [luke.bat](luke.bat) for launching luke from the command line.
 
 Running luke with a custom analyzer
 ====
