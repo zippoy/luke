@@ -1,3 +1,8 @@
+* Upgrade to 5.5.0
+Fixed in this release:
+
+https://github.com/DmitryKey/luke/issues/50 (Literally, the upgrade to Lucene 5.5.0)
+
 * Upgrade to 5.4.0
 Fixed in this release:
 
