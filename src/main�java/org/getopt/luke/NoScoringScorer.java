@@ -1,4 +1,4 @@
-package org.apache.lucene.luke.core;
+package org.getopt.luke;
 
 import org.apache.lucene.search.Scorer;
 

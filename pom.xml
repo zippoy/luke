@@ -5,11 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>luke</groupId>
-    <artifactId>luke</artifactId>
+    <artifactId>pivot-luke</artifactId>
     <version>${lucene.version}</version>
 
     <properties>
-        <jdk.version>1.6</jdk.version>
+        <jdk.version>1.7</jdk.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <lucene.version>5.4.1</lucene.version>
         <ehcache.version>2.9.0</ehcache.version>
@@ -17,7 +17,9 @@
         <log4j.version>1.2.17</log4j.version>
         <rhino.version>1.7R4</rhino.version>
         <pivot.version>2.0.4</pivot.version>
+        <elasticsearch.version>1.6.0</elasticsearch.version>
 
+        <maven-shade-plugin.version>2.3</maven-shade-plugin.version>
         <maven-assembly-plugin.version>2.4</maven-assembly-plugin.version>
         <maven-compiler-plugin.version>3.1</maven-compiler-plugin.version>
         <maven-dependency-plugin.version>2.8</maven-dependency-plugin.version>
@@ -34,6 +36,14 @@
             <url>http://repository.apache.org/snapshots</url>
             <releases>
                 <enabled>false</enabled>
+            </releases>
+        </repository>
+        <repository>
+            <id>restlet</id>
+            <name>Restlet</name>
+            <url>http://maven.restlet.com</url>
+            <releases>
+                <enabled>true</enabled>
             </releases>
         </repository>
     </repositories>
@@ -233,31 +243,36 @@
             </plugin>
 
             <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
+                <artifactId>maven-shade-plugin</artifactId>
                 <groupId>org.apache.maven.plugins</groupId>
-                <version>${maven-assembly-plugin.version}</version>
+                <version>${maven-shade-plugin.version}</version>
                 <configuration>
-                    <descriptorRefs>
-                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                    </descriptorRefs>
-                    <archive>
-                        <manifest>
-                            <mainClass>org.apache.lucene.luke.ui.LukeApplication</mainClass>
-                        </manifest>
-                    </archive>
-					<finalName>${project.artifactId}-with-deps</finalName>
-					<appendAssemblyId>false</appendAssemblyId>
+                    <finalName>${project.artifactId}-with-deps</finalName>
+                    <filters>
+                        <filter>
+                            <artifact>*:*</artifact>
+                            <excludes>
+                                <exclude>META-INF/*.SF</exclude>
+                                <exclude>META-INF/*.DSA</exclude>
+                                <exclude>META-INF/*.RSA</exclude>
+                            </excludes>
+                        </filter>
+                    </filters>
                 </configuration>
                 <executions>
                     <execution>
-                        <id>make-assembly</id>
-                        <!-- this is used for inheritance merges -->
                         <phase>package</phase>
-                        <!-- append to the packaging phase. -->
                         <goals>
-                            <goal>single</goal>
-                            <!-- goals == mojos -->
+                            <goal>shade</goal>
                         </goals>
+                        <configuration>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>org.apache.lucene.luke.ui.LukeApplication</mainClass>
+                                </transformer>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                            </transformers>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
