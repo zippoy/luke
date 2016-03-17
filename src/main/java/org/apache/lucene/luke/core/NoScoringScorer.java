@@ -1,5 +1,6 @@
 package org.apache.lucene.luke.core;
 
+import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.search.Scorer;
 
 import java.io.IOException;
@@ -22,23 +23,13 @@ public class NoScoringScorer extends Scorer {
   }
 
   @Override
-  public int nextDoc() throws IOException {
-    return 0;
-  }
-
-  @Override
-  public int advance(int i) throws IOException {
-    return 0;
-  }
-
-  @Override
-  public long cost() {
-    return 0;
-  }
-
-  @Override
   public int freq() throws IOException {
     return 1;
+  }
+
+  @Override
+  public DocIdSetIterator iterator() {
+    return null;
   }
 
 }
