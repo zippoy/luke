@@ -12,6 +12,7 @@ import java.io.IOException;
 public class EditDocField {
 
   public EditDocField(IndexableField f, Terms tv) throws IOException {
+    this.isNew = false;
     this.name = f.name();
     this.boost = f.boost();
     this.stored = f.fieldType().stored();
@@ -47,6 +48,14 @@ public class EditDocField {
     }
   }
 
+  public EditDocField(String name) {
+    this.isNew = true;
+    this.name = name;
+    this.boost = 1.0f;
+    this.indexOptions = IndexOptions.DOCS_AND_FREQS;
+  }
+
+  private boolean isNew;
   private String name;
   private float boost;
   private boolean stored;
@@ -61,6 +70,10 @@ public class EditDocField {
   private IndexOptions indexOptions;
   private String storedValue;
   private String tokens;
+
+  public boolean isNew() {
+    return isNew;
+  }
 
   public String getName() {
     return name;

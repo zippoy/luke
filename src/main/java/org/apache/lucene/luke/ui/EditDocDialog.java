@@ -3,26 +3,21 @@ package org.apache.lucene.luke.ui;
 import com.sun.istack.NotNull;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.*;
-import org.apache.lucene.luke.core.Util;
 import org.apache.lucene.luke.ui.form.EditDocField;
 import org.apache.lucene.util.Bits;
-import org.apache.lucene.util.BytesRef;
 import org.apache.pivot.beans.BXML;
 import org.apache.pivot.beans.BeanAdapter;
 import org.apache.pivot.beans.Bindable;
 import org.apache.pivot.collections.ArrayList;
 import org.apache.pivot.collections.List;
 import org.apache.pivot.collections.Map;
-import org.apache.pivot.collections.Sequence;
 import org.apache.pivot.collections.adapter.ListAdapter;
 import org.apache.pivot.util.Resources;
 import org.apache.pivot.wtk.*;
 import org.apache.pivot.wtk.content.ButtonData;
 
-import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
-import java.util.HashSet;
 
 public class EditDocDialog extends Dialog implements Bindable {
 
@@ -32,6 +27,7 @@ public class EditDocDialog extends Dialog implements Bindable {
   private Document doc;
   private LeafReader lr = null;
   private int numTerms;
+  private List<String> ld;
   private List<EditDocField> docFields;
   private Bits live;
 
@@ -47,6 +43,14 @@ public class EditDocDialog extends Dialog implements Bindable {
   private BoxPane tokens;
   @BXML
   private ButtonData tokensTabButton;
+  @BXML
+  private TextInput newFieldName;
+  @BXML
+  private PushButton newField;
+  @BXML
+  private PushButton saveDoc;
+  @BXML
+  private PushButton delField;
 
 
   @Override
@@ -69,8 +73,42 @@ public class EditDocDialog extends Dialog implements Bindable {
     List<String> idxOptions = new ListAdapter(Arrays.asList(EditDocField.indexOptionList));
     indexOptions.setListData(idxOptions);
 
-    this.docFields = new ArrayList<>();
-    List<String> ld = new ArrayList<>();
+    // add button listeners
+    newField.getButtonPressListeners().add(new ButtonPressListener(){
+      @Override
+      public void buttonPressed(Button button) {
+        String fieldName = newFieldName.getText();
+        if (fieldName.equals("")) {
+          Alert alert = new Alert(MessageType.INFO, "Please input field name.", null, true);
+          alert.open(getDisplay(), getWindow());
+        } else {
+          EditDocField newField = new EditDocField(fieldName);
+          docFields.add(newField);
+          ld.add(fieldName);
+          fieldList.setSelectedIndex(ld.getLength()-1);
+          editDocForm.load(new BeanAdapter(newField));
+          saveDoc.setEnabled(true);
+        }
+      }
+    });
+    saveDoc.getButtonPressListeners().add(new ButtonPressListener() {
+      @Override
+      public void buttonPressed(Button button) {
+        // TODO
+        System.out.println("saved.");
+      }
+    });
+    delField.getButtonPressListeners().add(new ButtonPressListener() {
+      @Override
+      public void buttonPressed(Button button) {
+        // TODO
+        System.out.println("deleted.");
+      }
+    });
+
+    // populate field info
+    docFields = new ArrayList<>();
+    ld = new ArrayList<>();
     for (IndexableField f : doc.getFields()) {
       Terms tv = lr.getTermVector(iNum, f.name());
       docFields.add(new EditDocField(f, tv));

@@ -27,8 +27,8 @@
                   </BoxPane>
                   <BoxPane styles="{horizontalAlignment:'right'}">
                     <Label text="New field name: "/>
-                    <TextInput preferredWidth="50"/>
-                    <PushButton buttonData="Add"/>
+                    <TextInput bxml:id="newFieldName" minimumWidth="150"/>
+                    <PushButton bxml:id="newField" buttonData="Add"/>
                   </BoxPane>
                 </TablePane.Row>
               </rows>
@@ -45,11 +45,15 @@
                     <Label text="Fields"/>
                     <Border styles="{fill:true}">
                       <content>
-                        <ScrollPane horizontalScrollBarPolicy="fill_to_capacity" minimumHeight="300">
+                        <ScrollPane horizontalScrollBarPolicy="fill_to_capacity" preferredHeight="280">
                           <ListView bxml:id="fieldList" selectMode="single" listData="[]"/>
                         </ScrollPane>
                       </content>
                     </Border>
+                    <BoxPane styles="{horizontalAlignment:'right'}">
+                      <PushButton bxml:id="saveDoc" enabled="false" buttonData="Save"/>
+                      <PushButton bxml:id="resetDoc" buttonData="Reset"/>
+                    </BoxPane>
                   </BoxPane>
                 </Border>
               </left>
@@ -127,7 +131,7 @@
                       </Form.Section>
                     </Form>
                     <BoxPane styles="{horizontalAlignment:'right',verticalAlignment:'center'}">
-                      <PushButton>
+                      <PushButton bxml:id="delField">
                         <buttonData>
                           <content:ButtonData icon="/img/delete.gif"/>
                         </buttonData>
