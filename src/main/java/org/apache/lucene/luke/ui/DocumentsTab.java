@@ -86,7 +86,7 @@ public class DocumentsTab extends SplitPane implements Bindable {
   private FieldNormWindow fieldNormWindow;
 
   @BXML
-  private EditDocWindow editDocWindow;
+  private EditDocDialog editDocDialog;
 
   private java.util.List<String> fieldNames = null;
 
@@ -342,12 +342,16 @@ public class DocumentsTab extends SplitPane implements Bindable {
     System.out.println("addDoc()");
   }
 
-  private void editDoc() {
-    showEditDocWindow();
-  }
+  private void editDoc() { showEditDocWindow(); }
 
   private void showEditDocWindow() {
-    editDocWindow.open(getDisplay(), getWindow());
+    try {
+      editDocDialog.initDocumentInfo(iNum, lr);
+      editDocDialog.open(getDisplay(), getWindow());
+    } catch (Exception e) {
+      // TODO
+      e.printStackTrace();
+    }
   }
 
   public void popTableWithDoc(int docid, Document doc) {

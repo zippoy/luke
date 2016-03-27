@@ -18,7 +18,7 @@
 		<bxml:include bxml:id="fieldNormWindow" src="FieldNormWindow.bxml" />
 	</bxml:define>
     <bxml:define>
-        <bxml:include bxml:id="editDocWindow" src="EditDocWindow.bxml" />
+        <bxml:include bxml:id="editDocDialog" src="EditDocDialog.bxml" />
     </bxml:define>
 
 	<top>

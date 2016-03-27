@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<luke:EditDocDialog bxml:id="editDoc" icon="/img/luke.gif"
+                    title="%editDocWindow_title" xmlns:bxml="http://pivot.apache.org/bxml"
+                    xmlns:luke="org.apache.lucene.luke.ui"
+                    xmlns:form="org.apache.lucene.luke.ui.form"
+                    xmlns:content="org.apache.pivot.wtk.content"
+                    xmlns="org.apache.pivot.wtk">
+  <content>
+    <TablePane styles="{verticalSpacing:10}">
+      <columns>
+        <TablePane.Column width="1*"/>
+      </columns>
+      <rows>
+        <TablePane.Row>
+          <BoxPane orientation="vertical" styles="{fill:true}" minimumWidth="700">
+            <TablePane>
+              <columns>
+                <TablePane.Column/>
+                <TablePane.Column width="1*"/>
+              </columns>
+              <rows>
+                <TablePane.Row>
+                  <BoxPane>
+                    <Label text="Fields of Doc #: "/>
+                    <Label bxml:id="docNum" text="?"/>
+                  </BoxPane>
+                  <BoxPane styles="{horizontalAlignment:'right'}">
+                    <Label text="New field name: "/>
+                    <TextInput preferredWidth="50"/>
+                    <PushButton buttonData="Add"/>
+                  </BoxPane>
+                </TablePane.Row>
+              </rows>
+            </TablePane>
+            <BoxPane>
+              <ImageView image="/img/info.gif"/>
+              <Label text="%editDoc_note"/>
+            </BoxPane>
+            <!-- fields editor -->
+            <SplitPane orientation="horizontal" splitRatio="0.25" minimumHeight="350">
+              <left>
+                <Border>
+                  <BoxPane orientation="vertical" styles="{fill:true,padding:5,backgroundColor:11}">
+                    <Label text="Fields"/>
+                    <Border styles="{fill:true}">
+                      <content>
+                        <ScrollPane horizontalScrollBarPolicy="fill_to_capacity" minimumHeight="300">
+                          <ListView bxml:id="fieldList" selectMode="single" listData="[]"/>
+                        </ScrollPane>
+                      </content>
+                    </Border>
+                  </BoxPane>
+                </Border>
+              </left>
+              <right>
+                <Border>
+                  <BoxPane orientation="vertical" styles="{fill:true,padding:5,backgroundColor:11}">
+                    <Form bxml:id="editDocForm">
+                      <Form.Section heading="Field Type and Properties">
+                        <bxml:define>
+                          <form:BoostValueMapping bxml:id="boostValueMapping"/>
+                        </bxml:define>
+
+                        <TextInput Form.label="Boost" textKey="boost" textBindMapping="$boostValueMapping"/>
+                        <BoxPane Form.label="Options">
+                          <BoxPane>
+                            <Checkbox selectedKey="stored"/><Label text="Stored"/>
+                          </BoxPane>
+                          <BoxPane>
+                            <Checkbox selectedKey="indexed"/><Label text="Indexed"/>
+                          </BoxPane>
+                          <BoxPane>
+                            <Checkbox selectedKey="tokenized"/><Label text="Tokenized"/>
+                          </BoxPane>
+                          <BoxPane>
+                            <Checkbox selectedKey="binary"/><Label text="Binary(hex)"/>
+                          </BoxPane>
+                        </BoxPane>
+                        <BoxPane Form.label="Term Vector">
+                          <BoxPane>
+                            <Checkbox selectedKey="hasTermVector"/>
+                          </BoxPane>
+                          <BoxPane>
+                            <Label text="("/><Checkbox selectedKey="hasTermVectorPositions"/><Label text="positions"/>
+                          </BoxPane>
+                          <BoxPane>
+                            <Checkbox selectedKey="hasTermVectorOffsets"/><Label text="offsets"/>
+                          </BoxPane>
+                          <BoxPane>
+                            <Checkbox selectedKey="hasTermVectorPayloads"/><Label text="payloads"/><Label text=")"/>
+                          </BoxPane>
+                        </BoxPane>
+                        <BoxPane Form.label="Omit Norms"><Checkbox selectedKey="omitNorms"/>
+                        </BoxPane>
+                        <BoxPane Form.label="Index Options">
+                          <ListButton bxml:id="indexOptions" selectedItemKey="indexOptions"/>
+                        </BoxPane>
+                      </Form.Section>
+                      <Form.Section heading="Field Content">
+                        <BoxPane styles="{fill:true}">
+                          <TabPane>
+                            <BoxPane>
+                              <TabPane.tabData>
+                                <content:ButtonData text="Stored original"/>
+                              </TabPane.tabData>
+                              <Border styles="{fill:true}">
+                                <ScrollPane horizontalScrollBarPolicy="fill" verticalScrollBarPolicy="fill_to_capacity"
+                                            preferredHeight="100" preferredWidth="360">
+                                  <TextArea textKey="storedValue"/>
+                                </ScrollPane>
+                              </Border>
+                            </BoxPane>
+                            <BoxPane bxml:id="tokens" enabled="false">
+                              <TabPane.tabData>
+                                <content:ButtonData bxml:id="tokensTabButton" text="Tokens"/>
+                              </TabPane.tabData>
+                              <Border styles="{fill:true}">
+                                <ScrollPane horizontalScrollBarPolicy="fill" verticalScrollBarPolicy="fill_to_capacity"
+                                            preferredHeight="100" preferredWidth="360">
+                                  <TextArea textKey="tokens" editable="false"/>
+                                </ScrollPane>
+                              </Border>
+                            </BoxPane>
+                          </TabPane>
+                        </BoxPane>
+                      </Form.Section>
+                    </Form>
+                    <BoxPane styles="{horizontalAlignment:'right',verticalAlignment:'center'}">
+                      <PushButton>
+                        <buttonData>
+                          <content:ButtonData icon="/img/delete.gif"/>
+                        </buttonData>
+                      </PushButton>
+                      <Label text="Delete this field"/>
+                    </BoxPane>
+                  </BoxPane>
+                </Border>
+              </right>
+            </SplitPane>
+          </BoxPane>
+        </TablePane.Row>
+      </rows>
+    </TablePane>
+  </content>
+</luke:EditDocDialog>
