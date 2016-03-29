@@ -1,10 +1,8 @@
 package org.apache.lucene.luke.ui.form;
 
-import org.apache.lucene.index.IndexOptions;
-import org.apache.lucene.index.IndexableField;
-import org.apache.lucene.index.Terms;
-import org.apache.lucene.index.TermsEnum;
+import org.apache.lucene.index.*;
 import org.apache.lucene.luke.core.Util;
+import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.util.BytesRef;
 
 import java.io.IOException;
@@ -20,9 +18,6 @@ public class EditDocField {
     this.tokenized = f.fieldType().tokenized();
     this.binary = f.binaryValue() != null;
     this.hasTermVector = f.fieldType().storeTermVectors();
-    this.hasTermVectorPositions = f.fieldType().storeTermVectorPositions();
-    this.hasTermVectorOffsets = f.fieldType().storeTermVectorOffsets();
-    this.hasTermVectorPayloads = f.fieldType().storeTermVectorPayloads();
     this.omitNorms = f.fieldType().omitNorms();
     this.indexOptions = f.fieldType().indexOptions();
     if (f.binaryValue() != null) {
@@ -34,13 +29,28 @@ public class EditDocField {
     if (hasTermVector && tv != null) {
       // Collect terms if the term vector available
       TermsEnum te = tv.iterator();
-      BytesRef term;
+      BytesRef term = te.next();
+
+      // check if this field has term vector positions/offsets/payloads
+      PostingsEnum pe = te.postings(null, PostingsEnum.ALL);
+      if (pe.nextDoc() != DocIdSetIterator.NO_MORE_DOCS) {
+        if (pe.nextPosition() >= 0) {
+          this.hasTermVectorPositions = true;
+        }
+        if (pe.startOffset() >= 0) {
+          this.hasTermVectorOffsets = true;
+        }
+        if (pe.getPayload() != null) {
+          this.hasTermVectorPayloads = true;
+        }
+      }
+
       StringBuilder sb = new StringBuilder();
-      while((term = te.next()) != null) {
+      while(term != null) {
         if (sb.length() > 0)
           sb.append(", ");
         sb.append(term.utf8ToString());
-
+        term = te.next();
       }
       this.tokens = sb.toString();
     } else {

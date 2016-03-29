@@ -120,14 +120,14 @@ public class EditDocDialog extends Dialog implements Bindable {
       public void selectedItemChanged(ListView listView, Object prev) {
         int selectedIndex = listView.getSelectedIndex();
         if (selectedIndex < 0 || selectedIndex >= docFields.getLength()) {
-          //System.out.println("Invalid field index?");
           return;
         }
         EditDocField selectedField = docFields.get(selectedIndex);
         editDocForm.load(new BeanAdapter(selectedField));
         if (selectedField.getHasTermVector()) {
           tokens.setEnabled(true);
-          tokensTabButton.setText(String.format("Tokens for all '%s' field", selectedField.getName()));
+        } else {
+          tokens.setEnabled(false);
         }
       }
     });
@@ -137,7 +137,8 @@ public class EditDocDialog extends Dialog implements Bindable {
       editDocForm.load(new BeanAdapter(selectedField));
       if (selectedField.getHasTermVector()) {
         tokens.setEnabled(true);
-        tokensTabButton.setText(String.format("Tokens for all '%s' field", selectedField.getName()));
+      } else {
+        tokens.setEnabled(false);
       }
     }
   }

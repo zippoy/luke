@@ -117,7 +117,7 @@
                             </BoxPane>
                             <BoxPane bxml:id="tokens" enabled="false">
                               <TabPane.tabData>
-                                <content:ButtonData bxml:id="tokensTabButton" text="Tokens"/>
+                                <content:ButtonData bxml:id="tokensTabButton" text="Tokens (stored in term vector)"/>
                               </TabPane.tabData>
                               <Border styles="{fill:true}">
                                 <ScrollPane horizontalScrollBarPolicy="fill" verticalScrollBarPolicy="fill_to_capacity"
