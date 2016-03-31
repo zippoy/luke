@@ -1,9 +1,13 @@
 package org.apache.lucene.luke.ui;
 
 import com.sun.istack.NotNull;
+import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.*;
+import org.apache.lucene.luke.core.KeepAllIndexDeletionPolicy;
+import org.apache.lucene.luke.core.KeepLastIndexDeletionPolicy;
 import org.apache.lucene.luke.ui.form.EditDocField;
+import org.apache.lucene.store.Directory;
 import org.apache.lucene.util.Bits;
 import org.apache.pivot.beans.BXML;
 import org.apache.pivot.beans.BeanAdapter;
@@ -26,6 +30,8 @@ public class EditDocDialog extends Dialog implements Bindable {
   private int iNum;
   private Document doc;
   private LeafReader lr = null;
+  private boolean keepCommits;
+  private LukeWindow.LukeMediator lukeMediator;
   private int numTerms;
   private List<String> ld;
   private List<EditDocField> docFields;
@@ -44,13 +50,15 @@ public class EditDocDialog extends Dialog implements Bindable {
   @BXML
   private ButtonData tokensTabButton;
   @BXML
+  private ListButton analyzers;
+  @BXML
   private TextInput newFieldName;
   @BXML
   private PushButton newField;
   @BXML
-  private PushButton saveDoc;
-  @BXML
   private PushButton delField;
+  @BXML
+  private PushButton saveDoc;
 
 
   @Override
@@ -58,10 +66,12 @@ public class EditDocDialog extends Dialog implements Bindable {
     this.resources = resources;
   }
 
-  public void initDocumentInfo(int iNum, @NotNull LeafReader lr)
+  public void initDocumentInfo(int iNum, @NotNull LeafReader lr, LukeWindow.LukeMediator lukeMediator)
       throws Exception {
     this.iNum = iNum;
     this.lr = lr;
+    this.lukeMediator = lukeMediator;
+    this.keepCommits = lukeMediator.getIndexInfo().isKeepCommits();
     this.live = MultiFields.getLiveDocs(lr);
     if (live != null && !live.get(iNum)) {
       throw new Exception("Document is deleted.");
@@ -72,8 +82,13 @@ public class EditDocDialog extends Dialog implements Bindable {
     // populate index options list button
     List<String> idxOptions = new ListAdapter(Arrays.asList(EditDocField.indexOptionList));
     indexOptions.setListData(idxOptions);
+    // populate analyzers list button
+    //List<String> analyzerNames = new ListAdapter<>(Arrays.asList(lukeMediator.getAnalyzerNames()));
+    //analyzers.setListData(analyzerNames);
+    //analyzers.setSelectedIndex(0);
 
     // add button listeners
+    /*
     newField.getButtonPressListeners().add(new ButtonPressListener(){
       @Override
       public void buttonPressed(Button button) {
@@ -105,6 +120,7 @@ public class EditDocDialog extends Dialog implements Bindable {
         System.out.println("deleted.");
       }
     });
+    */
 
     // populate field info
     docFields = new ArrayList<>();
@@ -142,4 +158,31 @@ public class EditDocDialog extends Dialog implements Bindable {
       }
     }
   }
+
+  public void saveDocument() {
+    Document doc = new Document();
+
+  }
+
+  private IndexWriter createIndexWriter() {
+    try {
+      IndexWriterConfig cfg = new IndexWriterConfig(new WhitespaceAnalyzer());
+      IndexDeletionPolicy policy;
+      if (keepCommits) {
+        policy = new KeepAllIndexDeletionPolicy();
+      } else {
+        policy = new KeepLastIndexDeletionPolicy();
+      }
+      cfg.setIndexDeletionPolicy(policy);
+      Directory dir = lukeMediator.getIndexInfo().getDirectory();
+      cfg.setUseCompoundFile(IndexGate.preferCompoundFormat(dir));
+      IndexWriter iw = new IndexWriter(dir, cfg);
+      return iw;
+    } catch (Exception e) {
+      // TODO
+      e.printStackTrace();
+      return null;
+    }
+  }
+
 }

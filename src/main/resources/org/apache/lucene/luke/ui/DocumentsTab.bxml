@@ -50,13 +50,14 @@
 									</PushButton>
 									<Label bxml:id="maxDocs" text="?" styles="{padding:2}"/>
 								</BoxPane>
-                                <BoxPane>
-                                    <PushButton preferredHeight="20" buttonData="Add" action="addDoc"/>
-                                    <PushButton preferredHeight="20" buttonData="Reconstruct &amp; Edit" action="editDoc"/>
-                                </BoxPane>
-                                <BoxPane>
-                                    <PushButton preferredHeight="20" buttonData="More Like This"/>
-                                </BoxPane>
+								<!-- TODO -->
+								<!--BoxPane>
+									<PushButton preferredHeight="20" buttonData="Add" action="addDoc"/>
+									<PushButton preferredHeight="20" buttonData="Reconstruct &amp; Edit" action="editDoc"/>
+								</BoxPane-->
+								<BoxPane>
+									<PushButton preferredHeight="20" buttonData="More Like This"/>
+								</BoxPane>
 							</BoxPane>
 						</TablePane.Row>
 					</rows>

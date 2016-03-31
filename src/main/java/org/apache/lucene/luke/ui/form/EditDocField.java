@@ -66,6 +66,7 @@ public class EditDocField {
   }
 
   private boolean isNew;
+  private boolean isModified;
   private String name;
   private float boost;
   private boolean stored;

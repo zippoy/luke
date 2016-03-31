@@ -25,11 +25,11 @@
                     <Label text="Fields of Doc #: "/>
                     <Label bxml:id="docNum" text="?"/>
                   </BoxPane>
-                  <BoxPane styles="{horizontalAlignment:'right'}">
+                  <!--BoxPane styles="{horizontalAlignment:'right'}">
                     <Label text="New field name: "/>
                     <TextInput bxml:id="newFieldName" minimumWidth="150"/>
                     <PushButton bxml:id="newField" buttonData="Add"/>
-                  </BoxPane>
+                  </BoxPane-->
                 </TablePane.Row>
               </rows>
             </TablePane>
@@ -38,7 +38,7 @@
               <Label text="%editDoc_note"/>
             </BoxPane>
             <!-- fields editor -->
-            <SplitPane orientation="horizontal" splitRatio="0.25" minimumHeight="350">
+            <SplitPane orientation="horizontal" splitRatio="0.25" minimumHeight="300">
               <left>
                 <Border>
                   <BoxPane orientation="vertical" styles="{fill:true,padding:5,backgroundColor:11}">
@@ -50,10 +50,10 @@
                         </ScrollPane>
                       </content>
                     </Border>
-                    <BoxPane styles="{horizontalAlignment:'right'}">
+                    <!--BoxPane styles="{horizontalAlignment:'right'}">
                       <PushButton bxml:id="saveDoc" enabled="false" buttonData="Save"/>
                       <PushButton bxml:id="resetDoc" buttonData="Reset"/>
-                    </BoxPane>
+                    </BoxPane-->
                   </BoxPane>
                 </Border>
               </left>
@@ -95,10 +95,13 @@
                             <Checkbox selectedKey="hasTermVectorPayloads"/><Label text="payloads"/><Label text=")"/>
                           </BoxPane>
                         </BoxPane>
-                        <BoxPane Form.label="Omit Norms"><Checkbox selectedKey="omitNorms"/>
-                        </BoxPane>
                         <BoxPane Form.label="Index Options">
-                          <ListButton bxml:id="indexOptions" selectedItemKey="indexOptions"/>
+                          <BoxPane>
+                            <ListButton bxml:id="indexOptions" selectedItemKey="indexOptions"/>
+                          </BoxPane>
+                          <BoxPane>
+                            <Checkbox selectedKey="omitNorms"/><Label text="Omit norms"/>
+                          </BoxPane>
                         </BoxPane>
                       </Form.Section>
                       <Form.Section heading="Field Content">
@@ -128,16 +131,19 @@
                             </BoxPane>
                           </TabPane>
                         </BoxPane>
+                        <!--BoxPane Form.label="Use Analyzer">
+                          <ListButton bxml:id="analyzers" />
+                        </BoxPane-->
                       </Form.Section>
                     </Form>
-                    <BoxPane styles="{horizontalAlignment:'right',verticalAlignment:'center'}">
+                    <!--BoxPane styles="{horizontalAlignment:'right',verticalAlignment:'center'}">
                       <PushButton bxml:id="delField">
                         <buttonData>
                           <content:ButtonData icon="/img/delete.gif"/>
                         </buttonData>
                       </PushButton>
                       <Label text="Delete this field"/>
-                    </BoxPane>
+                    </BoxPane-->
                   </BoxPane>
                 </Border>
               </right>

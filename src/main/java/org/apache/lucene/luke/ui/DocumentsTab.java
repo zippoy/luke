@@ -346,7 +346,7 @@ public class DocumentsTab extends SplitPane implements Bindable {
 
   private void showEditDocWindow() {
     try {
-      editDocDialog.initDocumentInfo(iNum, lr);
+      editDocDialog.initDocumentInfo(iNum, lr, lukeMediator);
       editDocDialog.open(getDisplay(), getWindow());
     } catch (Exception e) {
       // TODO

@@ -28,8 +28,9 @@ public class IndexInfo {
   private Codec indexCodec;
   private int indexFormat;
   private boolean readOnly;
+  private boolean keepCommits;
 
-  public IndexInfo(IndexReader reader, String indexPath, boolean readOnly) throws Exception {
+  public IndexInfo(IndexReader reader, String indexPath, boolean readOnly, boolean keepCommits) throws Exception {
     this.reader = reader;
     this.indexSearcher = new IndexSearcher(reader);
     this.dir = null;
@@ -55,6 +56,7 @@ public class IndexInfo {
     }
 
     this.readOnly = readOnly;
+    this.keepCommits = keepCommits;
   }
 
   private void countTerms() throws Exception {
@@ -109,6 +111,14 @@ public class IndexInfo {
    */
   public boolean isReadOnly() {
     return readOnly;
+  }
+
+  /**
+   *
+   * @return the keep kommits flag
+   */
+  public boolean isKeepCommits() {
+    return keepCommits;
   }
 
   /**
