@@ -177,88 +177,85 @@
 	</top>
 
 	<bottom>
-		<TablePane styles="{verticalSpacing:5,horizontalSpacing:1,padding:5,backgroundColor:11}">
-			<columns>
-				<TablePane.Column width="1*" />
-			</columns>
-			<rows>
-				<TablePane.Row>
-					<TablePane>
-						<columns>
-							<TablePane.Column width="1*" />
-							<TablePane.Column />
-						</columns>
-						<rows>
-							<TablePane.Row>
-								<FlowPane>
-									<Label text="Doc #:" />
-									<Label bxml:id="docNum2" text="?" />
-									<Label text=" " />
-								</FlowPane>
-								<FlowPane>
-									<TablePane styles="{verticalSpacing:1, horizontalSpacing:1}">
-										<columns>
-											<TablePane.Column />
-											<TablePane.Column />
-											<TablePane.Column />
-											<TablePane.Column />
-											<TablePane.Column />
-											<!--TablePane.Column /-->
-										</columns>
-										<rows>
-											<TablePane.Row>
-												<Label text="Flags: " />
-												<Label text=" I - Indexed (docs,freqs,pos,offsets) " />
-                                                <Label text=" P - Payloads" />
-                                                <Label text=" S - Stored " />
-                                                <Label text=" V - Term Vector " />
-												<!--Label text=" T - Tokenized " /-->
-												<!--Label text=" (o - offsets; p - positions; a - payloads) " /-->
-											</TablePane.Row>
-											<TablePane.Row>
-												<TablePane.Filler />
-												<!--Label text=" O - Omit Norms " /-->
-												<!--Label text="  f - Omit TF " /-->
-												<!--Label text=" L - Lazy " /-->
-                                                <Label text=" B - Binary " />
-                                                <Label text=" Ntxx - Norms (type/precision);"/>
-                                                <Label text=" #txx - Numeric (type/precision);"/>
-                                                <Label text=" Dtxx - DocValues (type/precision)"/>
-											</TablePane.Row>
-										</rows>
-									</TablePane>
-								</FlowPane>
-							</TablePane.Row>
-						</rows>
-					</TablePane>
-				</TablePane.Row>
-				<TablePane.Row height="1*">
-					<Border styles="{padding:1}">
-						<content>
-							<ScrollPane horizontalScrollBarPolicy="fill_to_capacity" styles="{backgroundColor:11}">
-								<view>
-									<TableView bxml:id="docTable">
-										<columns>
-											<TableView.Column name="name"
-                                                              headerData="%documentsTab_docTable_col1" />
-											<TableView.Column name="itsvopatolb"
-                                                              headerData="%documentsTab_docTable_col2" width="150"/>
-                                            <TableView.Column name="norm"
-                                                              headerData="%documentsTab_docTable_col3" width="50"/>
-											<TableView.Column name="value"
-                                                              headerData="%documentsTab_docTable_col4" width="1*" />
-										</columns>
+		<Border>
+			<TablePane styles="{verticalSpacing:5,horizontalSpacing:1,padding:5,backgroundColor:11}">
+				<columns>
+					<TablePane.Column width="1*" />
+				</columns>
+				<rows>
+					<TablePane.Row>
+						<TablePane>
+							<columns>
+								<TablePane.Column width="1*" />
+								<TablePane.Column />
+							</columns>
+							<rows>
+								<TablePane.Row>
+									<FlowPane>
+										<Label text="Doc #:" />
+										<Label bxml:id="docNum2" text="?" />
+										<Label text=" " />
+									</FlowPane>
+									<FlowPane>
+										<TablePane styles="{verticalSpacing:1, horizontalSpacing:1}">
+											<columns>
+												<TablePane.Column />
+												<TablePane.Column />
+												<TablePane.Column />
+												<TablePane.Column />
+												<TablePane.Column />
+												<!--TablePane.Column /-->
+											</columns>
+											<rows>
+												<TablePane.Row>
+													<Label text="Flags: " />
+													<Label text=" I - Indexed (docs,freqs,pos,offsets) " />
+													<Label text=" P - Payloads" />
+													<Label text=" S - Stored " />
+													<Label text=" V - Term Vector " />
+												</TablePane.Row>
+												<TablePane.Row>
+													<TablePane.Filler />
+													<Label text=" B - Binary " />
+													<Label text=" N - Norms;"/>
+													<Label text=" #txx - Numeric (type/precision);"/>
+													<Label text=" Dtxxxxx - DocValues (type/precision)"/>
+												</TablePane.Row>
+											</rows>
+										</TablePane>
+									</FlowPane>
+								</TablePane.Row>
+							</rows>
+						</TablePane>
+					</TablePane.Row>
+					<TablePane.Row height="1*">
+						<Border styles="{padding:1}">
+							<content>
+								<ScrollPane horizontalScrollBarPolicy="fill_to_capacity" styles="{backgroundColor:11}">
+									<view>
+										<TableView bxml:id="docTable">
+											<columns>
+												<TableView.Column name="name"
+																					headerData="%documentsTab_docTable_col1" />
+												<TableView.Column name="flags"
+																					headerData="%documentsTab_docTable_col2" width="150"/>
+												<TableView.Column name="norm"
+																					headerData="%documentsTab_docTable_col3" width="50"/>
+												<TableView.Column name="value"
+																					headerData="%documentsTab_docTable_col4" width="1*" />
+											</columns>
 
-									</TableView>
-								</view>
-								<columnHeader>
-									<TableViewHeader tableView="$docTable" />
-								</columnHeader>
-							</ScrollPane>
-						</content>
-					</Border>
-				</TablePane.Row>
-			</rows>
-		</TablePane>
+										</TableView>
+									</view>
+									<columnHeader>
+										<TableViewHeader tableView="$docTable" />
+									</columnHeader>
+								</ScrollPane>
+							</content>
+						</Border>
+					</TablePane.Row>
+				</rows>
+			</TablePane>
+		</Border>
 	</bottom>
 </luke:DocumentsTab>

@@ -186,7 +186,6 @@ public class Util {
   }
 
 
-  // IdfpoPSVBNtxx#txxDtxx
   public static String fieldFlags(Field fld, FieldInfo info) {
     FieldType t = null;
     BytesRef binary = null;
@@ -237,10 +236,7 @@ public class Util {
     else flags.append("-");
     if (info.hasNorms()) {
       flags.append("N");
-      // TODO: FieldInfo#getNormType was deleted in Lucene 5
-      // flags.append(dvToString(info.getNormType()));
     }
-    //else flags.append("----");
     else flags.append("-");
     if (numeric != null) {
       flags.append("#");
@@ -282,7 +278,7 @@ public class Util {
       flags.append("D");
       flags.append(dvToString(info.getDocValuesType()));
     } else {
-      flags.append("----");
+      flags.append("-------");
     }    
     return flags.toString();
   }
@@ -290,23 +286,26 @@ public class Util {
   private static String dvToString(DocValuesType type) {
     String fl;
     if (type == null) {
-      return "???";
+      return "??????";
     }
     switch (type) {
-    case NUMERIC:
-      fl = "num";
-      break;
-    case BINARY:
-      fl = "bin";
-      break;
-    case SORTED:
-      fl = "srt";
-      break;
-    case SORTED_SET:
-      fl = "srtset";
-      break;
-    default:
-      fl = "???";
+      case NUMERIC:
+        fl = "number";
+        break;
+      case BINARY:
+        fl = "binary";
+        break;
+      case SORTED:
+        fl = "sorted ";
+        break;
+      case SORTED_SET:
+        fl = "srtset";
+        break;
+      case SORTED_NUMERIC:
+        fl = "srtnum";
+        break;
+      default:
+        fl = "??????";
     }
     return fl;
   }

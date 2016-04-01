@@ -388,7 +388,7 @@ public class DocumentsTab extends SplitPane implements Bindable {
   }
 
   private static final String FIELDROW_KEY_NAME = "name";
-  private static final String FIELDROW_KEY_FLAGS = "itsvopatolb";
+  private static final String FIELDROW_KEY_FLAGS = "flags";
   private static final String FIELDROW_KEY_NORM = "norm";
   private static final String FIELDROW_KEY_VALUE = "value";
   private static final String FIELDROW_KEY_FIELD = "field";
@@ -398,8 +398,6 @@ public class DocumentsTab extends SplitPane implements Bindable {
     Decoder defDecoder = lukeMediator.getDefDecoder();
 
     Field f = (Field) field;
-    // putProperty(row, "field", f);
-    // putProperty(row, "fName", fName);
 
     row.put(FIELDROW_KEY_FIELD, field);
 
@@ -413,20 +411,15 @@ public class DocumentsTab extends SplitPane implements Bindable {
           String norm = String.valueOf(norms.get(docid));
           row.put(FIELDROW_KEY_NORM, norm);
         } else {
-          row.put(FIELDROW_KEY_NORM, "---");
+          row.put(FIELDROW_KEY_NORM, "-");
         }
       } catch (IOException ioe) {
         ioe.printStackTrace();
-        row.put(FIELDROW_KEY_NORM, "!?!");
+        row.put(FIELDROW_KEY_NORM, "?");
       }
     } else {
-      row.put(FIELDROW_KEY_NORM, "---");
-      // setBoolean(cell, "enabled", false);
+      row.put(FIELDROW_KEY_NORM, "-");
     }
-
-    // if (f == null) {
-    // setBoolean(cell, "enabled", false);
-    // }
 
     if (f != null) {
       String text = f.stringValue();
@@ -444,7 +437,6 @@ public class DocumentsTab extends SplitPane implements Bindable {
         if (f.fieldType().stored()) {
           text = dec.decodeStored(f.name(), f);
         } else {
-          //text = dec.decodeTerm(f.name(), text);
           text = dec.decodeTerm(f.name(), f.binaryValue());
         }
       } catch (Throwable e) {
@@ -454,7 +446,6 @@ public class DocumentsTab extends SplitPane implements Bindable {
       row.put(FIELDROW_KEY_VALUE, Util.escape(text));
     } else {
       row.put(FIELDROW_KEY_VALUE, "<not present or not stored>");
-      // setBoolean(cell, "enabled", false);
     }
   }
 
