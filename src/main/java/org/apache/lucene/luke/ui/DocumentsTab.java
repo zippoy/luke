@@ -77,7 +77,7 @@ public class DocumentsTab extends SplitPane implements Bindable {
   private PosAndOffsetsWindow posAndOffsetsWindow;
 
   @BXML
-  private TermVectorWindow tvWindow;
+  private TermVectorDialog tvDialog;
 
   @BXML
   private FieldDataWindow fieldDataWindow;
@@ -995,12 +995,12 @@ public class DocumentsTab extends SplitPane implements Bindable {
 
   private void showTermVectorWindow(String fieldName, Terms tv) {
     try {
-      tvWindow.initTermVector(fieldName, tv);
+      tvDialog.initTermVector(fieldName, tv);
     } catch (IOException e) {
       // TODO
       e.printStackTrace();
     }
-    tvWindow.open(getDisplay(), getWindow());
+    tvDialog.open(getDisplay(), getWindow());
   }
 
   private void showFieldDataWindow(String fieldName, IndexableField field) {

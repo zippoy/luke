@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<luke:TermVectorWindow bxml:id="termVector" icon="/img/luke.gif"
+<luke:TermVectorDialog bxml:id="termVector" icon="/img/luke.gif"
 													title="%termVectorWindow_title" xmlns:bxml="http://pivot.apache.org/bxml"
 													xmlns:luke="org.apache.lucene.luke.ui" xmlns:content="org.apache.pivot.wtk.content"
 													xmlns="org.apache.pivot.wtk">
@@ -51,4 +51,4 @@
 			</rows>
 		</TablePane>
 	</content>
-</luke:TermVectorWindow>
+</luke:TermVectorDialog>

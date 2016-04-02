@@ -7,8 +7,8 @@ import org.apache.pivot.wtk.TableView;
 
 import java.util.Comparator;
 
-import static org.apache.lucene.luke.ui.TermVectorWindow.TVROW_KEY_FREQ;
-import static org.apache.lucene.luke.ui.TermVectorWindow.TVROW_KEY_TERM;
+import static org.apache.lucene.luke.ui.TermVectorDialog.TVROW_KEY_FREQ;
+import static org.apache.lucene.luke.ui.TermVectorDialog.TVROW_KEY_TERM;
 
 
 public class TermVectorTableComparator implements Comparator<Map<String, String>> {

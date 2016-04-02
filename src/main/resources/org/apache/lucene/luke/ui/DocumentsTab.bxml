@@ -9,7 +9,7 @@
 		<bxml:include bxml:id="posAndOffsetsWindow" src="PosAndOffsetsWindow.bxml" />
 	</bxml:define>
 	<bxml:define>
-		<bxml:include bxml:id="tvWindow" src="TermVectorWindow.bxml" />
+		<bxml:include bxml:id="tvDialog" src="TermVectorDialog.bxml" />
 	</bxml:define>
 	<bxml:define>
 		<bxml:include bxml:id="fieldDataWindow" src="FieldDataWindow.bxml" />
