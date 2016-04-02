@@ -378,7 +378,7 @@ public class LukeWindow extends Frame implements Bindable {
         indexReader = new MultiReader((IndexReader[]) readers.toArray(new IndexReader[readers.size()]));
       }
 
-      lukeMediator.indexInfo = new IndexInfo(indexReader, this.indexPath, readOnly);
+      lukeMediator.indexInfo = new IndexInfo(indexReader, this.indexPath, readOnly, keepCommits);
 
       // TODO:
       // Collection<String> fieldNames =

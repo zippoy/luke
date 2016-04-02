@@ -16,7 +16,7 @@ import org.apache.pivot.wtk.*;
 import java.io.IOException;
 import java.net.URL;
 
-public class TermVectorWindow extends Dialog implements Bindable {
+public class TermVectorDialog extends Dialog implements Bindable {
 
   @BXML
   private Label field;

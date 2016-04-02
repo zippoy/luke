@@ -1,0 +1,58 @@
+<luke:DocValuesDialog bxml:id="docValues" icon="/img/luke.gif"
+													title="%docValuesDialog_title" xmlns:bxml="http://pivot.apache.org/bxml"
+													xmlns:luke="org.apache.lucene.luke.ui" xmlns:content="org.apache.pivot.wtk.content"
+													xmlns="org.apache.pivot.wtk">
+	<content>
+		<TablePane styles="{verticalSpacing:10}">
+			<columns>
+				<TablePane.Column width="1*"/>
+			</columns>
+			<rows>
+				<TablePane.Row>
+					<TablePane styles="{verticalSpacing:1,horizontalSpacing:1}">
+						<columns>
+							<TablePane.Column />
+							<TablePane.Column width="1*"/>
+						</columns>
+						<rows>
+							<TablePane.Row>
+								<Label text="Field name:" styles="{font:{bold:true},backgroundColor:'#dce0e7',padding:2}"/>
+								<Label bxml:id="name" text="?" styles="{backgroundColor:'#fcfdfd',padding:2}"/>
+							</TablePane.Row>
+							<TablePane.Row>
+								<Label text="DocValues type: " styles="{font:{bold:true},backgroundColor:'#f1f1f1',padding:2}"/>
+								<Label bxml:id="type" text="?" styles="{backgroundColor:11,padding:2}"/>
+							</TablePane.Row>
+							<TablePane.Row>
+								<Label text="DocValues count:" styles="{font:{bold:true},backgroundColor:'#dce0e7',padding:2}"/>
+								<Label bxml:id="count" text="?" styles="{backgroundColor:'#fcfdfd',padding:2}"/>
+							</TablePane.Row>
+						</rows>
+					</TablePane>
+				</TablePane.Row>
+
+				<TablePane.Row>
+					<Border styles="{padding:1}">
+						<ScrollPane horizontalScrollBarPolicy="fill_to_capacity" preferredHeight="250" minimumWidth="300">
+							<TableView bxml:id="data" selectMode="multi">
+								<columns>
+								<TableView.Column name="value"
+																	headerData="%docValuesDialog_table_col1" />
+								</columns>
+							</TableView>
+						</ScrollPane>
+					</Border>
+				</TablePane.Row>
+
+				<TablePane.Row>
+					<BoxPane orientation="horizontal" styles="{horizontalAlignment:'right'}">
+						<PushButton buttonData="%label_ok"
+												ButtonPressListener.buttonPressed="docValues.close()">
+						</PushButton>
+						<PushButton bxml:id="copyBtn" buttonData="%label_clipboard" enabled="false"/>
+					</BoxPane>
+				</TablePane.Row>
+			</rows>
+		</TablePane>
+	</content>
+</luke:DocValuesDialog>
