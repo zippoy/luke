@@ -12,6 +12,9 @@
 		<bxml:include bxml:id="tvDialog" src="TermVectorDialog.bxml" />
 	</bxml:define>
 	<bxml:define>
+		<bxml:include bxml:id="dvDialog" src="DocValuesDialog.bxml" />
+	</bxml:define>
+	<bxml:define>
 		<bxml:include bxml:id="fieldDataWindow" src="FieldDataWindow.bxml" />
 	</bxml:define>
 	<bxml:define>
@@ -241,8 +244,10 @@
 																					headerData="%documentsTab_docTable_col2" width="150"/>
 												<TableView.Column name="norm"
 																					headerData="%documentsTab_docTable_col3" width="50"/>
+												<TableView.Column name="docvalue"
+																					headerData="%documentsTab_docTable_col4" width="150" />
 												<TableView.Column name="value"
-																					headerData="%documentsTab_docTable_col4" width="1*" />
+																					headerData="%documentsTab_docTable_col5" width="1*" />
 											</columns>
 
 										</TableView>

@@ -98,18 +98,21 @@
  documentsTab_docTable_col1: "Field",
  documentsTab_docTable_col2: "IdfpoPSVBN#txxDtxxxxx",
  documentsTab_docTable_col3: "Norm",
- documentsTab_docTable_col4: "Stored Value",
+ documentsTab_docTable_col4: "Doc Value",
+ documentsTab_docTable_col5: "Stored Value",
 
  documentsTab_docTable_popup_menu1: "Field's Term Vector",
- documentsTab_docTable_popup_menu2: "Show Full Text",
- documentsTab_docTable_popup_menu3: "Set Norm",
- documentsTab_docTable_popup_menu4: "Save Field",
+ documentsTab_docTable_popup_menu2: "Show All DocValues",
+ documentsTab_docTable_popup_menu3: "Show Full Text",
+ documentsTab_docTable_popup_menu4: "Set Norm",
+ documentsTab_docTable_popup_menu5: "Save Field",
 
  documentsTab_msg_docNotSelected: "Please select a term and a document for showing term positions.",
  documentsTab_msg_positionNotIndexed: "Positions are not indexed for this term.",
  documentsTab_msg_noPositionInfo: "No positions info ???",
  documentsTab_msg_noDataAvailable: "No data available for this field.",
  documentsTab_msg_noNorm: "Cannot examine norm value - this field is not indexed.",
+ documentsTab_msg_noDocValuesDataAvailable: "No doc values data available for this field.",
  documentsTab_msg_errorNorm: "Error reading norm: ",
  documentsTab_msg_cantOverwriteDir: "Can't overwrite a directory.",
 
@@ -120,6 +123,9 @@
 
  termVectorWindow_title: "Term Vector",
  termVectorWindow_field: "Term vector for the field: ",
+
+ docValuesDialog_title: "DocValues",
+ docValuesDialog_table_col1: "Value",
 
  fieldDataWindow_title: "Field Data",
  fieldDataWindow_decodeError: "Some values could not be properly represented in this format. They are marked in grey and presented as a hex dump.",

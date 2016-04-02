@@ -35,6 +35,10 @@ import org.apache.lucene.util.BytesRef;
 import org.apache.pivot.beans.BXML;
 import org.apache.pivot.beans.Bindable;
 import org.apache.pivot.collections.*;
+import org.apache.pivot.collections.ArrayList;
+import org.apache.pivot.collections.HashMap;
+import org.apache.pivot.collections.List;
+import org.apache.pivot.collections.Map;
 import org.apache.pivot.util.Resources;
 import org.apache.pivot.util.concurrent.Task;
 import org.apache.pivot.util.concurrent.TaskExecutionException;
@@ -43,7 +47,7 @@ import org.apache.pivot.wtk.*;
 
 import java.io.*;
 import java.net.URL;
-import java.util.Arrays;
+import java.util.*;
 
 public class DocumentsTab extends SplitPane implements Bindable {
 
@@ -78,6 +82,9 @@ public class DocumentsTab extends SplitPane implements Bindable {
 
   @BXML
   private TermVectorDialog tvDialog;
+
+  @BXML
+  private DocValuesDialog dvDialog;
 
   @BXML
   private FieldDataWindow fieldDataWindow;
@@ -390,6 +397,7 @@ public class DocumentsTab extends SplitPane implements Bindable {
   private static final String FIELDROW_KEY_NAME = "name";
   private static final String FIELDROW_KEY_FLAGS = "flags";
   private static final String FIELDROW_KEY_NORM = "norm";
+  private static final String FIELDROW_KEY_DOCVALUE = "docvalue";
   private static final String FIELDROW_KEY_VALUE = "value";
   private static final String FIELDROW_KEY_FIELD = "field";
 
@@ -404,8 +412,8 @@ public class DocumentsTab extends SplitPane implements Bindable {
     if (fName != null) {
       row.put(FIELDROW_KEY_NAME, fName);
       row.put(FIELDROW_KEY_FLAGS, Util.fieldFlags(f, infos.fieldInfo(fName)));
+      FieldInfo info = infos.fieldInfo(fName);
       try {
-        FieldInfo info = infos.fieldInfo(fName);
         if (info.hasNorms()) {
           NumericDocValues norms = lr.getNormValues(fName);
           String norm = String.valueOf(norms.get(docid));
@@ -417,8 +425,49 @@ public class DocumentsTab extends SplitPane implements Bindable {
         ioe.printStackTrace();
         row.put(FIELDROW_KEY_NORM, "?");
       }
+      try {
+        StringBuilder sb = new StringBuilder();
+        switch (info.getDocValuesType()) {
+          case BINARY:
+            BinaryDocValues binValues = lr.getBinaryDocValues(fName);
+            sb.append(binValues.get(docid).utf8ToString());
+            break;
+          case NUMERIC:
+            NumericDocValues numValues = lr.getNumericDocValues(fName);
+            sb.append(String.valueOf(numValues.get(docid)));
+            break;
+          case SORTED:
+            SortedDocValues sortedValues = lr.getSortedDocValues(fName);
+            sb.append(sortedValues.get(docid).utf8ToString());
+            break;
+          case SORTED_NUMERIC:
+            SortedNumericDocValues sortedNumValues = lr.getSortedNumericDocValues(fName);
+            sortedNumValues.setDocument(docid);
+            for (int i = 0; i < sortedNumValues.count(); i++) {
+              if (i > 0) sb.append(",");
+              sb.append(String.valueOf(sortedNumValues.valueAt(i)));
+            }
+            break;
+          case SORTED_SET:
+            SortedSetDocValues sortedSetDocValues = lr.getSortedSetDocValues(fName);
+            sortedSetDocValues.setDocument(docid);
+            long ord;
+            while ((ord = sortedSetDocValues.nextOrd()) != SortedSetDocValues.NO_MORE_ORDS) {
+              if (sb.length() > 0) sb.append(",");
+              sb.append(sortedSetDocValues.lookupOrd(ord).utf8ToString());
+            }
+            break;
+          default:
+            row.put(FIELDROW_KEY_DOCVALUE, "-");
+        }
+        row.put(FIELDROW_KEY_DOCVALUE, sb.toString());
+      } catch (IOException e) {
+        e.printStackTrace();
+        row.put(FIELDROW_KEY_DOCVALUE, "-");
+      }
     } else {
       row.put(FIELDROW_KEY_NORM, "-");
+      row.put(FIELDROW_KEY_DOCVALUE, "-");
     }
 
     if (f != null) {
@@ -910,50 +959,61 @@ public class DocumentsTab extends SplitPane implements Bindable {
           System.out.println("No field selected.");
           return false;
         }
+
+        final String name = (String)row.get(FIELDROW_KEY_NAME);
+        final IndexableField field = (IndexableField)row.get(FIELDROW_KEY_FIELD);
+        final FieldInfo info = infos.fieldInfo(name);
+
         if (button.name().equals(Mouse.Button.RIGHT.name())) {
           MenuPopup popup = new MenuPopup();
           Menu menu = new Menu();
           Menu.Section section = new Menu.Section();
           Menu.Item item1 = new Menu.Item(resources.get("documentsTab_docTable_popup_menu1"));
-          item1.setAction(new Action() {
-            @Override
-            public void perform(Component component) {
-              String name = (String)row.get(FIELDROW_KEY_NAME);
-              try {
-                Terms terms = ir.getTermVector(iNum, name);
-                if (terms == null) {
-                  String msg = "DocId: " + iNum + ", field: " + name;
-                  Alert.alert(MessageType.WARNING, "Term vector not avalable for " + msg, getWindow());
-                } else {
-                  showTermVectorWindow(name, terms);
-                }
-              } catch (IOException e) {
-                // TODO:
-                e.printStackTrace();
+          try {
+            final Terms terms = ir.getTermVector(iNum, name);
+            item1.setAction(new Action() {
+              @Override
+              public void perform(Component component) {
+                showTermVectorWindow(name, terms);
               }
-
+            });
+            if (terms == null) {
+              // disable the action if term vector for this field is not available
+              item1.getAction().setEnabled(false);
             }
-          });
+          } catch (IOException e) {
+            // TODO
+            e.printStackTrace();
+          }
+
           Menu.Item item2 = new Menu.Item(resources.get("documentsTab_docTable_popup_menu2"));
           item2.setAction(new Action() {
             @Override
             public void perform(Component component) {
-              String name = (String)row.get(FIELDROW_KEY_NAME);
-              IndexableField field = (IndexableField)row.get(FIELDROW_KEY_FIELD);
-              if (field == null) {
-                Alert.alert(MessageType.WARNING, (String) resources.get("documentsTab_msg_noDataAvailable"), getWindow());
-              } else {
-                showFieldDataWindow(name, field);
-              }
+              showDocValuesDialog(info);
             }
           });
+          if (info.getDocValuesType() == DocValuesType.NONE) {
+            // disable the action if doc values are not available for this field.
+            item2.getAction().setEnabled(false);
+          }
+
           Menu.Item item3 = new Menu.Item(resources.get("documentsTab_docTable_popup_menu3"));
           item3.setAction(new Action() {
             @Override
             public void perform(Component component) {
-              String name = (String)row.get(FIELDROW_KEY_NAME);
-              IndexableField field = (IndexableField)row.get(FIELDROW_KEY_FIELD);
-              FieldInfo info = infos.fieldInfo(name);
+              showFieldDataWindow(name, field);
+            }
+          });
+          if (field == null) {
+            // disable the action if field data is not available for this field
+            item3.getAction().setEnabled(false);
+          }
+
+          Menu.Item item4 = new Menu.Item(resources.get("documentsTab_docTable_popup_menu4"));
+          item4.setAction(new Action() {
+            @Override
+            public void perform(Component component) {
               if (field == null) {
                 Alert.alert(MessageType.WARNING, (String) resources.get("documentsTab_msg_noDataAvailable"), getWindow());
               } else if (info.getIndexOptions() == null || !info.hasNorms()) {
@@ -963,25 +1023,37 @@ public class DocumentsTab extends SplitPane implements Bindable {
               }
             }
           });
-          Menu.Item item4 = new Menu.Item(resources.get("documentsTab_docTable_popup_menu4"));
-          item4.setAction(new Action() {
-            @Override
-            public void perform(Component component) {
-              String name = (String)row.get(FIELDROW_KEY_NAME);
-              IndexableField field = (IndexableField)row.get(FIELDROW_KEY_FIELD);
-              if (ir == null) {
-                Alert.alert(MessageType.ERROR, (String) resources.get("documentsTab_noOrClosedIndex"), getWindow());
-              } else if (field == null) {
-                Alert.alert(MessageType.WARNING, (String) resources.get("documentsTab_msg_noDataAvailable"), getWindow());
-              } else {
-                saveFieldData(field);
+          if (field == null || info.getIndexOptions() == null || !info.hasNorms()) {
+            // disable the action if norm is not available for this field
+            item4.getAction().setEnabled(false);
+          }
+
+          Menu.Item item5 = new Menu.Item(resources.get("documentsTab_docTable_popup_menu5"));
+            item5.setAction(new Action() {
+              @Override
+              public void perform(Component component) {
+                if (field != null) {
+                  saveFieldData(field);
+                } else if (info.getDocValuesType() != DocValuesType.NONE) {
+                  try {
+                    saveDocValuesData(info);
+                  } catch (IOException e) {
+                    // TODO
+                    e.printStackTrace();
+                  }
+                }
               }
-            }
-          });
+            });
+          if (field == null && info.getDocValuesType() == DocValuesType.NONE) {
+            // disable the action if both of field data and doc values are not available for this field
+            item5.getAction().setEnabled(false);
+          }
+
           section.add(item1);
           section.add(item2);
           section.add(item3);
           section.add(item4);
+          section.add(item5);
           menu.getSections().add(section);
           popup.setMenu(menu);
           popup.open(getWindow(), getMouseLocation().x + 20, getMouseLocation().y + 50);
@@ -1001,6 +1073,16 @@ public class DocumentsTab extends SplitPane implements Bindable {
       e.printStackTrace();
     }
     tvDialog.open(getDisplay(), getWindow());
+  }
+
+  private void showDocValuesDialog(FieldInfo finfo) {
+    try {
+      dvDialog.initDocValues(finfo, lr, iNum);
+    } catch (IOException e) {
+      // TODO
+      e.printStackTrace();
+    }
+    dvDialog.open(getDisplay(), getWindow());
   }
 
   private void showFieldDataWindow(String fieldName, IndexableField field) {
@@ -1027,8 +1109,7 @@ public class DocumentsTab extends SplitPane implements Bindable {
     if (field.binaryValue() != null) {
       BytesRef bytes = field.binaryValue();
       data = new byte[bytes.length];
-      System.arraycopy(bytes.bytes, bytes.offset, data, 0,
-        bytes.length);
+      System.arraycopy(bytes.bytes, bytes.offset, data, 0, bytes.length);
     }
     else {
       try {
@@ -1042,7 +1123,62 @@ public class DocumentsTab extends SplitPane implements Bindable {
       Alert.alert(MessageType.WARNING, (String) resources.get("documentsTab_msg_noDataAvailable"), getWindow());
     }
 
-    final byte[] fieldData = Arrays.copyOf(data, data.length);
+    saveDataToLocalFile(data);
+  }
+
+  private void saveDocValuesData(FieldInfo finfo) throws IOException {
+    byte[] data = null;
+    BytesRef bytes;
+    StringBuilder sb;
+    switch(finfo.getDocValuesType()) {
+      case BINARY:
+        BinaryDocValues bdv = lr.getBinaryDocValues(finfo.name);
+        bytes = bdv.get(iNum);
+        data = new byte[bytes.length];
+        System.arraycopy(bytes.bytes, bytes.offset, data, 0, bytes.length);
+        break;
+      case NUMERIC:
+        NumericDocValues ndv = lr.getNumericDocValues(finfo.name);
+        data = String.valueOf(ndv.get(iNum)).getBytes();
+        break;
+      case SORTED:
+        SortedDocValues sdv = lr.getSortedDocValues(finfo.name);
+        bytes = sdv.get(iNum);
+        data = new byte[bytes.length];
+        System.arraycopy(bytes.bytes, bytes.offset, data, 0, bytes.length);
+        break;
+      case SORTED_NUMERIC:
+        SortedNumericDocValues sndv = lr.getSortedNumericDocValues(finfo.name);
+        sndv.setDocument(iNum);
+        sb = new StringBuilder();
+        for (int i = 0; i < sndv.count(); i++) {
+          if (i > 0) sb.append("\n");
+          sb.append(sndv.valueAt(i));
+        }
+        data = sb.toString().getBytes();
+        break;
+      case SORTED_SET:
+        SortedSetDocValues ssdv = lr.getSortedSetDocValues(finfo.name);
+        ssdv.setDocument(iNum);
+        sb = new StringBuilder();
+        long ord;
+        while ((ord = ssdv.nextOrd()) != SortedSetDocValues.NO_MORE_ORDS) {
+          if (sb.length() > 0) sb.append("\n");
+          sb.append(ssdv.lookupOrd(ord).utf8ToString());
+        }
+        data = sb.toString().getBytes();
+        break;
+    }
+
+    if (data == null || data.length == 0) {
+      Alert.alert(MessageType.WARNING, (String) resources.get("documentsTab_msg_noDocValuesDataAvailable"),
+          getWindow());
+    }
+
+    saveDataToLocalFile(data);
+  }
+
+  private void saveDataToLocalFile(final byte[] data) {
     final FileBrowserSheet fileBrowserSheet = new FileBrowserSheet(FileBrowserSheet.Mode.SAVE_AS);
     fileBrowserSheet.open(getWindow(), new SheetCloseListener() {
       @Override
@@ -1052,10 +1188,10 @@ public class DocumentsTab extends SplitPane implements Bindable {
           File file = selectedFiles.get(0);
           try {
             OutputStream os = new FileOutputStream(file);
-            int delta = fieldData.length / 100;
+            int delta = data.length / 100;
             if (delta == 0) delta = 1;
-            for (int i = 0; i < fieldData.length; i++) {
-              os.write(fieldData[i]);
+            for (int i = 0; i < data.length; i++) {
+              os.write(data[i]);
               // TODO: show progress
               //if (i % delta == 0) {
               // setInteger(bar, "value", i / delta);
