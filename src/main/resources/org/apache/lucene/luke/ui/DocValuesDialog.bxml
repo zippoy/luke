@@ -33,11 +33,11 @@
 
 				<TablePane.Row>
 					<Border styles="{padding:1}">
-						<ScrollPane horizontalScrollBarPolicy="fill_to_capacity" preferredHeight="250" minimumWidth="300">
+						<ScrollPane horizontalScrollBarPolicy="fill_to_capacity" preferredHeight="250" minimumWidth="450">
 							<TableView bxml:id="data" selectMode="multi">
 								<columns>
 								<TableView.Column name="value"
-																	headerData="%docValuesDialog_table_col1" />
+																	headerData="%docValuesDialog_table_col1" width="1*"/>
 								</columns>
 							</TableView>
 						</ScrollPane>
