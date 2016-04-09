@@ -9,7 +9,7 @@ public class NumLongDecoder implements Decoder {
   @Override
   public String decodeTerm(String fieldName, Object value) {
     BytesRef ref = new BytesRef(value.toString());
-    return Long.toString(NumericUtils.prefixCodedToLong(ref));
+    return Long.toString(NumericUtils.sortableBytesToInt(ref.bytes, 0));
   }
   
   @Override

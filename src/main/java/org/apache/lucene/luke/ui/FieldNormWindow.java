@@ -2,7 +2,8 @@ package org.apache.lucene.luke.ui;
 
 import org.apache.lucene.index.NumericDocValues;
 import org.apache.lucene.luke.core.Util;
-import org.apache.lucene.search.similarities.DefaultSimilarity;
+import org.apache.lucene.search.similarities.BM25Similarity;
+import org.apache.lucene.search.similarities.ClassicSimilarity;
 import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.search.similarities.TFIDFSimilarity;
 import org.apache.pivot.beans.BXML;
@@ -34,7 +35,7 @@ public class FieldNormWindow extends Dialog implements Bindable {
 
   private String fieldName;
 
-  private static TFIDFSimilarity defaultSimilarity = new DefaultSimilarity();
+  private static TFIDFSimilarity defaultSimilarity = new ClassicSimilarity();
 
   @Override
   public void initialize(Map<String, Object> map, URL url, Resources resources) {
@@ -43,12 +44,11 @@ public class FieldNormWindow extends Dialog implements Bindable {
 
   public void initFieldNorm(int docId, String fieldName, NumericDocValues norms) throws Exception {
     this.fieldName = fieldName;
-    TFIDFSimilarity sim = defaultSimilarity;
     byte curBVal = (byte) norms.get(docId);
-    float curFVal = Util.decodeNormValue(curBVal, fieldName, sim);
+    float curFVal = Util.decodeNormValue(curBVal, fieldName, defaultSimilarity);
     field.setText(fieldName);
     normVal.setText(Float.toString(curFVal));
-    simclass.setText(sim.getClass().getName());
+    simclass.setText(defaultSimilarity.getClass().getName());
     otherNorm.setText(Float.toString(curFVal));
     encNorm.setText(Float.toString(curFVal) + " (0x" + Util.byteToHex(curBVal) + ")");
 
@@ -117,6 +117,6 @@ public class FieldNormWindow extends Dialog implements Bindable {
       simErr.setText("Invalid similarity class " + simClass + ", using DefaultSimilarity.");
       simErr.setVisible(true);
     }
-    return new DefaultSimilarity();
+    return new BM25Similarity();
   }
 }

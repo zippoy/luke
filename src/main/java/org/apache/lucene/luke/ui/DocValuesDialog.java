@@ -13,7 +13,7 @@ import java.net.URL;
 public class DocValuesDialog extends Dialog implements Bindable {
 
   private FieldInfo finfo;
-  private LeafReader lr;
+  private IndexReader ir;
 
   private Resources resources;
 
@@ -35,9 +35,9 @@ public class DocValuesDialog extends Dialog implements Bindable {
 
   private static final String ROW_KEY_VALUE = "value";
 
-  public void initDocValues(FieldInfo finfo, LeafReader lr, int docid) throws IOException {
+  public void initDocValues(FieldInfo finfo, IndexReader ir, int docid) throws IOException {
     this.finfo = finfo;
-    this.lr = lr;
+    this.ir = ir;
 
     name.setText(finfo.name);
     type.setText(finfo.getDocValuesType().name());
@@ -47,28 +47,28 @@ public class DocValuesDialog extends Dialog implements Bindable {
     Map<String, Object> row;
     switch(finfo.getDocValuesType()) {
       case BINARY:
-        BinaryDocValues bdv = lr.getBinaryDocValues(finfo.name);
+        BinaryDocValues bdv = MultiDocValues.getBinaryValues(ir, finfo.name);
         count.setText("-");
         row = new HashMap<>();
         tableData.add(row);
         row.put(ROW_KEY_VALUE, bdv.get(docid).utf8ToString());
         break;
       case NUMERIC:
-        NumericDocValues ndv = lr.getNumericDocValues(finfo.name);
+        NumericDocValues ndv = MultiDocValues.getNumericValues(ir, finfo.name);
         count.setText("-");
         row = new HashMap<>();
         tableData.add(row);
         row.put(ROW_KEY_VALUE, String.valueOf(ndv.get(docid)));
         break;
       case SORTED:
-        SortedDocValues sdv = lr.getSortedDocValues(finfo.name);
+        SortedDocValues sdv = MultiDocValues.getSortedValues(ir, finfo.name);
         count.setText("-");
         row = new HashMap<>();
         tableData.add(row);
         row.put(ROW_KEY_VALUE, sdv.get(docid).utf8ToString());
         break;
       case SORTED_NUMERIC:
-        SortedNumericDocValues sndv = lr.getSortedNumericDocValues(finfo.name);
+        SortedNumericDocValues sndv = MultiDocValues.getSortedNumericValues(ir, finfo.name);
         sndv.setDocument(docid);
         count.setText(String.valueOf(sndv.count()));
         for (int i = 0; i < sndv.count(); i++) {
@@ -79,7 +79,7 @@ public class DocValuesDialog extends Dialog implements Bindable {
         count.setText(String.valueOf(tableData.getLength()));
         break;
       case SORTED_SET:
-        SortedSetDocValues ssdv = lr.getSortedSetDocValues(finfo.name);
+        SortedSetDocValues ssdv = MultiDocValues.getSortedSetValues(ir, finfo.name);
         ssdv.setDocument(docid);
         long ord;
         while ((ord = ssdv.nextOrd()) != SortedSetDocValues.NO_MORE_ORDS) {

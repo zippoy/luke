@@ -8,7 +8,7 @@ public class NumFloatDecoder implements Decoder {
   @Override
   public String decodeTerm(String fieldName, Object value) {
     BytesRef ref = new BytesRef(value.toString());
-    return Float.toString(NumericUtils.sortableIntToFloat(NumericUtils.prefixCodedToInt(ref)));
+    return Float.toString(NumericUtils.sortableIntToFloat(NumericUtils.sortableBytesToInt(ref.bytes, 0)));
   }
 
   @Override

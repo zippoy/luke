@@ -29,7 +29,8 @@ import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
-import org.apache.lucene.search.similarities.DefaultSimilarity;
+import org.apache.lucene.search.similarities.BM25Similarity;
+import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.util.Version;
 import org.apache.pivot.beans.BXML;
 import org.apache.pivot.beans.Bindable;
@@ -154,7 +155,7 @@ public class SearchTab extends SplitPane implements Bindable {
     }
     Object srchOpts = null; // find("srchOptTabs");
     // query parser opts
-    DefaultSimilarity sim = createSimilarity();
+    Similarity sim = createSimilarity();
     AccessibleHitCollector col;
     try {
       col = createCollector();
@@ -403,7 +404,7 @@ public class SearchTab extends SplitPane implements Bindable {
     return res;
   }
 
-  public DefaultSimilarity createSimilarity() {
+  public Similarity createSimilarity() {
     // Object ckSimDef = find(srchOpts, "ckSimDef");
     // Object ckSimSweet = find(srchOpts, "ckSimSweet");
     // Object ckSimOther = find(srchOpts, "ckSimOther");
@@ -432,7 +433,8 @@ public class SearchTab extends SplitPane implements Bindable {
     // } else if (getBoolean(ckSimCust, "selected")) {
     // return similarity;
     // } else {
-    return new DefaultSimilarity();
+    //return new DefaultSimilarity();
+    return new BM25Similarity();
     // }
   }
 

@@ -3,11 +3,12 @@ package org.apache.lucene.luke.core;
 import org.apache.lucene.document.DateTools.Resolution;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldType;
-import org.apache.lucene.document.FieldType.NumericType;
 import org.apache.lucene.index.*;
 import org.apache.lucene.index.DocValuesType;
 import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.luke.core.decoders.*;
+import org.apache.lucene.search.similarities.BM25Similarity;
+import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.search.similarities.TFIDFSimilarity;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.util.BytesRef;
@@ -151,14 +152,13 @@ public class Util {
   }
   
   public static Collection<String> fieldNames(IndexReader r, boolean indexedOnly) throws IOException {
-    LeafReader reader;
+    FieldInfos infos;
     if (r instanceof CompositeReader) {
-      reader = SlowCompositeReaderWrapper.wrap(r);
+      infos = MultiFields.getMergedFieldInfos(r);
     } else {
-      reader = (LeafReader)r;
+      infos = ((LeafReader)r).getFieldInfos();
     }
     Set<String> res = new HashSet<String>();
-    FieldInfos infos = reader.getFieldInfos();
     for (FieldInfo info : infos) {
       if (indexedOnly && info.getIndexOptions() != IndexOptions.NONE) {
         res.add(info.name);
@@ -240,7 +240,7 @@ public class Util {
     else flags.append("-");
     if (numeric != null) {
       flags.append("#");
-      NumericType nt = t.numericType();
+      FieldType.LegacyNumericType nt = t.numericType();
       if (nt != null) {
         flags.append(nt.toString().charAt(0));
         int prec = t.numericPrecisionStep();

@@ -25,13 +25,10 @@ import org.apache.lucene.luke.core.IndexInfo;
 import org.apache.lucene.luke.core.Util;
 import org.apache.lucene.luke.core.decoders.Decoder;
 import org.apache.lucene.luke.ui.LukeWindow.LukeMediator;
-import org.apache.lucene.search.DocIdSetIterator;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.TermQuery;
-import org.apache.lucene.search.similarities.DefaultSimilarity;
+import org.apache.lucene.search.*;
+import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.search.similarities.TFIDFSimilarity;
-import org.apache.lucene.util.BytesRef;
+import org.apache.lucene.util.*;
 import org.apache.pivot.beans.BXML;
 import org.apache.pivot.beans.Bindable;
 import org.apache.pivot.collections.*;
@@ -44,7 +41,9 @@ import org.apache.pivot.util.concurrent.Task;
 import org.apache.pivot.util.concurrent.TaskExecutionException;
 import org.apache.pivot.util.concurrent.TaskListener;
 import org.apache.pivot.wtk.*;
+import org.apache.solr.client.solrj.response.RangeFacet;
 
+import javax.print.MultiDoc;
 import java.io.*;
 import java.net.URL;
 import java.util.*;
@@ -103,15 +102,11 @@ public class DocumentsTab extends SplitPane implements Bindable {
   private Resources resources;
 
   private TermsEnum te;
-  //private DocsAndPositionsEnum td;
-  //private DocsEnum td;
   private PostingsEnum pe;
 
   private String fld;
   private Term lastTerm;
   private IndexReader ir;
-  //private AtomicReader ar;
-  private LeafReader lr;
   private java.util.List<String> indexFields;
   private IndexInfo idxInfo;
   private FieldInfos infos;
@@ -130,18 +125,18 @@ public class DocumentsTab extends SplitPane implements Bindable {
         prevDoc();
       }
     });
-    Action.getNamedActions().put("addDoc", new Action() {
-      @Override
-      public void perform(Component component) {
-        addDoc();
-      }
-    });
-    Action.getNamedActions().put("editDoc", new Action() {
-      @Override
-      public void perform(Component component) {
-        editDoc();
-      }
-    });
+    //Action.getNamedActions().put("addDoc", new Action() {
+    //  @Override
+    //  public void perform(Component component) {
+    //    addDoc();
+    //  }
+    //});
+    //Action.getNamedActions().put("editDoc", new Action() {
+    //  @Override
+    //  public void perform(Component component) {
+    //    editDoc();
+    //  }
+    //});
     Action.getNamedActions().put("showFirstTermDoc", new Action() {
       @Override
       public void perform(Component component) {
@@ -211,14 +206,10 @@ public class DocumentsTab extends SplitPane implements Bindable {
     this.idxInfo = lukeMediator.getIndexInfo();
     this.ir = idxInfo.getReader();
     if (ir instanceof CompositeReader) {
-      //ar = new SlowCompositeReaderWrapper((CompositeReader) ir);
-      lr = SlowCompositeReaderWrapper.wrap(ir);
+      this.infos = MultiFields.getMergedFieldInfos(ir);
     } else if (ir instanceof LeafReader) {
-      lr = (LeafReader) ir;
-    }
-
-    if (lr != null) {
-      infos = lr.getFieldInfos();
+      //lr = (LeafReader) ir;
+      this.infos = ((LeafReader)ir).getFieldInfos();
     }
 
     this.indexFields = idxInfo.getFieldNames();
@@ -275,7 +266,7 @@ public class DocumentsTab extends SplitPane implements Bindable {
       tFreq.setText("?");
       tdMax.setText("?");
 
-      org.apache.lucene.util.Bits live = lr.getLiveDocs();
+      Bits live = MultiFields.getLiveDocs(ir);
       if (live == null || live.get(iNum)) {
         Task<Object> populateTableTask = new Task<Object>() {
 
@@ -345,6 +336,7 @@ public class DocumentsTab extends SplitPane implements Bindable {
     showDoc(-1);
   }
 
+  /*
   private void addDoc() {
     System.out.println("addDoc()");
   }
@@ -353,13 +345,14 @@ public class DocumentsTab extends SplitPane implements Bindable {
 
   private void showEditDocWindow() {
     try {
-      editDocDialog.initDocumentInfo(iNum, lr, lukeMediator);
+      editDocDialog.initDocumentInfo(iNum, ir, lukeMediator);
       editDocDialog.open(getDisplay(), getWindow());
     } catch (Exception e) {
       // TODO
       e.printStackTrace();
     }
   }
+  */
 
   public void popTableWithDoc(int docid, Document doc) {
     docNum.setText(String.valueOf(docid));
@@ -415,7 +408,7 @@ public class DocumentsTab extends SplitPane implements Bindable {
       FieldInfo info = infos.fieldInfo(fName);
       try {
         if (info.hasNorms()) {
-          NumericDocValues norms = lr.getNormValues(fName);
+          NumericDocValues norms = MultiDocValues.getNormValues(ir, fName);
           String norm = String.valueOf(norms.get(docid));
           row.put(FIELDROW_KEY_NORM, norm);
         } else {
@@ -429,19 +422,19 @@ public class DocumentsTab extends SplitPane implements Bindable {
         StringBuilder sb = new StringBuilder();
         switch (info.getDocValuesType()) {
           case BINARY:
-            BinaryDocValues binValues = lr.getBinaryDocValues(fName);
+            BinaryDocValues binValues = MultiDocValues.getBinaryValues(ir, fName);
             sb.append(binValues.get(docid).utf8ToString());
             break;
           case NUMERIC:
-            NumericDocValues numValues = lr.getNumericDocValues(fName);
+            NumericDocValues numValues = MultiDocValues.getNumericValues(ir, fName);
             sb.append(String.valueOf(numValues.get(docid)));
             break;
           case SORTED:
-            SortedDocValues sortedValues = lr.getSortedDocValues(fName);
+            SortedDocValues sortedValues = MultiDocValues.getSortedValues(ir, fName);
             sb.append(sortedValues.get(docid).utf8ToString());
             break;
           case SORTED_NUMERIC:
-            SortedNumericDocValues sortedNumValues = lr.getSortedNumericDocValues(fName);
+            SortedNumericDocValues sortedNumValues = MultiDocValues.getSortedNumericValues(ir, fName);
             sortedNumValues.setDocument(docid);
             for (int i = 0; i < sortedNumValues.count(); i++) {
               if (i > 0) sb.append(",");
@@ -449,7 +442,7 @@ public class DocumentsTab extends SplitPane implements Bindable {
             }
             break;
           case SORTED_SET:
-            SortedSetDocValues sortedSetDocValues = lr.getSortedSetDocValues(fName);
+            SortedSetDocValues sortedSetDocValues = MultiDocValues.getSortedSetValues(ir, fName);
             sortedSetDocValues.setDocument(docid);
             long ord;
             while ((ord = sortedSetDocValues.nextOrd()) != SortedSetDocValues.NO_MORE_ORDS) {
@@ -609,7 +602,7 @@ public class DocumentsTab extends SplitPane implements Bindable {
             showFirstTermDoc();
             return;
           }
-          if (pe.nextDoc() == DocsEnum.NO_MORE_DOCS)
+          if (pe.nextDoc() == PostingsEnum.NO_MORE_DOCS)
             return;
 
           String sCnt = tdNum.getText();
@@ -1077,7 +1070,7 @@ public class DocumentsTab extends SplitPane implements Bindable {
 
   private void showDocValuesDialog(FieldInfo finfo) {
     try {
-      dvDialog.initDocValues(finfo, lr, iNum);
+      dvDialog.initDocValues(finfo, ir, iNum);
     } catch (IOException e) {
       // TODO
       e.printStackTrace();
@@ -1090,11 +1083,11 @@ public class DocumentsTab extends SplitPane implements Bindable {
     fieldDataWindow.open(getDisplay(), getWindow());
   }
 
-  private static TFIDFSimilarity defaultSimilarity = new DefaultSimilarity();
+  //private static BM25Similarity defaultSimilarity = new BM25Similarity();
   private void showFieldNormWindow(String fieldName) {
-    if (lr != null) {
+    if (ir != null) {
       try {
-        NumericDocValues norms = lr.getNormValues(fieldName);
+        NumericDocValues norms = MultiDocValues.getNormValues(ir, fieldName);
         fieldNormWindow.initFieldNorm(iNum, fieldName, norms);
         fieldNormWindow.open(getDisplay(), getWindow());
       } catch (Exception e) {
@@ -1132,23 +1125,23 @@ public class DocumentsTab extends SplitPane implements Bindable {
     StringBuilder sb;
     switch(finfo.getDocValuesType()) {
       case BINARY:
-        BinaryDocValues bdv = lr.getBinaryDocValues(finfo.name);
+        BinaryDocValues bdv = MultiDocValues.getBinaryValues(ir, finfo.name);
         bytes = bdv.get(iNum);
         data = new byte[bytes.length];
         System.arraycopy(bytes.bytes, bytes.offset, data, 0, bytes.length);
         break;
       case NUMERIC:
-        NumericDocValues ndv = lr.getNumericDocValues(finfo.name);
+        NumericDocValues ndv = MultiDocValues.getNumericValues(ir, finfo.name);
         data = String.valueOf(ndv.get(iNum)).getBytes();
         break;
       case SORTED:
-        SortedDocValues sdv = lr.getSortedDocValues(finfo.name);
+        SortedDocValues sdv = MultiDocValues.getSortedValues(ir, finfo.name);
         bytes = sdv.get(iNum);
         data = new byte[bytes.length];
         System.arraycopy(bytes.bytes, bytes.offset, data, 0, bytes.length);
         break;
       case SORTED_NUMERIC:
-        SortedNumericDocValues sndv = lr.getSortedNumericDocValues(finfo.name);
+        SortedNumericDocValues sndv = MultiDocValues.getSortedNumericValues(ir, finfo.name);
         sndv.setDocument(iNum);
         sb = new StringBuilder();
         for (int i = 0; i < sndv.count(); i++) {
@@ -1158,7 +1151,7 @@ public class DocumentsTab extends SplitPane implements Bindable {
         data = sb.toString().getBytes();
         break;
       case SORTED_SET:
-        SortedSetDocValues ssdv = lr.getSortedSetDocValues(finfo.name);
+        SortedSetDocValues ssdv = MultiDocValues.getSortedSetValues(ir, finfo.name);
         ssdv.setDocument(iNum);
         sb = new StringBuilder();
         long ord;

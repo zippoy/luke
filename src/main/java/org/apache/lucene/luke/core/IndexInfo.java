@@ -241,7 +241,7 @@ public class IndexInfo {
         te.next();
         pe = MultiFields.getTermDocsEnum(reader, fld, te.term());
         IndexableField field = null;
-        while (field == null && pe.nextDoc() != DocsEnum.NO_MORE_DOCS) {
+        while (field == null && pe.nextDoc() != PostingsEnum.NO_MORE_DOCS) {
           // look up first document which has this field value.
           int docId = pe.docID();
           Document doc = reader.document(docId);
