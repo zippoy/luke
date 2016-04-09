@@ -227,35 +227,35 @@ public class XMLExporter extends Observable {
   private void writeTermVector(BufferedWriter bw, Terms tfv, Bits liveDocs) throws Exception {
     bw.write("<tv>\n");
     TermsEnum te = tfv.iterator();
-    DocsAndPositionsEnum dpe = null;
+    PostingsEnum pe = null;
     StringBuilder positions = new StringBuilder();
     StringBuilder offsets = new StringBuilder();
     while (te.next() != null) {
       // collect
       positions.setLength(0);
       offsets.setLength(0);
-      DocsAndPositionsEnum newDpe = te.docsAndPositions(liveDocs, dpe,
-              1);
-      if (newDpe == null) {
+      //DocsAndPositionsEnum newDpe = te.docsAndPositions(liveDocs, dpe,           1);
+      PostingsEnum newPe = te.postings(pe, 1);
+      if (newPe == null) {
         continue;
       }
-      dpe = newDpe;
+      pe = newPe;
       // there's only at most one doc here, so position the enum
-      if (dpe.nextDoc() == DocsEnum.NO_MORE_DOCS) {
+      if (pe.nextDoc() == PostingsEnum.NO_MORE_DOCS) {
         continue;
       }
-      for (int k = 0; k < dpe.freq(); k++) {
-        int pos = dpe.nextPosition();
+      for (int k = 0; k < pe.freq(); k++) {
+        int pos = pe.nextPosition();
         if (pos != -1) { // has positions
           if (positions.length() > 0) positions.append(' ');
           positions.append(String.valueOf(pos));
         }
-        if (dpe.startOffset() != -1) { // has offsets
+        if (pe.startOffset() != -1) { // has offsets
           if (offsets.length() > 0) offsets.append(' ');
-          offsets.append(dpe.startOffset() + "-" + dpe.endOffset());
+          offsets.append(pe.startOffset() + "-" + pe.endOffset());
         }
       }
-      bw.write("<t text='" + Util.xmlEscape(te.term().utf8ToString()) + "' freq='" + dpe.freq() + "'");
+      bw.write("<t text='" + Util.xmlEscape(te.term().utf8ToString()) + "' freq='" + pe.freq() + "'");
       if (positions.length() > 0) {
         bw.write(" positions='" + positions.toString() + "'");
       }

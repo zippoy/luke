@@ -31,8 +31,8 @@ import org.apache.lucene.index.*;
 import org.apache.lucene.index.TermsEnum.SeekStatus;
 import org.apache.lucene.misc.SweetSpotSimilarity;
 import org.apache.lucene.queries.mlt.MoreLikeThis;
-import org.apache.lucene.queries.payloads.PayloadNearQuery;
-import org.apache.lucene.queries.payloads.PayloadTermQuery;
+import org.apache.lucene.queries.payloads.PayloadScoreQuery;
+import org.apache.lucene.queries.payloads.SpanPayloadCheckQuery;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.queryparser.xml.CoreParser;
 import org.apache.lucene.queryparser.xml.CorePlusExtensionsParser;
@@ -3248,7 +3248,8 @@ public class Luke extends Thinlet implements ClipboardOwner {
       }
     } else if (enc.equals("cbLong")) {
       try {
-        long num = NumericUtils.prefixCodedToLong(new BytesRef(f.stringValue()));
+        //long num = NumericUtils.prefixCodedToLong(new BytesRef(f.stringValue()));
+        long num = NumericUtils.sortableBytesToLong(f.stringValue().getBytes(), 0);
         value = String.valueOf(num);
         len = 1;
       } catch (Exception e) {
@@ -3632,18 +3633,19 @@ public class Luke extends Thinlet implements ClipboardOwner {
     SlowThread st = new SlowThread(this) {
       public void execute() {
         try {
-          DocsEnum td = ar.getContext().reader().termDocsEnum(t);
-          if (td == null) {
+          //DocsEnum td = ar.getContext().reader().termDocsEnum(t);
+          PostingsEnum pe = ar.getContext().reader().postings(t);
+          if (pe == null) {
             showStatus("No such term: " + t);
             return;
           }
-          if (td.nextDoc() == DocsEnum.NO_MORE_DOCS) {
+          if (pe.nextDoc() == PostingsEnum.NO_MORE_DOCS) {
             showStatus("No documents with this term: " + t + " (NO_MORE_DOCS)");
             return;
           }
           setString(find("tdNum"), "text", "1");
-          putProperty(fText, "td", td);
-          _showTermDoc(fText, td);
+          putProperty(fText, "td", pe);
+          _showTermDoc(fText, pe);
         } catch (Exception e) {
           e.printStackTrace();
           showStatus(e.getMessage());
@@ -3667,12 +3669,12 @@ public class Luke extends Thinlet implements ClipboardOwner {
     SlowThread st = new SlowThread(this) {
       public void execute() {
         try {
-          DocsEnum td = (DocsEnum) getProperty(fText, "td");
-          if (td == null) {
+          PostingsEnum pe = (PostingsEnum)getProperty(fText, "pe");
+          if (pe == null) {
             showFirstTermDoc(fText);
             return;
           }
-          if (td.nextDoc() == DocsEnum.NO_MORE_DOCS) {
+          if (pe.nextDoc() == PostingsEnum.NO_MORE_DOCS) {
             showStatus("No more docs for this term");
             return;
           }
@@ -3684,7 +3686,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
           } catch (Exception e) {}
           ;
           setString(tdNum, "text", String.valueOf(cnt + 1));
-          _showTermDoc(fText, td);
+          _showTermDoc(fText, pe);
         } catch (Exception e) {
           e.printStackTrace();
           showStatus(e.getMessage());
@@ -3723,8 +3725,8 @@ public class Luke extends Thinlet implements ClipboardOwner {
               }
             }
           }
-          DocsEnum tdd = (DocsEnum)getProperty(fText, "td");
-          if (tdd == null) {
+          PostingsEnum pee = (PostingsEnum)getProperty(fText, "pe");
+          if (pee == null) {
             showStatus("Unknown document number.");
             return;
           }
@@ -3735,12 +3737,12 @@ public class Luke extends Thinlet implements ClipboardOwner {
             flags |= DocsAndPositionsEnum.FLAG_OFFSETS;
           }
           */
-          DocsAndPositionsEnum td = ar.getContext().reader().termPositionsEnum(t);
-          if (td == null) {
+          PostingsEnum pe = ar.getContext().reader().postings(t);
+          if (pe == null) {
             showStatus("No position information available for this term.");
             return;
           }
-          if (td.advance(tdd.docID()) != td.docID()) {
+          if (pe.advance(pee.docID()) != pe.docID()) {
             showStatus("No position available for this doc and this term.");
             return;
           }
@@ -3748,15 +3750,15 @@ public class Luke extends Thinlet implements ClipboardOwner {
           setString(find(dialog, "term"), "text", t.toString());
           String docNum = getString(find("docNum"), "text");
           setString(find(dialog, "docNum"), "text", docNum);
-          setString(find(dialog, "freq"), "text", String.valueOf(td.freq()));
+          setString(find(dialog, "freq"), "text", String.valueOf(pe.freq()));
           setString(find(dialog, "offs"), "text", String.valueOf(withOffsets));
-          putProperty(dialog, "td", td);
+          putProperty(dialog, "pe", pe);
           Object pTable = find(dialog, "pTable");
           removeAll(pTable);
-          int freq = td.freq();
+          int freq = pe.freq();
           for (int i = 0; i < freq; i++) {
             try {
-              int pos = td.nextPosition();
+              int pos = pe.nextPosition();
               Object r = create("row");
               Object cell = create("cell");
               setString(cell, "text", String.valueOf(pos));
@@ -3764,14 +3766,14 @@ public class Luke extends Thinlet implements ClipboardOwner {
               cell = create("cell");
               add(r, cell);
               if (withOffsets) {
-                setString(cell, "text", td.startOffset() + "-" + td.endOffset());
+                setString(cell, "text", pe.startOffset() + "-" + pe.endOffset());
               } else {
                 setString(cell, "text", "---");
                 setBoolean(cell, "enabled", false);
               }
               cell = create("cell");
               add(r, cell);
-              BytesRef payload = td.getPayload();
+              BytesRef payload = pe.getPayload();
               if (payload != null) {
                 putProperty(r, "payload", payload.clone());
               }
@@ -4129,12 +4131,12 @@ public class Luke extends Thinlet implements ClipboardOwner {
     } else if (clazz.startsWith("org.apache.solr.")) {
       clazz = "solr." + q.getClass().getSimpleName();
     }
-    float boost = q.getBoost();
     Object n = create("node");
     add(parent, n);
     String msg = clazz;
-    if (boost != 1.0f) {
-      msg += ": boost=" + df.format(boost);
+    if (q instanceof BoostQuery) {
+      BoostQuery boostQ = (BoostQuery)q;
+      msg += ": boost=" + df.format(boostQ.getBoost());
     }
     setFont(n, getFont().deriveFont(Font.BOLD));
     setString(n, "text", msg);
@@ -4145,10 +4147,10 @@ public class Luke extends Thinlet implements ClipboardOwner {
       add(n, n1);
     } else if (clazz.equals("lucene.BooleanQuery")) {
       BooleanQuery bq = (BooleanQuery)q;
-      BooleanClause[] clauses = bq.getClauses();
+      List<BooleanClause> clauses = bq.clauses();
       int max = bq.getMaxClauseCount();
       Object n1 = create("node");
-      String descr = "clauses=" + clauses.length +
+      String descr = "clauses=" + clauses.size() +
       ", maxClauses=" + max;
       if (bq.isCoordDisabled()) {
         descr += ", coord=false";
@@ -4158,10 +4160,10 @@ public class Luke extends Thinlet implements ClipboardOwner {
       }
       setString(n1, "text", descr);
       add(n, n1);
-      for (int i = 0; i < clauses.length; i++) {
+      for (int i = 0; i < clauses.size(); i++) {
         n1 = create("node");
         String occur;
-        Occur occ = clauses[i].getOccur();
+        Occur occ = clauses.get(i).getOccur();
         if (occ.equals(Occur.MUST)) {
           occur = "MUST";
         } else if (occ.equals(Occur.MUST_NOT)) {
@@ -4173,7 +4175,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
         }
         setString(n1, "text", "Clause " + i + ": " + occur);
         add(n, n1);
-        _explainStructure(n1, clauses[i].getQuery());
+        _explainStructure(n1, clauses.get(i).getQuery());
       }
     } else if (clazz.equals("lucene.PrefixQuery")) {
       Object n1 = create("node");
@@ -4301,44 +4303,48 @@ public class Luke extends Thinlet implements ClipboardOwner {
       } else if (cq.getQuery() != null) {
         _explainStructure(n, cq.getQuery());
       }
-    } else if (q instanceof FilteredQuery) {
-      FilteredQuery fq = (FilteredQuery)q;
-      Object n1 = create("node");
-      setString(n1, "text", "Filter: " + fq.getFilter().toString());
-      add(n, n1);
-      _explainStructure(n, fq.getQuery());
     } else if (q instanceof SpanQuery) {
-      SpanQuery sq = (SpanQuery)q;
+      SpanQuery sq = (SpanQuery) q;
       Class sqlass = sq.getClass();
       setString(n, "text", getString(n, "text") + ", field=" + sq.getField());
       if (sqlass == SpanOrQuery.class) {
-        SpanOrQuery soq = (SpanOrQuery)sq;
+        SpanOrQuery soq = (SpanOrQuery) sq;
         setString(n, "text", getString(n, "text") + ", " + soq.getClauses().length + " clauses");
         for (SpanQuery sq1 : soq.getClauses()) {
           _explainStructure(n, sq1);
         }
       } else if (sqlass == SpanFirstQuery.class) {
-        SpanFirstQuery sfq = (SpanFirstQuery)sq;
+        SpanFirstQuery sfq = (SpanFirstQuery) sq;
         setString(n, "text", getString(n, "text") + ", end=" + sfq.getEnd() + ", match:");
         _explainStructure(n, sfq.getMatch());
       } else if (q instanceof SpanNearQuery) { // catch also known subclasses
-        SpanNearQuery snq = (SpanNearQuery)sq;
+        SpanNearQuery snq = (SpanNearQuery) sq;
         setString(n, "text", getString(n, "text") + ", slop=" + snq.getSlop());
-        if (snq instanceof PayloadNearQuery) {
-          try {
-            java.lang.reflect.Field function = PayloadNearQuery.class.getDeclaredField("function");
-            function.setAccessible(true);
-            Object func = function.get(snq);
-            setString(n, "text", getString(n, "text") + ", func=" + func.getClass().getSimpleName());
-          } catch (Exception e) {
-            e.printStackTrace();
-          }
-        }
+        // PayloadNearQuery was removed since Lucene 6.0.0
+        //if (snq instanceof PayloadNearQuery) {
+        //  try {
+        //    java.lang.reflect.Field function = PayloadNearQuery.class.getDeclaredField("function");
+        //    function.setAccessible(true);
+        //    Object func = function.get(snq);
+        //    setString(n, "text", getString(n, "text") + ", func=" + func.getClass().getSimpleName());
+        //  } catch (Exception e) {
+        //    e.printStackTrace();
+        //  }
+        //}
         for (SpanQuery sq1 : snq.getClauses()) {
           _explainStructure(n, sq1);
         }
+      } else if (sqlass == SpanPayloadCheckQuery.class) {
+        try {
+          java.lang.reflect.Field function = SpanPayloadCheckQuery.class.getDeclaredField("function");
+          function.setAccessible(true);
+          Object func = function.get(sq);
+          setString(n, "text", getString(n, "text") + ", func=" + func.getClass().getSimpleName());
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
       } else if (sqlass == SpanNotQuery.class) {
-        SpanNotQuery snq = (SpanNotQuery)sq;
+        SpanNotQuery snq = (SpanNotQuery) sq;
         Object n1 = create("node");
         add(n, n1);
         setString(n1, "text", "Include:");
@@ -4348,17 +4354,26 @@ public class Luke extends Thinlet implements ClipboardOwner {
         setString(n1, "text", "Exclude:");
         _explainStructure(n1, snq.getExclude());
       } else if (q instanceof SpanTermQuery) {
-        SpanTermQuery stq = (SpanTermQuery)sq;
-        setString(n, "text", getString(n, "text") + ", term=" + stq.getTerm());        
-        if (stq instanceof PayloadTermQuery) {
-          try {
-            java.lang.reflect.Field function = PayloadTermQuery.class.getDeclaredField("function");
-            function.setAccessible(true);
-            Object func = function.get(stq);
-            setString(n, "text", getString(n, "text") + ", func=" + func.getClass().getSimpleName());
-          } catch (Exception e) {
-            e.printStackTrace();
-          }
+        SpanTermQuery stq = (SpanTermQuery) sq;
+        setString(n, "text", getString(n, "text") + ", term=" + stq.getTerm());
+        // PayloadTermQuery was removed since Lucene 6.0.0
+        //if (stq instanceof PayloadTermQuery) {
+        //  try {
+        //    java.lang.reflect.Field function = PayloadTermQuery.class.getDeclaredField("function");
+        //    function.setAccessible(true);
+        //    Object func = function.get(stq);
+        //    setString(n, "text", getString(n, "text") + ", func=" + func.getClass().getSimpleName());
+        //  } catch (Exception e) {
+        //    e.printStackTrace();
+        //  }
+      } else if (sqlass == PayloadScoreQuery.class) {
+        try {
+          java.lang.reflect.Field function = PayloadScoreQuery.class.getDeclaredField("function");
+          function.setAccessible(true);
+          Object func = function.get(sq);
+          setString(n, "text", getString(n, "text") + ", func=" + func.getClass().getSimpleName());
+        } catch (Exception e) {
+          e.printStackTrace();
         }
       } else {
         String defField = getDefaultField(find("srchOptTabs"));
@@ -4887,7 +4902,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
     }
   }
 
-  private void _showTermDoc(Object fText, final DocsEnum td) {
+  private void _showTermDoc(Object fText, final PostingsEnum pe) {
     if (ir == null) {
       showStatus(MSG_NOINDEX);
       return;
@@ -4895,10 +4910,10 @@ public class Luke extends Thinlet implements ClipboardOwner {
     SlowThread st = new SlowThread(this) {
       public void execute() {
         try {
-          Document doc = ir.document(td.docID());
-          setString(find("docNum"), "text", String.valueOf(td.docID()));
-          setString(find("tFreq"), "text", String.valueOf(td.freq()));
-          _showDocFields(td.docID(), doc);          
+          Document doc = ir.document(pe.docID());
+          setString(find("docNum"), "text", String.valueOf(pe.docID()));
+          setString(find("tFreq"), "text", String.valueOf(pe.freq()));
+          _showDocFields(pe.docID(), doc);
         } catch (Exception e) {
           e.printStackTrace();
           showStatus(e.getMessage());

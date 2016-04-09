@@ -108,7 +108,7 @@ public class DocReconstructor extends Observable {
     progress.curValue = 0;
     progress.minValue = 0;
     TermsEnum te = null;
-    DocsAndPositionsEnum dpe = null;
+    PostingsEnum pe = null;
     for (int i = 0; i < fieldNames.length; i++) {
       Terms tvf = reader.getTermVector(docNum, fieldNames[i]);
       if (tvf != null) { // has vectors for this field
@@ -153,9 +153,9 @@ public class DocReconstructor extends Observable {
         // first use bytesRef to extract the indexed term value
         String docTerm = bytesRef.utf8ToString();
 
-        DocsAndPositionsEnum newDpe = te.docsAndPositions(live, dpe, 0);
+        PostingsEnum newPe = te.postings(pe, 0);
 
-        if (newDpe == null) { // no position info for this field
+        if (newPe == null) { // no position info for this field
             // re-construct without positions
             GrowableStringArray gsa = (GrowableStringArray)
                     res.getReconstructedFields().get(fld);
@@ -169,9 +169,9 @@ public class DocReconstructor extends Observable {
         }
 
         // we should have positions as well for the field, process them accordingly
-        dpe = newDpe;
+        pe = newPe;
 
-        int num = dpe.advance(docNum);
+        int num = pe.advance(docNum);
         if (num != docNum) { // either greater than or NO_MORE_DOCS
           continue; // no data for this term in this doc
         }
@@ -184,8 +184,8 @@ public class DocReconstructor extends Observable {
           gsa = new GrowableStringArray();
           res.getReconstructedFields().put(fld, gsa);
         }
-        for (int k = 0; k < dpe.freq(); k++) {
-          int pos = dpe.nextPosition();
+        for (int k = 0; k < pe.freq(); k++) {
+          int pos = pe.nextPosition();
           gsa.append(pos, "|", docTerm);
         }
       }
