@@ -1926,12 +1926,6 @@ public class Luke extends Thinlet implements ClipboardOwner {
         ir.close();
         ir = null;
       }
-      if (ir instanceof CompositeReader) {
-        CompositeReader cr = (CompositeReader)ir;
-        for (LeafReaderContext ctx : cr.leaves()) {
-          ctx.reader().close();
-        }
-      }
       if (dir != null) {
         dir.close();
         dir = null;
@@ -2151,12 +2145,6 @@ public class Luke extends Thinlet implements ClipboardOwner {
       }
       if (ir != null) {
         ir.close();
-      }
-      if (ir instanceof CompositeReader) {
-        CompositeReader cr = (CompositeReader)ir;
-        for (LeafReaderContext ctx : cr.leaves()) {
-          ctx.reader().close();
-        }
       }
     } catch (Exception e) {
       e.printStackTrace();
@@ -2398,12 +2386,6 @@ public class Luke extends Thinlet implements ClipboardOwner {
         try {
           if (is != null) is = null;
           if (ir != null) ir.close();
-          if (ir instanceof CompositeReader) {
-            CompositeReader cr = (CompositeReader)ir;
-            for (LeafReaderContext ctx : cr.leaves()) {
-              ctx.reader().close();
-            }
-          }
           IndexDeletionPolicy policy;
           if (keep) {
             policy = new KeepAllIndexDeletionPolicy();
@@ -2752,11 +2734,6 @@ public class Luke extends Thinlet implements ClipboardOwner {
     String msg = null;
     try {
       ir.close();
-      if (ir instanceof CompositeReader) {
-        for (LeafReaderContext ctx : ir.leaves()) {
-          ctx.reader().close();
-        }
-      }
       writer = createIndexWriter();
       writer.addDocument(doc);
       res = true;
