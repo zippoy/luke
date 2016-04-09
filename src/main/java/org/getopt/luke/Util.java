@@ -233,14 +233,10 @@ public class Util {
     else flags.append("-");
     if (info.hasNorms()) {
       flags.append("N");
-      // TODO: FieldInfo#getNormType was deleted in Lucene 5
-      //flags.append(dvToString(info.getNormType()));
     }
-    //else flags.append("----");
     else flags.append("-");
     if (numeric != null) {
       flags.append("#");
-      //NumericType nt = t.numericType();
       FieldType.LegacyNumericType nt = t.numericType();
       if (nt != null) {
         flags.append(nt.toString().charAt(0));
@@ -279,31 +275,44 @@ public class Util {
       flags.append("D");
       flags.append(dvToString(info.getDocValuesType()));
     } else {
+      flags.append("-------");
+    }
+    if (info.getPointDimensionCount() > 0) {
+      int dim = info.getPointDimensionCount();
+      int nbytes = info.getPointNumBytes();
+      flags.append("T");
+      flags.append(String.valueOf(nbytes));
+      flags.append("/");
+      flags.append(String.valueOf(dim));
+    } else {
       flags.append("----");
-    }    
+    }
     return flags.toString();
   }
   
   private static String dvToString(DocValuesType type) {
     String fl;
     if (type == null) {
-      return "???";
+      return "??????";
     }
     switch (type) {
-    case NUMERIC:
-      fl = "num";
-      break;
-    case BINARY:
-      fl = "bin";
-      break;
-    case SORTED:
-      fl = "srt";
-      break;
-    case SORTED_SET:
-      fl = "srtset";
-      break;
-    default:
-      fl = "???";
+      case NUMERIC:
+        fl = "number";
+        break;
+      case BINARY:
+        fl = "binary";
+        break;
+      case SORTED:
+        fl = "sorted";
+        break;
+      case SORTED_NUMERIC:
+        fl = "srtnum";
+        break;
+      case SORTED_SET:
+        fl = "srtset";
+        break;
+      default:
+        fl = "??????";
     }
     return fl;
   }

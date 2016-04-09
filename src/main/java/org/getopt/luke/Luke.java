@@ -1211,11 +1211,11 @@ public class Luke extends Thinlet implements ClipboardOwner {
     // sort by names now
     String[] idxFieldsCopy = idxFields.clone();
 
-      // sort by term count
-      ValueComparator bvc =  new ValueComparator(termCounts);
-      TreeMap<String,FieldTermCount> termCountsSorted = new TreeMap<String,FieldTermCount>(bvc);
-      termCountsSorted.putAll(termCounts);
-      String[] idxFieldsCopySorted = termCountsSorted.keySet().toArray(new String[idxFieldsCopy.length]);
+    // sort by term count
+    ValueComparator bvc =  new ValueComparator(termCounts);
+    TreeMap<String,FieldTermCount> termCountsSorted = new TreeMap<String,FieldTermCount>(bvc);
+    termCountsSorted.putAll(termCounts);
+    String[] idxFieldsCopySorted = termCountsSorted.keySet().toArray(new String[idxFieldsCopy.length]);
 
     populateFieldGrid(fList, fCombo, defFld, intCountFormat, percentFormat, idxFieldsCopySorted);
 
