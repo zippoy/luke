@@ -124,8 +124,10 @@ public class DocReconstructor extends Observable {
             res.getReconstructedFields().put(fieldNames[i], gsa);
           }
           for (IntPair ip : vectors) {
-            for (int m = 0; m < ip.positions.length; m++) {
-              gsa.append(ip.positions[m], "|", ip.text);
+            if (ip.positions != null) {
+              for (int m = 0; m < ip.positions.length; m++) {
+                gsa.append(ip.positions[m], "|", ip.text);
+              }
             }
           }
           fields.remove(fieldNames[i]); // got what we wanted
@@ -185,7 +187,9 @@ public class DocReconstructor extends Observable {
         }
         for (int k = 0; k < pe.freq(); k++) {
           int pos = pe.nextPosition();
-          gsa.append(pos, "|", docTerm);
+          if (pos > -1) {
+            gsa.append(pos, "|", docTerm);
+          }
         }
       }
     }
