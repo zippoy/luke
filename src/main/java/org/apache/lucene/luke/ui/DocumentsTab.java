@@ -408,7 +408,7 @@ public class DocumentsTab extends SplitPane implements Bindable {
       FieldInfo info = infos.fieldInfo(fName);
       try {
         if (info.hasNorms()) {
-          NumericDocValues norms = MultiDocValues.getNormValues(ir, fName);
+          NumericDocValues norms = MultiDocValues.getNormValues(ir, info.name);
           String norm = String.valueOf(norms.get(docid));
           row.put(FIELDROW_KEY_NORM, norm);
         } else {
