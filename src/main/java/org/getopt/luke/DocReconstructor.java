@@ -21,7 +21,7 @@ import java.util.*;
 public class DocReconstructor extends Observable {
   private ProgressNotification progress = new ProgressNotification();
   private String[] fieldNames = null;
-  private LeafReader reader = null;
+  private IndexReader ir = null;
   private int numTerms;
   private Bits live;
   
@@ -47,10 +47,9 @@ public class DocReconstructor extends Observable {
     if (reader == null) {
       throw new Exception("IndexReader cannot be null.");
     }
+    this.ir = reader;
     if (reader instanceof CompositeReader) {
-      this.reader = SlowCompositeReaderWrapper.wrap(reader);
     } else if (reader instanceof LeafReader) {
-      this.reader = (LeafReader)reader;
     } else {
       throw new Exception("Unsupported IndexReader class " + reader.getClass().getName());
     }
@@ -86,14 +85,14 @@ public class DocReconstructor extends Observable {
    * @throws Exception
    */
   public Reconstructed reconstruct(int docNum) throws Exception {
-    if (docNum < 0 || docNum > reader.maxDoc()) {
+    if (docNum < 0 || docNum > ir.maxDoc()) {
       throw new Exception("Document number outside of valid range.");
     }
     Reconstructed res = new Reconstructed();
     if (live != null && !live.get(docNum)) {
       throw new Exception("Document is deleted.");
     } else {
-      Document doc =  reader.document(docNum);
+      Document doc =  ir.document(docNum);
       for (int i = 0; i < fieldNames.length; i++) {
         IndexableField[] fs = doc.getFields(fieldNames[i]);
         if (fs != null && fs.length > 0) {
@@ -110,7 +109,7 @@ public class DocReconstructor extends Observable {
     TermsEnum te = null;
     PostingsEnum pe = null;
     for (int i = 0; i < fieldNames.length; i++) {
-      Terms tvf = reader.getTermVector(docNum, fieldNames[i]);
+      Terms tvf = ir.getTermVector(docNum, fieldNames[i]);
       if (tvf != null) { // has vectors for this field
         te = tvf.iterator();
         progress.message = "Checking term vectors for '" + fieldNames[i] + "' ...";
@@ -143,7 +142,7 @@ public class DocReconstructor extends Observable {
       progress.curValue++;
       setChanged();
       notifyObservers(progress);
-      Terms terms = MultiFields.getTerms(reader, fld);
+      Terms terms = MultiFields.getTerms(ir, fld);
       if (terms == null) { // no terms in this field
         continue;
       }

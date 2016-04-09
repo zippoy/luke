@@ -5,22 +5,12 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.lucene.document.DateTools.Resolution;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldType;
-import org.apache.lucene.index.LeafReader;
-import org.apache.lucene.index.CompositeReader;
-import org.apache.lucene.index.FieldInfo;
-import org.apache.lucene.index.DocValuesType;
-import org.apache.lucene.index.IndexOptions;
-import org.apache.lucene.index.FieldInfos;
-import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.SlowCompositeReaderWrapper;
+import org.apache.lucene.index.*;
 import org.apache.lucene.search.similarities.TFIDFSimilarity;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.util.BytesRef;
@@ -158,14 +148,14 @@ public class Util {
   }
   
   public static Collection<String> fieldNames(IndexReader r, boolean indexedOnly) throws IOException {
-    LeafReader reader;
+    FieldInfos infos;
     if (r instanceof CompositeReader) {
-      reader = SlowCompositeReaderWrapper.wrap(r);
+      infos = MultiFields.getMergedFieldInfos(r);
     } else {
-      reader = (LeafReader)r;
+      LeafReader reader = (LeafReader)r;
+      infos = reader.getFieldInfos();
     }
     Set<String> res = new HashSet<String>();
-    FieldInfos infos = reader.getFieldInfos();
     for (FieldInfo info : infos) {
       if (indexedOnly && info.getIndexOptions() != IndexOptions.NONE) {
         res.add(info.name);
@@ -175,7 +165,7 @@ public class Util {
     }
     return res;
   }
-  
+
   public static float decodeNormValue(long v, String fieldName, TFIDFSimilarity sim) throws Exception {
     try {
       return sim.decodeNormValue(v);
@@ -191,7 +181,6 @@ public class Util {
       throw new Exception("ERROR encoding norm for field "  + fieldName + ":" + e.toString());
     }    
   }
-
 
   // IdfpoPSVBNtxx#txxDtxx
   public static String fieldFlags(Field fld, FieldInfo info) {
