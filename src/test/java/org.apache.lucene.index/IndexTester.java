@@ -49,7 +49,7 @@ public class IndexTester extends TestCase {
 
       Document doc = new Document();
       doc.add(new StringField("aaa", "1", Field.Store.NO));
-      doc.add(new Field("bbb", "2", Field.Store.NO, Field.Index.NOT_ANALYZED));
+      doc.add(new StringField("bbb", "2", Field.Store.YES));
 
       // sanity check
       doc.add(new StringField("ccc", "3", Field.Store.YES));
