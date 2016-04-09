@@ -46,6 +46,7 @@ import org.apache.lucene.store.*;
 import org.apache.lucene.util.*;
 import org.apache.lucene.util.automaton.Automaton;
 import org.apache.lucene.util.automaton.Transition;
+import org.apache.solr.client.solrj.response.RangeFacet;
 import org.getopt.luke.DocReconstructor.Reconstructed;
 import org.getopt.luke.decoders.*;
 import org.getopt.luke.plugins.ScriptingPlugin;
@@ -2564,11 +2565,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
               Object restored = find(editfield, "restored");
               if (ir != null) {
                 if (ir instanceof CompositeReader) {
-                  CompositeReader cr = (CompositeReader)ir;
-                  for (LeafReaderContext ctx : cr.leaves()) {
-                    if (ctx.reader().getNormValues(key) != null)
-                      setBoolean(cbONorms, "selected", true);
-                  }
+                  setBoolean(cbONorms, "selected", MultiDocValues.getNormValues(ir, key) != null);
                 } else if (ir instanceof LeafReader) {
                   LeafReader lr = (LeafReader)ir;
                   setBoolean(cbONorms, "selected", lr.getNormValues(key) != null);
@@ -2910,13 +2907,9 @@ public class Luke extends Thinlet implements ClipboardOwner {
     if (f != null) {
       try {
         if (info != null && info.hasNorms()) {
-          for (LeafReaderContext ctx : ir.getContext().leaves()) {
-            NumericDocValues norms = ctx.reader().getNormValues(fName);
-            if (norms == null)
-              continue;
-            String val = Long.toString(norms.get(docid));
-            setString(cell, "text", val);
-          }
+          NumericDocValues norms = MultiDocValues.getNormValues(ir, fName);
+          String val = Long.toString(norms.get(docid));
+          setString(cell, "text", val);
         } else {
           setString(cell, "text", "---");
           setBoolean(cell, "enabled", false);
@@ -3114,17 +3107,14 @@ public class Luke extends Thinlet implements ClipboardOwner {
     putProperty(dialog, "similarity", s);
     if (ir != null) {
      try {
-       for (LeafReaderContext ctx : ir.getContext().leaves()) {
-         NumericDocValues norms = ctx.reader().getNormValues(f.name());
-         if (norms != null) {
-           byte curBVal = (byte) norms.get(docNum.intValue());
-           float curFVal = Util.decodeNormValue(curBVal, f.name(), s);
-           setString(curNorm, "text", String.valueOf(curFVal));
-           setString(newNorm, "text", String.valueOf(curFVal));
-           setString(encNorm, "text", String.valueOf(curFVal) +
-               " (0x" + Util.byteToHex(curBVal) + ")");
-           break;
-         }
+       NumericDocValues norms = MultiDocValues.getNormValues(ir, f.name());
+       if (norms != null) {
+         byte curBVal = (byte) norms.get(docNum.intValue());
+         float curFVal = Util.decodeNormValue(curBVal, f.name(), s);
+         setString(curNorm, "text", String.valueOf(curFVal));
+         setString(newNorm, "text", String.valueOf(curFVal));
+         setString(encNorm, "text", String.valueOf(curFVal) +
+             " (0x" + Util.byteToHex(curBVal) + ")");
        }
      } catch (Exception e) {
        e.printStackTrace();
