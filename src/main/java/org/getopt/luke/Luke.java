@@ -851,16 +851,14 @@ public class Luke extends Thinlet implements ClipboardOwner {
     Throwable lastException = null;
     try {
       Directory d = openDirectory(dirImpl, pName, false);
-      if (IndexWriter.isLocked(d)) {
-        if (!ro) {
-          if (force) {
-            d.obtainLock(IndexWriter.WRITE_LOCK_NAME).close();
-          } else {
-            errorMsg("Index is locked. Try 'Force unlock' when opening.");
-            d.close();
-            d = null;
-            return;
-          }
+      if (!ro) {
+        if (force) {
+          d.obtainLock(IndexWriter.WRITE_LOCK_NAME).close();
+        } else {
+          errorMsg("Index is locked. Try 'Force unlock' when opening.");
+          d.close();
+          d = null;
+          return;
         }
       }
       boolean existsSingle = false;
@@ -880,16 +878,14 @@ public class Luke extends Thinlet implements ClipboardOwner {
             continue;
           }
           Directory d1 = openDirectory(dirImpl, f.toString(), false);
-          if (IndexWriter.isLocked(d1)) {
-            if (!ro) {
-              if (force) {
-                d1.obtainLock(IndexWriter.WRITE_LOCK_NAME).close();
-              } else {
-                errorMsg("Index is locked. Try 'Force unlock' when opening.");
-                d1.close();
-                d1 = null;
-                return;
-              }
+          if (!ro) {
+            if (force) {
+              d1.obtainLock(IndexWriter.WRITE_LOCK_NAME).close();
+            } else {
+              errorMsg("Index is locked. Try 'Force unlock' when opening.");
+              d1.close();
+              d1 = null;
+              return;
             }
           }
           existsSingle = false;
