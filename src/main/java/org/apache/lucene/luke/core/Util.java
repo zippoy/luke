@@ -279,7 +279,17 @@ public class Util {
       flags.append(dvToString(info.getDocValuesType()));
     } else {
       flags.append("-------");
-    }    
+    }
+    if (info.getPointDimensionCount() > 0) {
+      int dim = info.getPointDimensionCount();
+      int numBytes = info.getPointNumBytes();
+      flags.append("T");
+      flags.append(String.valueOf(numBytes));
+      flags.append("/");
+      flags.append(String.valueOf(dim));
+    } else {
+      flags.append("----");
+    }
     return flags.toString();
   }
   
