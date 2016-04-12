@@ -195,7 +195,7 @@ public class IndexGate {
             res.capabilities = "flexible, codec-specific";
             int actualVersion = SegmentInfos.VERSION_53;
             try {
-              actualVersion = CodecUtil.checkHeaderNoMagic(in, "segments", SegmentInfos.VERSION_40, Integer.MAX_VALUE);
+              actualVersion = CodecUtil.checkHeaderNoMagic(in, "segments", SegmentInfos.VERSION_50, Integer.MAX_VALUE);
               if (actualVersion > SegmentInfos.VERSION_53) {
                 res.capabilities += " (WARNING: newer version of Lucene than this tool)";
                 System.out.println("WARNING: newer version of Lucene than this tool supports");
@@ -205,22 +205,6 @@ public class IndexGate {
               res.capabilities += " (error reading: " + e.getMessage() + ")";
             }
             switch(actualVersion) {
-              case SegmentInfos.VERSION_40:
-                res.genericName = "Lucene 4.0 or later";
-                res.version = "4.0 or later";
-                break;
-              case SegmentInfos.VERSION_46:
-                res.genericName = "Lucene 4.6 or later";
-                res.version = "4.6 or later";
-                break;
-              case SegmentInfos.VERSION_48:
-                res.genericName = "Lucene 4.8 or later";
-                res.version = "4.8 or later";
-                break;
-              case SegmentInfos.VERSION_49:
-                res.genericName = "Lucene 4.9 or later";
-                res.version = "4.9 or later";
-                break;
               case SegmentInfos.VERSION_50:
                 res.genericName = "Lucene 5.0";
                 res.version = "5.0";
@@ -235,9 +219,9 @@ public class IndexGate {
                 break;
             }
           } else {
-            res.genericName = "Lucene 3.x or prior";
+            res.genericName = "Lucene 4.x or prior";
             detectOldFormats(res, indexFormat);
-            if (res.version.compareTo("3") < 0) {
+            if (res.version.compareTo("4") < 0) {
               res.capabilities = res.capabilities + " (UNSUPPORTED)";
             }
           }

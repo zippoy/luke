@@ -21,7 +21,7 @@ import java.util.*;
 public class DocReconstructor extends Observable {
   private ProgressNotification progress = new ProgressNotification();
   private String[] fieldNames = null;
-  private LeafReader reader = null;
+  private IndexReader ir = null;
   private int numTerms;
   private Bits live;
   
@@ -47,10 +47,9 @@ public class DocReconstructor extends Observable {
     if (reader == null) {
       throw new Exception("IndexReader cannot be null.");
     }
+    this.ir = reader;
     if (reader instanceof CompositeReader) {
-      this.reader = SlowCompositeReaderWrapper.wrap(reader);
     } else if (reader instanceof LeafReader) {
-      this.reader = (LeafReader)reader;
     } else {
       throw new Exception("Unsupported IndexReader class " + reader.getClass().getName());
     }
@@ -86,14 +85,14 @@ public class DocReconstructor extends Observable {
    * @throws Exception
    */
   public Reconstructed reconstruct(int docNum) throws Exception {
-    if (docNum < 0 || docNum > reader.maxDoc()) {
+    if (docNum < 0 || docNum > ir.maxDoc()) {
       throw new Exception("Document number outside of valid range.");
     }
     Reconstructed res = new Reconstructed();
     if (live != null && !live.get(docNum)) {
       throw new Exception("Document is deleted.");
     } else {
-      Document doc =  reader.document(docNum);
+      Document doc =  ir.document(docNum);
       for (int i = 0; i < fieldNames.length; i++) {
         IndexableField[] fs = doc.getFields(fieldNames[i]);
         if (fs != null && fs.length > 0) {
@@ -108,9 +107,9 @@ public class DocReconstructor extends Observable {
     progress.curValue = 0;
     progress.minValue = 0;
     TermsEnum te = null;
-    DocsAndPositionsEnum dpe = null;
+    PostingsEnum pe = null;
     for (int i = 0; i < fieldNames.length; i++) {
-      Terms tvf = reader.getTermVector(docNum, fieldNames[i]);
+      Terms tvf = ir.getTermVector(docNum, fieldNames[i]);
       if (tvf != null) { // has vectors for this field
         te = tvf.iterator();
         progress.message = "Checking term vectors for '" + fieldNames[i] + "' ...";
@@ -125,8 +124,10 @@ public class DocReconstructor extends Observable {
             res.getReconstructedFields().put(fieldNames[i], gsa);
           }
           for (IntPair ip : vectors) {
-            for (int m = 0; m < ip.positions.length; m++) {
-              gsa.append(ip.positions[m], "|", ip.text);
+            if (ip.positions != null) {
+              for (int m = 0; m < ip.positions.length; m++) {
+                gsa.append(ip.positions[m], "|", ip.text);
+              }
             }
           }
           fields.remove(fieldNames[i]); // got what we wanted
@@ -143,7 +144,7 @@ public class DocReconstructor extends Observable {
       progress.curValue++;
       setChanged();
       notifyObservers(progress);
-      Terms terms = MultiFields.getTerms(reader, fld);
+      Terms terms = MultiFields.getTerms(ir, fld);
       if (terms == null) { // no terms in this field
         continue;
       }
@@ -153,9 +154,9 @@ public class DocReconstructor extends Observable {
         // first use bytesRef to extract the indexed term value
         String docTerm = bytesRef.utf8ToString();
 
-        DocsAndPositionsEnum newDpe = te.docsAndPositions(live, dpe, 0);
+        PostingsEnum newPe = te.postings(pe, 0);
 
-        if (newDpe == null) { // no position info for this field
+        if (newPe == null) { // no position info for this field
             // re-construct without positions
             GrowableStringArray gsa = (GrowableStringArray)
                     res.getReconstructedFields().get(fld);
@@ -169,9 +170,9 @@ public class DocReconstructor extends Observable {
         }
 
         // we should have positions as well for the field, process them accordingly
-        dpe = newDpe;
+        pe = newPe;
 
-        int num = dpe.advance(docNum);
+        int num = pe.advance(docNum);
         if (num != docNum) { // either greater than or NO_MORE_DOCS
           continue; // no data for this term in this doc
         }
@@ -184,9 +185,11 @@ public class DocReconstructor extends Observable {
           gsa = new GrowableStringArray();
           res.getReconstructedFields().put(fld, gsa);
         }
-        for (int k = 0; k < dpe.freq(); k++) {
-          int pos = dpe.nextPosition();
-          gsa.append(pos, "|", docTerm);
+        for (int k = 0; k < pe.freq(); k++) {
+          int pos = pe.nextPosition();
+          if (pos > -1) {
+            gsa.append(pos, "|", docTerm);
+          }
         }
       }
     }

@@ -27,6 +27,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.*;
 import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
+import org.apache.lucene.index.IndexFileNames;
 import org.apache.lucene.store.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,8 +36,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.file.StandardOpenOption;
 import java.util.Collection;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicLong;
 
 /** Reads a Lucene index stored in DFS. This is a modified version of a class
  * with the same purpose found in org.apache.nutch.indexer. */
@@ -159,6 +162,14 @@ public class FsDirectory extends Directory {
     if (fs.exists(file) && !fs.delete(file, false))      // delete existing, if any
       throw new IOException("Cannot overwrite: " + file);
 
+    return new DfsIndexOutput(file, this.ioFileBufferSize);
+  }
+
+  private final AtomicLong nextTempFileCounter = new AtomicLong();
+  @Override
+  public IndexOutput createTempOutput(String prefix, String suffix, IOContext ioContext) throws IOException {
+    String name = IndexFileNames.segmentFileName(prefix, suffix + "_" + Long.toString(nextTempFileCounter.getAndIncrement(), Character.MAX_RADIX), "tmp");
+    Path file = new Path(directory, name);
     return new DfsIndexOutput(file, this.ioFileBufferSize);
   }
 
@@ -285,7 +296,8 @@ public class FsDirectory extends Directory {
     private File localFile;
 
     public DfsIndexOutput(Path path, int ioFileBufferSize) throws IOException {
-      super("", new FileOutputStream(new File(path.toUri())), ioFileBufferSize);
+      super("", "", new FileOutputStream(new File(path.toUri())), ioFileBufferSize);
+      //super("", new FileOutputStream(new File(path.toUri())), ioFileBufferSize);
 
       // create a temporary local file and set it to delete on exit
       String randStr = Integer.toString(new Random().nextInt(Integer.MAX_VALUE));

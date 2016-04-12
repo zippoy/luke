@@ -16,7 +16,7 @@ import java.util.*;
 import java.util.zip.GZIPOutputStream;
 
 public class XMLExporter extends Observable {
-  private LeafReader leafReader = null;
+  //private LeafReader leafReader = null;
   private IndexReader indexReader;
   private String indexPath;
   private boolean abort = false;
@@ -31,12 +31,10 @@ public class XMLExporter extends Observable {
           Map<String, Decoder> decoders) throws IOException {
     this.indexReader = indexReader;
     if (indexReader instanceof CompositeReader) {
-      this.leafReader = SlowCompositeReaderWrapper.wrap(indexReader);
+      this.infos = MultiFields.getMergedFieldInfos(indexReader);
     } else if (indexReader instanceof LeafReader) {
-      this.leafReader =  (LeafReader)indexReader;
-    }
-    if (this.leafReader != null) {
-      infos = leafReader.getFieldInfos();
+      LeafReader lr = (LeafReader)indexReader;
+      this.infos = lr.getFieldInfos();
     }
     this.indexPath = indexPath;
     this.decoders = decoders;
@@ -81,7 +79,7 @@ public class XMLExporter extends Observable {
     running = true;
     pn.message = "Export running ...";
     pn.minValue = 0;
-    pn.maxValue = leafReader.maxDoc();
+    pn.maxValue = indexReader.maxDoc();
     pn.curValue = 0;
     setChanged();
     notifyObservers(pn);
@@ -93,11 +91,12 @@ public class XMLExporter extends Observable {
     }
     BufferedWriter bw;
     boolean rootWritten = false;
-    int delta = leafReader.maxDoc() / 100;
+    int delta = indexReader.maxDoc() / 100;
     if (delta == 0) delta = 1;
     int cnt = 0;
     bw = new BufferedWriter(new OutputStreamWriter(output, "UTF-8"));
-    Bits live = leafReader.getLiveDocs();
+    Bits live = (indexReader instanceof CompositeReader) ?
+        MultiFields.getLiveDocs(indexReader) : ((LeafReader)indexReader).getLiveDocs();
     try {
       // write out XML preamble
       if (preamble) {
@@ -112,12 +111,12 @@ public class XMLExporter extends Observable {
       Document doc = null;
       int i = -1;
       if (ranges == null) {
-        ranges = new FixedBitSet(leafReader.maxDoc());
-        ranges.set(0, leafReader.maxDoc());
+        ranges = new FixedBitSet(indexReader.maxDoc());
+        ranges.set(0, indexReader.maxDoc());
       }
       if (ranges.cardinality() > 0) {
         while ( (i = ranges.nextSetBit(++i)) != -1) {
-          if (i >= leafReader.maxDoc()) {
+          if (i >= indexReader.maxDoc()) {
             break;
           }
           if (abort) {
@@ -129,7 +128,7 @@ public class XMLExporter extends Observable {
             break;
           }
           if (live != null && !live.get(i)) continue; // skip deleted docs
-          doc = leafReader.document(i);
+          doc = indexReader.document(i);
           // write out fields
           writeDoc(bw, i, doc, decode, live);
           pn.curValue = i + 1;
@@ -183,19 +182,23 @@ public class XMLExporter extends Observable {
         continue;
       }
       bw.write("<field name='" + Util.xmlEscape(fields[0].name()));
-      NumericDocValues dv = leafReader.getNormValues(fields[0].name());
-      if (dv != null) {
-        // export raw value - we don't know what similarity was used
-        String type = dv.toString();
-        if (type.contains("INT")) {
-          bw.write("' norm='" + dv.get(docNum));
-        } else if (type.startsWith("FLOAT")) {
+      //NumericDocValues dv = leafReader.getNormValues(fields[0].name());
+      for (LeafReaderContext ctx : indexReader.leaves()) {
+        NumericDocValues dv = ctx.reader().getNormValues(fields[0].name());
+        if (dv != null) {
+          // export raw value - we don't know what similarity was used
+          String type = dv.toString();
+          if (type.contains("INT")) {
             bw.write("' norm='" + dv.get(docNum));
-        } else if (type.startsWith("BYTES")) {
-          bw.write("' norm='" + dv.get(docNum));
-          bw.write("' norm='" + Util.bytesToHex(bytes, false));
+          } else if (type.startsWith("FLOAT")) {
+            bw.write("' norm='" + dv.get(docNum));
+          } else if (type.startsWith("BYTES")) {
+            bw.write("' norm='" + dv.get(docNum));
+            bw.write("' norm='" + Util.bytesToHex(bytes, false));
+          }
+          break;
         }
-      } 
+      }
       bw.write("' flags='" + Util.fieldFlags((Field)fields[0], infos.fieldInfo(fields[0].name())) + "'>\n");
       for (IndexableField ixf : fields) {
         String val = null;
@@ -215,7 +218,7 @@ public class XMLExporter extends Observable {
         }
         bw.write("<val>" + Util.xmlEscape(val) + "</val>\n");
       }
-      Terms tfv = leafReader.getTermVector(docNum, fieldName);
+      Terms tfv = indexReader.getTermVector(docNum, fieldName);
       if (tfv != null) {
         writeTermVector(bw, tfv, liveDocs);
       }
@@ -227,35 +230,35 @@ public class XMLExporter extends Observable {
   private void writeTermVector(BufferedWriter bw, Terms tfv, Bits liveDocs) throws Exception {
     bw.write("<tv>\n");
     TermsEnum te = tfv.iterator();
-    DocsAndPositionsEnum dpe = null;
+    PostingsEnum pe = null;
     StringBuilder positions = new StringBuilder();
     StringBuilder offsets = new StringBuilder();
     while (te.next() != null) {
       // collect
       positions.setLength(0);
       offsets.setLength(0);
-      DocsAndPositionsEnum newDpe = te.docsAndPositions(liveDocs, dpe,
-              1);
-      if (newDpe == null) {
+      //DocsAndPositionsEnum newDpe = te.docsAndPositions(liveDocs, dpe,           1);
+      PostingsEnum newPe = te.postings(pe, 1);
+      if (newPe == null) {
         continue;
       }
-      dpe = newDpe;
+      pe = newPe;
       // there's only at most one doc here, so position the enum
-      if (dpe.nextDoc() == DocsEnum.NO_MORE_DOCS) {
+      if (pe.nextDoc() == PostingsEnum.NO_MORE_DOCS) {
         continue;
       }
-      for (int k = 0; k < dpe.freq(); k++) {
-        int pos = dpe.nextPosition();
+      for (int k = 0; k < pe.freq(); k++) {
+        int pos = pe.nextPosition();
         if (pos != -1) { // has positions
           if (positions.length() > 0) positions.append(' ');
           positions.append(String.valueOf(pos));
         }
-        if (dpe.startOffset() != -1) { // has offsets
+        if (pe.startOffset() != -1) { // has offsets
           if (offsets.length() > 0) offsets.append(' ');
-          offsets.append(dpe.startOffset() + "-" + dpe.endOffset());
+          offsets.append(pe.startOffset() + "-" + pe.endOffset());
         }
       }
-      bw.write("<t text='" + Util.xmlEscape(te.term().utf8ToString()) + "' freq='" + dpe.freq() + "'");
+      bw.write("<t text='" + Util.xmlEscape(te.term().utf8ToString()) + "' freq='" + pe.freq() + "'");
       if (positions.length() > 0) {
         bw.write(" positions='" + positions.toString() + "'");
       }
@@ -276,11 +279,11 @@ public class XMLExporter extends Observable {
       bw.write("  <field name='" + Util.xmlEscape(fname) + "'/>\n");
     }
     bw.write(" </fields>\n");
-    bw.write(" <numDocs>" + leafReader.numDocs() + "</numDocs>\n");
-    bw.write(" <maxDoc>" + leafReader.maxDoc() + "</maxDoc>\n");
-    bw.write(" <numDeletedDocs>" + leafReader.numDeletedDocs() + "</numDeletedDocs>\n");
+    bw.write(" <numDocs>" + indexReader.numDocs() + "</numDocs>\n");
+    bw.write(" <maxDoc>" + indexReader.maxDoc() + "</maxDoc>\n");
+    bw.write(" <numDeletedDocs>" + indexReader.numDeletedDocs() + "</numDeletedDocs>\n");
     bw.write(" <numTerms>" + indexInfo.getNumTerms() + "</numTerms>\n");
-    bw.write(" <hasDeletions>" + leafReader.hasDeletions() + "</hasDeletions>\n");
+    bw.write(" <hasDeletions>" + indexReader.hasDeletions() + "</hasDeletions>\n");
     bw.write(" <lastModified>" + indexInfo.getLastModified() + "</lastModified>\n");
     bw.write(" <indexVersion>" + indexInfo.getVersion() + "</indexVersion>\n");
     bw.write(" <indexFormat>\n");

@@ -5,23 +5,12 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.lucene.document.DateTools.Resolution;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldType;
-import org.apache.lucene.document.FieldType.NumericType;
-import org.apache.lucene.index.LeafReader;
-import org.apache.lucene.index.CompositeReader;
-import org.apache.lucene.index.FieldInfo;
-import org.apache.lucene.index.DocValuesType;
-import org.apache.lucene.index.IndexOptions;
-import org.apache.lucene.index.FieldInfos;
-import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.SlowCompositeReaderWrapper;
+import org.apache.lucene.index.*;
 import org.apache.lucene.search.similarities.TFIDFSimilarity;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.util.BytesRef;
@@ -159,14 +148,14 @@ public class Util {
   }
   
   public static Collection<String> fieldNames(IndexReader r, boolean indexedOnly) throws IOException {
-    LeafReader reader;
+    FieldInfos infos;
     if (r instanceof CompositeReader) {
-      reader = SlowCompositeReaderWrapper.wrap(r);
+      infos = MultiFields.getMergedFieldInfos(r);
     } else {
-      reader = (LeafReader)r;
+      LeafReader reader = (LeafReader)r;
+      infos = reader.getFieldInfos();
     }
     Set<String> res = new HashSet<String>();
-    FieldInfos infos = reader.getFieldInfos();
     for (FieldInfo info : infos) {
       if (indexedOnly && info.getIndexOptions() != IndexOptions.NONE) {
         res.add(info.name);
@@ -176,7 +165,7 @@ public class Util {
     }
     return res;
   }
-  
+
   public static float decodeNormValue(long v, String fieldName, TFIDFSimilarity sim) throws Exception {
     try {
       return sim.decodeNormValue(v);
@@ -192,7 +181,6 @@ public class Util {
       throw new Exception("ERROR encoding norm for field "  + fieldName + ":" + e.toString());
     }    
   }
-
 
   // IdfpoPSVBNtxx#txxDtxx
   public static String fieldFlags(Field fld, FieldInfo info) {
@@ -245,14 +233,11 @@ public class Util {
     else flags.append("-");
     if (info.hasNorms()) {
       flags.append("N");
-      // TODO: FieldInfo#getNormType was deleted in Lucene 5
-      //flags.append(dvToString(info.getNormType()));
     }
-    //else flags.append("----");
     else flags.append("-");
     if (numeric != null) {
       flags.append("#");
-      NumericType nt = t.numericType();
+      FieldType.LegacyNumericType nt = t.numericType();
       if (nt != null) {
         flags.append(nt.toString().charAt(0));
         int prec = t.numericPrecisionStep();
@@ -290,31 +275,44 @@ public class Util {
       flags.append("D");
       flags.append(dvToString(info.getDocValuesType()));
     } else {
+      flags.append("-------");
+    }
+    if (info.getPointDimensionCount() > 0) {
+      int dim = info.getPointDimensionCount();
+      int nbytes = info.getPointNumBytes();
+      flags.append("T");
+      flags.append(String.valueOf(nbytes));
+      flags.append("/");
+      flags.append(String.valueOf(dim));
+    } else {
       flags.append("----");
-    }    
+    }
     return flags.toString();
   }
   
   private static String dvToString(DocValuesType type) {
     String fl;
     if (type == null) {
-      return "???";
+      return "??????";
     }
     switch (type) {
-    case NUMERIC:
-      fl = "num";
-      break;
-    case BINARY:
-      fl = "bin";
-      break;
-    case SORTED:
-      fl = "srt";
-      break;
-    case SORTED_SET:
-      fl = "srtset";
-      break;
-    default:
-      fl = "???";
+      case NUMERIC:
+        fl = "number";
+        break;
+      case BINARY:
+        fl = "binary";
+        break;
+      case SORTED:
+        fl = "sorted";
+        break;
+      case SORTED_NUMERIC:
+        fl = "srtnum";
+        break;
+      case SORTED_SET:
+        fl = "srtset";
+        break;
+      default:
+        fl = "??????";
     }
     return fl;
   }
