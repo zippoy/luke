@@ -1,7 +1,6 @@
 package org.apache.lucene.luke.ui;
 
 import org.apache.lucene.analysis.payloads.PayloadHelper;
-import org.apache.lucene.index.DocsAndPositionsEnum;
 import org.apache.lucene.index.PostingsEnum;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.luke.core.Util;

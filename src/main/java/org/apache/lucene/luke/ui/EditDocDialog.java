@@ -29,7 +29,7 @@ public class EditDocDialog extends Dialog implements Bindable {
 
   private int iNum;
   private Document doc;
-  private LeafReader lr = null;
+  private IndexReader ir;
   private boolean keepCommits;
   private LukeWindow.LukeMediator lukeMediator;
   private int numTerms;
@@ -66,10 +66,10 @@ public class EditDocDialog extends Dialog implements Bindable {
     this.resources = resources;
   }
 
-  public void initDocumentInfo(int iNum, @NotNull LeafReader lr, LukeWindow.LukeMediator lukeMediator)
+  public void initDocumentInfo(int iNum, @NotNull IndexReader lr, LukeWindow.LukeMediator lukeMediator)
       throws Exception {
     this.iNum = iNum;
-    this.lr = lr;
+    this.ir = ir;
     this.lukeMediator = lukeMediator;
     this.keepCommits = lukeMediator.getIndexInfo().isKeepCommits();
     this.live = MultiFields.getLiveDocs(lr);

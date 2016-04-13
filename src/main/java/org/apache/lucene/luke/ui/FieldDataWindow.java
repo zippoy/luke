@@ -177,7 +177,7 @@ public class FieldDataWindow extends Dialog implements Bindable {
           break;
         case LONG:
           try {
-            long num = NumericUtils.prefixCodedToLong(new BytesRef(field.stringValue()));
+            long num = NumericUtils.sortableBytesToLong(new BytesRef(field.stringValue()).bytes, 0);
             value = String.valueOf(num);
             len = 1;
           } catch (Exception e) {

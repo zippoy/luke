@@ -53,6 +53,7 @@ public class AnalyzersTab extends TablePane implements Bindable {
     List<String> versions = new ArrayList<String>();
     // TODO: Version.values() was removed, and Version.LUCENE_X_X_X were all depricated. How do we fix this line?
     //Version[] values = Version.values();
+    /*
     Version[] values = {
       Version.LUCENE_4_1_0, Version.LUCENE_4_2_0, Version.LUCENE_4_3_0, Version.LUCENE_4_4_0,
       Version.LUCENE_4_5_0, Version.LUCENE_4_6_0, Version.LUCENE_4_7_0, Version.LUCENE_4_8_0,
@@ -64,6 +65,7 @@ public class AnalyzersTab extends TablePane implements Bindable {
     }
     luceneVersionListButton.setListData(versions);
     luceneVersionListButton.setSelectedItem("LUCENE_CURRENT");
+    */
   }
   
   @Override

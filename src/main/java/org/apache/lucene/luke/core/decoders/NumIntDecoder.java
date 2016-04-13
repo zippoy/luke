@@ -9,7 +9,7 @@ public class NumIntDecoder implements Decoder {
   @Override
   public String decodeTerm(String fieldName, Object value) {
     BytesRef ref = new BytesRef(value.toString());
-    return Integer.toString(NumericUtils.prefixCodedToInt(ref));
+    return Integer.toString(NumericUtils.sortableBytesToInt(ref.bytes, 0));
   }
   
   @Override

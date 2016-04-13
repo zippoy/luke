@@ -1,10 +1,8 @@
 package org.apache.lucene.luke.ui;
 
-import org.apache.lucene.index.DocsAndPositionsEnum;
-import org.apache.lucene.index.DocsEnum;
+import org.apache.lucene.index.PostingsEnum;
 import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
-import org.apache.lucene.luke.ui.TermVectorTableComparator;
 import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.util.BytesRef;
 import org.apache.pivot.beans.BXML;
@@ -51,37 +49,35 @@ public class TermVectorDialog extends Dialog implements Bindable {
       tableData.add(row);
       row.put(TVROW_KEY_TERM, term.utf8ToString());
       // try to get DocsAndPositionsEnum
-      DocsEnum de = te.docsAndPositions(null, null);
-      if (de == null) {
-        // if positions are not indexed, get DocsEnum
-        de = te.docs(null, null);
-      }
+      PostingsEnum pe = te.postings(null);
       // must have one doc
-      if (de.nextDoc() == DocIdSetIterator.NO_MORE_DOCS) {
+      if (pe.nextDoc() == DocIdSetIterator.NO_MORE_DOCS) {
         continue;
       }
-      row.put(TVROW_KEY_FREQ, String.valueOf(de.freq()));
-      if (de instanceof DocsAndPositionsEnum) {
+      row.put(TVROW_KEY_FREQ, String.valueOf(pe.freq()));
+      int pos = pe.nextPosition();
+      if (pos >= 0) {
         // positions are available
-        DocsAndPositionsEnum dpe = (DocsAndPositionsEnum) de;
         StringBuilder bufPos = new StringBuilder();
         StringBuilder bufOff = new StringBuilder();
         // enumerate all positions info
-        for (int i = 0; i < de.freq(); i++) {
-          int pos = dpe.nextPosition();
+        for (int i = 0; i < pe.freq(); i++) {
           bufPos.append(String.valueOf(pos));
-          if (i < de.freq() - 1) {
+          if (i < pe.freq() - 1) {
             bufPos.append((","));
           }
           // offsets are indexed?
-          int sOffset = dpe.startOffset();
-          int eOffset = dpe.endOffset();
+          int sOffset = pe.startOffset();
+          int eOffset = pe.endOffset();
           if (sOffset >= 0 && eOffset >= 0) {
             String offsets = String.valueOf(sOffset) + "-" + String.valueOf(eOffset);
             bufOff.append(offsets);
-            if (i < de.freq() - 1) {
+            if (i < pe.freq() - 1) {
               bufOff.append(",");
             }
+          }
+          if (i < pe.freq() - 1) {
+            pos = pe.nextPosition();
           }
         }
         row.put(TVROW_KEY_POSITION, bufPos.toString());

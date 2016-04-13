@@ -9,7 +9,7 @@ public class NumDoubleDecoder implements Decoder {
   @Override
   public String decodeTerm(String fieldName, Object value) {
     BytesRef ref = new BytesRef(value.toString());
-    return Double.toString(NumericUtils.sortableLongToDouble(NumericUtils.prefixCodedToLong(ref)));
+    return Double.toString(NumericUtils.sortableLongToDouble(NumericUtils.sortableBytesToLong(ref.bytes, 0)));
   }
 
   @Override

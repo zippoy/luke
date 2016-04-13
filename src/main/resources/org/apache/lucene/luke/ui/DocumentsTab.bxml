@@ -190,7 +190,7 @@
 						<TablePane>
 							<columns>
 								<TablePane.Column width="1*" />
-								<TablePane.Column />
+								<TablePane.Column width="3*"/>
 							</columns>
 							<rows>
 								<TablePane.Row>
@@ -200,29 +200,31 @@
 										<Label text=" " />
 									</FlowPane>
 									<FlowPane>
-										<TablePane styles="{verticalSpacing:1, horizontalSpacing:1}">
+										<TablePane styles="{verticalSpacing:1, horizontalSpacing:3}">
 											<columns>
 												<TablePane.Column />
 												<TablePane.Column />
 												<TablePane.Column />
 												<TablePane.Column />
-												<TablePane.Column />
-												<!--TablePane.Column /-->
 											</columns>
 											<rows>
 												<TablePane.Row>
 													<Label text="Flags: " />
-													<Label text=" I - Indexed (docs,freqs,pos,offsets) " />
-													<Label text=" P - Payloads" />
-													<Label text=" S - Stored " />
-													<Label text=" V - Term Vector " />
+													<Label text="I - Indexed(docs,freqs,pos,offsets)" />
+													<Label text="P - Payloads" />
+													<Label text="S - Stored" />
 												</TablePane.Row>
 												<TablePane.Row>
-													<TablePane.Filler />
-													<Label text=" B - Binary " />
-													<Label text=" N - Norms;"/>
-													<Label text=" #txx - Numeric (type/precision);"/>
-													<Label text=" Dtxxxxx - DocValues (type/precision)"/>
+													<TablePane.Filler/>
+													<Label text="V - Term Vector" />
+													<Label text="B - Binary" />
+													<Label text="N - Norms"/>
+												</TablePane.Row>
+												<TablePane.Row>
+													<TablePane.Filler/>
+													<Label text="#txx - Numeric(type/precision)"/>
+													<Label text="Dtxxxxx - DocValues(type/precision)"/>
+													<Label text="Tx/x - PointValues(num bytes/dimension)"/>
 												</TablePane.Row>
 											</rows>
 										</TablePane>
@@ -241,7 +243,7 @@
 												<TableView.Column name="name"
 																					headerData="%documentsTab_docTable_col1" />
 												<TableView.Column name="flags"
-																					headerData="%documentsTab_docTable_col2" width="150"/>
+																					headerData="%documentsTab_docTable_col2" width="160"/>
 												<TableView.Column name="norm"
 																					headerData="%documentsTab_docTable_col3" width="50"/>
 												<TableView.Column name="docvalue"

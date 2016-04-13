@@ -206,11 +206,10 @@ public class IndexGate {
         try {
           int indexFormat = in.readInt();
           if (indexFormat == CodecUtil.CODEC_MAGIC) {
-            res.genericName = "Lucene 4.x";
             res.capabilities = "flexible, codec-specific";
             int actualVersion = SegmentInfos.VERSION_CURRENT;
             try {
-              actualVersion = CodecUtil.checkHeaderNoMagic(in, "segments", SegmentInfos.VERSION_40, Integer.MAX_VALUE);
+              actualVersion = CodecUtil.checkHeaderNoMagic(in, "segments", SegmentInfos.VERSION_50, Integer.MAX_VALUE);
               res.version = Integer.toString(actualVersion);
               if (actualVersion > SegmentInfos.VERSION_CURRENT) {
                 res.capabilities += " (WARNING: newer version of Lucene than this tool)";
@@ -220,33 +219,24 @@ public class IndexGate {
               res.capabilities += " (error reading: " + e.getMessage() + ")";
             }
             switch (actualVersion) {
-              case SegmentInfos.VERSION_40:
-                res.genericName = "Lucene 4.0+";
-                break;
-              case SegmentInfos.VERSION_46:
-                res.genericName = "Lucene 4.6+";
-                break;
-              case SegmentInfos.VERSION_48:
-                res.genericName = "Lucene 4.8+";
-                break;
-              case SegmentInfos.VERSION_49:
-                res.genericName = "Lucene 4.9+";
-                break;
               case SegmentInfos.VERSION_50:
                 res.genericName = "Lucene 5.0+";
                 break;
               case SegmentInfos.VERSION_51:
                 res.genericName = "Lucene 5.1+";
                 break;
+              case SegmentInfos.VERSION_53:
+                res.genericName = "Lucene 5.3+";
+                break;
               default:
                 res.capabilities = "unknown";
-                res.genericName = "Lucene 3.x or prior";
+                res.genericName = "Lucene 4.x or prior";
                 break;
             }
           } else {
-            res.genericName = "Lucene 3.x or prior";
+            res.genericName = "Lucene 4.x or prior";
             detectOldFormats(res, indexFormat);
-            if (res.version.compareTo("3") < 0) {
+            if (res.version.compareTo("4") < 0) {
               res.capabilities = res.capabilities + " (UNSUPPORTED)";
             }
           }
@@ -276,7 +266,7 @@ public class IndexGate {
         final int actualFormat;
         try {
           if (format == CodecUtil.CODEC_MAGIC) {
-            actualFormat = CodecUtil.checkHeaderNoMagic(input, "segments", SegmentInfos.VERSION_40, SegmentInfos.VERSION_CURRENT);
+            actualFormat = CodecUtil.checkHeaderNoMagic(input, "segments", SegmentInfos.VERSION_50, SegmentInfos.VERSION_CURRENT);
           } else {
             actualFormat = -1;
           }
