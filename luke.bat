@@ -1,1 +1,1 @@
-java -jar .\target\luke-with-deps.jar
+start javaw -jar .\target\luke-with-deps.jar
