@@ -44,9 +44,9 @@ import org.apache.lucene.search.similarities.TFIDFSimilarity;
 import org.apache.lucene.search.spans.*;
 import org.apache.lucene.store.*;
 import org.apache.lucene.util.*;
+import org.apache.lucene.util.Bits;
 import org.apache.lucene.util.automaton.Automaton;
 import org.apache.lucene.util.automaton.Transition;
-import org.apache.solr.client.solrj.response.RangeFacet;
 import org.getopt.luke.DocReconstructor.Reconstructed;
 import org.getopt.luke.decoders.*;
 import org.getopt.luke.plugins.ScriptingPlugin;
@@ -55,12 +55,8 @@ import org.getopt.luke.xmlQuery.XmlQueryParserFactory;
 import thinlet.FrameLauncher;
 import thinlet.Thinlet;
 
-import javax.swing.JFileChooser;
-import javax.swing.UIManager;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.GraphicsEnvironment;
-import java.awt.Toolkit;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.StringSelection;
@@ -75,6 +71,7 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.zip.GZIPOutputStream;
 
@@ -4828,11 +4825,11 @@ public class Luke extends Thinlet implements ClipboardOwner {
   }
 
   private DecimalFormat df = new DecimalFormat("0.0000");
-  private String xmlQueryParserFactoryClassName=CorePlusExtensionsParserFactory.class.getName();
+  private String xmlQueryParserFactoryClassName = CorePlusExtensionsParserFactory.class.getName();
 
   private void addNode(Object tree, Explanation expl) {
     Object node = create("node");
-    setString(node, "text", df.format((double) expl.getValue()) + "  " + expl.getDescription());
+    setString(node, "text", df.format(expl.getValue()) + "  " + expl.getDescription());
     add(tree, node);
     if (getClass(tree) == "tree") {
       setFont(node, getFont().deriveFont(Font.BOLD));
