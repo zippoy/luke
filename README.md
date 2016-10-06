@@ -52,10 +52,10 @@ Launching luke
 ====
 Use [luke.sh](luke.sh) or [luke.bat](luke.bat) for launching luke from the command line.
 
-Running luke with a custom analyzer
+Running luke with a custom analyzer or codec
 ====
 
-See [luke.sh](luke.sh) for an example of launching luke with a custom analyzer.
+See [luke.sh](luke.sh) for an example of launching luke with custom components.
 
 Documentation
 ====
