@@ -52,6 +52,8 @@ Launching luke
 ====
 Use [luke.sh](luke.sh) or [luke.bat](luke.bat) for launching luke from the command line.
 
+(Alternatively, for older verions of luke you can directly download the jar file from the releases page and run it with the command `java -jar luke-with-deps.jar`)
+
 Running luke with a custom analyzer or codec
 ====
 
