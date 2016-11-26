@@ -1,3 +1,15 @@
+* Upgrade to 6.3.0
+Fixed in this release:
+
+#69 Comment on codecs
+#70 Added top level folder to release artifact
+#71 Fixed pom warning
+#72 Fixed maven warning
+#73 Update Launching Luke section in README
+#74 Upgrade lucene vertion to 6.3.0
+
+Thanks to respective contributors!
+
 * Upgrade 6.2.1
 https://github.com/DmitryKey/luke/pull/67
 
