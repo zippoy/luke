@@ -6,7 +6,7 @@
 
     <groupId>luke</groupId>
     <artifactId>luke</artifactId>
-    <version>6.3.0</version>
+    <version>6.4.0</version>
 
     <properties>
         <jdk.version>1.8</jdk.version>
