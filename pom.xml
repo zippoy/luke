@@ -17,7 +17,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <lucene.version>${project.version}</lucene.version>
         <ehcache.version>2.10.3</ehcache.version>
-        <hadoop.version>1.2.1</hadoop.version>
+        <hadoop.version>2.7.2</hadoop.version>
         <log4j.version>1.2.17</log4j.version>
         <rhino.version>1.7.7.1</rhino.version>
         <elasticsearch.version>1.6.0</elasticsearch.version>
@@ -109,8 +109,38 @@
 
         <dependency>
         	<groupId>org.apache.hadoop</groupId>
-        	<artifactId>hadoop-core</artifactId>
+        	<artifactId>hadoop-common</artifactId>
         	<version>${hadoop.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>asm</groupId>
+                    <artifactId>asm</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>javax.servlet</groupId>
+                    <artifactId>servlet-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-hdfs</artifactId>
+            <version>${hadoop.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>javax.servlet</groupId>
+                    <artifactId>servlet-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
