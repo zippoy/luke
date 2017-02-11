@@ -18,9 +18,6 @@ import java.nio.file.Path;
  */
 public class IndexTester extends TestCase {
 
-    private String indexPath = "src/test/indices/lukeindex";
-    private IndexWriterConfig indexCfg;
-
     @Override
     protected void setUp() throws Exception {
         super.setUp();
@@ -40,21 +37,22 @@ public class IndexTester extends TestCase {
     }
 
     private void populate() throws Exception {
-      Path path = FileSystems.getDefault().getPath(indexPath);
-      Directory directory = NIOFSDirectory.open(path);
-      indexCfg = new IndexWriterConfig(new UAX29URLEmailAnalyzer());
-      indexCfg.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
+        String indexPath = "src/test/indices/lukeindex";
+        Path path = FileSystems.getDefault().getPath(indexPath);
+        Directory directory = NIOFSDirectory.open(path);
+        IndexWriterConfig indexCfg = new IndexWriterConfig(new UAX29URLEmailAnalyzer());
+        indexCfg.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
 
-      IndexWriter writer = new IndexWriter(directory, indexCfg);
+        IndexWriter writer = new IndexWriter(directory, indexCfg);
 
-      Document doc = new Document();
-      doc.add(new StringField("aaa", "1", Field.Store.NO));
-      doc.add(new StringField("bbb", "2", Field.Store.YES));
+        Document doc = new Document();
+        doc.add(new StringField("aaa", "1", Field.Store.NO));
+        doc.add(new StringField("bbb", "2", Field.Store.YES));
 
-      // sanity check
-      doc.add(new StringField("ccc", "3", Field.Store.YES));
+        // sanity check
+        doc.add(new StringField("ccc", "3", Field.Store.YES));
 
-      writer.addDocument(doc);
-      writer.close();
+        writer.addDocument(doc);
+        writer.close();
     }
 }
