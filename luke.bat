@@ -1,1 +1,1 @@
-java -XX:MaxPermSize=512m -jar .\target\luke-with-deps.jar
+java -XX:MaxPermSize=512m -jar .\target\pivot-luke-with-deps.jar
