@@ -63,7 +63,7 @@ Launching luke
 2. Run `mvn install` from the project directory. (Make sure you have Java and Maven installed before doing this)
 3. Use [luke.sh](luke.sh) or [luke.bat](luke.bat) for launching luke from the command line based on the OS you are in.
 
-(Alternatively, for older verions of luke you can directly download the jar file from the [releases](https://github.com/DmitryKey/luke/releases) page and run it with the command `java -jar luke-with-deps.jar`)
+(Alternatively, for older versions of luke you can directly download the jar file from the [releases](https://github.com/DmitryKey/luke/releases) page and run it with the command `java -jar luke-with-deps.jar`)
 
 Running luke with a custom analyzer or codec
 ====
