@@ -4495,8 +4495,19 @@ public class Luke extends Thinlet implements ClipboardOwner {
     }
 
     private void addTermsEnum(Object parent, Class<? extends Query> clz, String field, Query instance) throws Exception {
-        Method m = clz.getDeclaredMethod("getTermsEnum", Terms.class, AttributeSource.class);
+    	// Fix #84 : Look for getTermsEnum(Terms, AttributeSource) method in all class hierarchy
+        Method m = null;
+		for (Class<?> cl = clz; cl != null; cl = cl.getSuperclass()) { 
+			try {
+				m = cl.getDeclaredMethod("getTermsEnum", Terms.class, AttributeSource.class);
+			} catch (NoSuchMethodException ex) {				
+			}
+		}
+        if (m == null) {
+            throw new NoSuchMethodException(clz.getName() +".getTermsEnum(" + Terms.class.getName() +","+AttributeSource.class+")");
+        }
         m.setAccessible(true);
+
         Terms terms = MultiFields.getTerms(ir, field);
         TermsEnum fte = (TermsEnum) m.invoke(instance, terms, new AttributeSource());
         Object n1 = create("node");
