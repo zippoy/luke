@@ -1,3 +1,11 @@
+* Upgrade to 6.5.0
+Fixed in this release:
+
+#84: NoSuchMethodException: PrefixQuery.getTermsEnum
+#86: Upgrade to lucene 6.5.0
+
+Thanks to respective contributors!
+
 * Upgrade to 6.4.1
 Upgrade to lucene 6.4.1 based on PRs: #79 and #80
 
