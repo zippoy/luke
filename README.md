@@ -25,7 +25,7 @@ Search engines luke can deal with
 ====
 In no particular order:
 
-* [Apache Lucene](http://lucene.apache.org/). Most certainly luke can open lucene index produced by pure Lucene. Do people make pure Lucene these days?
+* [Apache Lucene](http://lucene.apache.org/). Most certainly luke can open lucene index produced by pure Lucene. Do people make pure Lucene indices these days?
 * [Apache Solr](http://lucene.apache.org/solr/). Solr and Lucene share the same code base, so it is natural that luke can open Lucene Index produced by Solr. 
 * [Elasticsearch](https://github.com/elastic/elasticsearch). Elasticsearch uses Lucene as its lowest-level search engine base. So luke can open its index too!
 
