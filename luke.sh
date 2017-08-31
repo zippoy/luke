@@ -1,3 +1,5 @@
+#!/bin/bash
+
 if [[ -d `echo $LUKE_PATH` ]]; then
   java -jar $LUKE_PATH/target/luke-with-deps.jar
 else
