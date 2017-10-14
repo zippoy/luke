@@ -4,14 +4,12 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
 import java.util.*;
 
 import org.apache.lucene.document.DateTools.Resolution;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldType;
 import org.apache.lucene.index.*;
-import org.apache.lucene.search.similarities.TFIDFSimilarity;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.util.BytesRef;
 
@@ -166,37 +164,21 @@ public class Util {
     return res;
   }
 
-  public static float decodeNormValue(long v, String fieldName, TFIDFSimilarity sim) throws Exception {
-    try {
-      return sim.decodeNormValue(v);
-    } catch (Exception e) {
-      throw new Exception("ERROR decoding norm for field "  + fieldName + ":" + e.toString());
-    }
-  }
-  
-  public static long encodeNormValue(float v, String fieldName, TFIDFSimilarity sim) throws Exception {
-    try {
-      return sim.encodeNormValue(v);
-    } catch (Exception e) {
-      throw new Exception("ERROR encoding norm for field "  + fieldName + ":" + e.toString());
-    }    
-  }
-
   // IdfpoPSVBNtxx#txxDtxx
   public static String fieldFlags(Field fld, FieldInfo info) {
-    FieldType t = null;
+    IndexableFieldType t;
     BytesRef binary = null;
     Number numeric = null;
     if (fld == null) {
-      t = new FieldType();
-      t.setIndexOptions(IndexOptions.NONE);
-      t.setStored(false);
-      t.setStoreTermVectors(false);
-      t.setOmitNorms(true);
-      t.setStoreTermVectorOffsets(false);
-      t.setStoreTermVectorPositions(false);
-      t.setTokenized(false);
-      t.setNumericType(null);
+      FieldType ft = new FieldType();
+      ft.setIndexOptions(IndexOptions.NONE);
+      ft.setStored(false);
+      ft.setStoreTermVectors(false);
+      ft.setOmitNorms(true);
+      ft.setStoreTermVectorOffsets(false);
+      ft.setStoreTermVectorPositions(false);
+      ft.setTokenized(false);
+      t = ft;
     } else {
       t = fld.fieldType();
       binary = fld.binaryValue();
@@ -237,36 +219,25 @@ public class Util {
     else flags.append("-");
     if (numeric != null) {
       flags.append("#");
-      FieldType.LegacyNumericType nt = t.numericType();
-      if (nt != null) {
-        flags.append(nt.toString().charAt(0));
-        int prec = t.numericPrecisionStep();
-        String p = Integer.toHexString(prec);
-        if (p.length() == 1) {
-          p = "0" + p;
-        }
-        flags.append(p);
+      // try faking it
+      if (numeric instanceof Integer) {
+        flags.append("i32");
+      } else if (numeric instanceof Long) {
+        flags.append("i64");
+      } else if (numeric instanceof Float) {
+        flags.append("f32");
+      } else if (numeric instanceof Double) {
+        flags.append("f64");
+      } else if (numeric instanceof Short) {
+        flags.append("i16");
+      } else if (numeric instanceof Byte) {
+        flags.append("i08");
+      } else if (numeric instanceof BigDecimal) {
+        flags.append("b^d");
+      } else if (numeric instanceof BigInteger) {
+        flags.append("b^i");
       } else {
-        // try faking it
-        if (numeric instanceof Integer) {
-          flags.append("i32");
-        } else if (numeric instanceof Long) {
-          flags.append("i64");
-        } else if (numeric instanceof Float) {
-          flags.append("f32");
-        } else if (numeric instanceof Double) {
-          flags.append("f64");
-        } else if (numeric instanceof Short) {
-          flags.append("i16");
-        } else if (numeric instanceof Byte) {
-          flags.append("i08");
-        } else if (numeric instanceof BigDecimal) {
-          flags.append("b^d");
-        } else if (numeric instanceof BigInteger) {
-          flags.append("b^i");
-        } else {
-          flags.append("???");
-        }
+        flags.append("???");
       }
     } else {
       flags.append("----");

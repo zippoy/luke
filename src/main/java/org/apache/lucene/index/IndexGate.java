@@ -191,12 +191,12 @@ public class IndexGate {
         try {
           int indexFormat = in.readInt();
           if (indexFormat == CodecUtil.CODEC_MAGIC) {
-            res.genericName = "Lucene 5.x";
+            res.genericName = "Lucene 6.x";
             res.capabilities = "flexible, codec-specific";
             int actualVersion = SegmentInfos.VERSION_53;
             try {
-              actualVersion = CodecUtil.checkHeaderNoMagic(in, "segments", SegmentInfos.VERSION_50, Integer.MAX_VALUE);
-              if (actualVersion > SegmentInfos.VERSION_53) {
+              actualVersion = CodecUtil.checkHeaderNoMagic(in, "segments", SegmentInfos.VERSION_53, Integer.MAX_VALUE);
+              if (actualVersion > SegmentInfos.VERSION_70) {
                 res.capabilities += " (WARNING: newer version of Lucene than this tool)";
                 System.out.println("WARNING: newer version of Lucene than this tool supports");
               }
@@ -205,17 +205,15 @@ public class IndexGate {
               res.capabilities += " (error reading: " + e.getMessage() + ")";
             }
             switch(actualVersion) {
-              case SegmentInfos.VERSION_50:
-                res.genericName = "Lucene 5.0";
-                res.version = "5.0";
-                break;
-              case SegmentInfos.VERSION_51:
-                res.genericName = "Lucene 5.1 or later";
-                res.version = "5.1 or later";
-                break;
               case SegmentInfos.VERSION_53:
                 res.genericName = "Lucene 5.3 or later";
                 res.version = "5.3 or later";
+                res.indexCreatedVersionMajor = 6;
+                break;
+              case SegmentInfos.VERSION_70:
+                res.genericName = "Lucene 7.0 or later";
+                res.version = "7.0 or later";
+                res.indexCreatedVersionMajor = 7;
                 break;
             }
           } else {
@@ -292,5 +290,6 @@ public class IndexGate {
     public String genericName = "N/A";
     public String capabilities = "N/A";
     public String version = "N/A";
+    public int indexCreatedVersionMajor;
   }
 }

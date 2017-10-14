@@ -205,16 +205,16 @@
 					</header>
 					<popupmenu>
 						<menuitem text="Field's Term Vector" action="showTV(docTable)"/>
-                                                <menuitem text="Show Full Text" action="showTField(docTable)"/>
-                                                <menuitem text="Set norm" action="actionExamineNorm(docTable)"/>
+						<menuitem text="Show Full Text" action="showTField(docTable)"/>
+						<!--menuitem text="Set norm" action="actionExamineNorm(docTable)"/-->
 						<menuitem text="Save binary field" action="saveField(docTable)"/>
 					</popupmenu>
 				</table>
 				<panel halign="fill" weightx="1" gap="4">
 				    <label text="Selected field: "/>
 					<button text="TV" tooltip="Show Term Vector of selected field" action="showTV(docTable)"/>
-                                        <button text="Show" tooltip="Show full text of selected field" action="showTField(docTable)"/>
-                                        <button text="Examine norm" tooltip="Examine norm value of selected field" action="actionExamineNorm(docTable)"/>
+					<button text="Show" tooltip="Show full text of selected field" action="showTField(docTable)"/>
+					<!--button text="Examine norm" tooltip="Examine norm value of selected field" action="actionExamineNorm(docTable)"/-->
 					<button text="Save" tooltip="Save binary value of selected field" action="saveField(docTable)"/>
 					<label text=" " weightx="1" halign="fill"/>
 					<label text="Copy text to Clipboard:"/>
@@ -267,51 +267,53 @@
   					      <tab text="QueryParser">
 						        <panel weighty="1" weightx="1" valign="fill" halign="fill"
 						                  columns="2" gap="4" top="2" bottom="2" left="2" right="2">
-						          <checkbox colspan="2" action="showParsed" name="ckXmlParser" text="Use XML Query Parser"/>        
-						          <label font="bold" text="Additional QueryParser settings:"/>
-        						  <checkbox colspan="2" action="showParsed" name="ckWild" text="Allow leading * in wildcard queries"/>
-                      <checkbox colspan="2" action="showParsed" name="ckPosIncr" text="Enable positionIncrements"/>
-                      <checkbox colspan="2" action="showParsed" name="ckLoExp" text="Lowercase expanded terms in wildcard / prefix queries"/>
-                      <label colspan="2" text=" "/>
-	               			<label text="Set Date resolution:"/>
-			             		<combobox editable="false" name="cbDateRes" text="millisecond" selected="0"
-			             			     perform="showParsed">
-					           	  <choice text="millisecond"/>
-                        <choice text="second"/>
-                        <choice text="minute"/>
-                        <choice text="hour"/>
-                        <choice text="day"/>
-                        <choice text="month"/>
-                        <choice text="year"/>
-						          </combobox>
-						          <label text="Default query operator:"/>
-						          <combobox editable="false" perform="showParsed" name="cbOp" text="OR" selected="0">
-                        <choice text="OR"/>
-                        <choice text="AND"/>
-						          </combobox>
-                      <label text="BooleanQuery maxClauseCount:"/>
-                      <spinbox name="bqMaxCount" columns="6" text="1024"/> 
-					          </panel>
-					      </tab>
+									<checkbox colspan="2" action="showParsed" name="ckXmlParser" text="Use XML Query Parser"/>
+									<label font="bold" text="Additional QueryParser settings:"/>
+									<checkbox colspan="2" action="showParsed" name="ckWild" text="Allow leading * in wildcard queries"/>
+									<checkbox colspan="2" action="showParsed" name="ckPosIncr" text="Enable positionIncrements"/>
+									<checkbox colspan="2" action="showParsed" name="ckSplitWs" text="Split query text on whitespace prior to analysis"/>
+									<checkbox colspan="2" action="showParsed" name="ckAutoPq" text="Automatically generate phrase queries"/>
+									<label colspan="2" text=" "/>
+									<label text="Set Date resolution:"/>
+									<combobox editable="false" name="cbDateRes" text="millisecond" selected="0"
+											  perform="showParsed">
+										<choice text="millisecond"/>
+										<choice text="second"/>
+										<choice text="minute"/>
+										<choice text="hour"/>
+										<choice text="day"/>
+										<choice text="month"/>
+										<choice text="year"/>
+									</combobox>
+									<label text="Default query operator:"/>
+									<combobox editable="false" perform="showParsed" name="cbOp" text="OR" selected="0">
+										<choice text="OR"/>
+										<choice text="AND"/>
+									</combobox>
+									<label text="BooleanQuery maxClauseCount:"/>
+									<spinbox name="bqMaxCount" columns="6" text="1024"/>
+								</panel>
+						  </tab>
 					      <tab text="Similarity">
-						<panel columns="2" gap="4" halign="fill" weightx="1" weighty="1" valign="fill" top="2" left="2" right="2" bottom="2">
-						        <label colspan="2" font="bold" text="Expert: Similarity implementation:"/>
-                                                        <checkbox colspan="2" name="ckSimDef" text="Default Similarity" selected="true" group="simil"/>
-                                                        <checkbox colspan="2" name="ckSimSweet" text="SweetSpotSimilarity" group="simil"/>
-                                                        <checkbox colspan="2" name="ckSimOther" text="Other Similarity (fully qualified class name)" group="simil"/>
-                                                        <panel colspan="2" gap="2">
-                                                          <label text="   "/>
-                                                          <textfield name="simClass" weightx="1" halign="fill"/>
-                                                        </panel>
-                                                        <label colspan="2" text=" "/>
-                                                        <checkbox name="ckSimCust" enabled="false" text="Current custom Similarity" group="simil"/>
-                                			  <button type="link" halign="left" weightx="0" text=" Design..." tooltip="Design custom similarity" action="actionDesignSimilarity"/>
-							<panel colspan="2" gap="2">
-								<label text="   Current: "/>
-								<label name="simName" text="?"/>
-							</panel>
-						</panel>
-					      </tab>
+							  <panel columns="2" gap="4" halign="fill" weightx="1" weighty="1" valign="fill" top="2" left="2" right="2" bottom="2">
+								  <label colspan="2" font="bold" text="Expert: Similarity implementation:"/>
+								  <checkbox colspan="2" name="ckSimDef" text="Default Similarity" selected="true" group="simil"/>
+								  <checkbox colspan="2" name="ckSimClassic" text="Classic (TFIDF) Similarity" group="simil"/>
+								  <checkbox colspan="2" name="ckSimSweet" text="SweetSpotSimilarity" group="simil"/>
+								  <checkbox colspan="2" name="ckSimOther" text="Other Similarity (fully qualified class name)" group="simil"/>
+								  <panel colspan="2" gap="2">
+									  <label text="   "/>
+									  <textfield name="simClass" weightx="1" halign="fill"/>
+								  </panel>
+								  <label colspan="2" text=" "/>
+								  <checkbox name="ckSimCust" enabled="false" text="Current custom Similarity" group="simil"/>
+								  <button type="link" halign="left" weightx="0" text=" Design..." tooltip="Design custom similarity" action="actionDesignSimilarity"/>
+								  <panel colspan="2" gap="2">
+									  <label text="   Current: "/>
+									  <label name="simName" text="?"/>
+								  </panel>
+							  </panel>
+						  </tab>
 					      <tab text="Collector">
 						<panel columns="1" gap="2" halign="fill" weightx="1" weighty="1" valign="fill" top="2" left="2" right="2" bottom="2">
 						        <label font="bold" text="Expert: Collector implementation:"/>
