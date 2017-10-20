@@ -6,6 +6,12 @@ Fixed in this release:
 
 Thanks to respective contributors!
 
+* Upgrade to 7.1.0
+Fixed in this release:
+
+#89 Add shebang to luke.sh
+#93 Upgrade lucene version 7
+
 * Upgrade to 6.4.1
 Upgrade to lucene 6.4.1 based on PRs: #79 and #80
 
@@ -19,7 +25,7 @@ Fixed in this release:
 #71 Fixed pom warning
 #72 Fixed maven warning
 #73 Update Launching Luke section in README
-#74 Upgrade lucene vertion to 6.3.0
+#74 Upgrade lucene version to 6.3.0
 
 Thanks to respective contributors!
 
