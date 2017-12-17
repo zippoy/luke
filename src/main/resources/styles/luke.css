@@ -1,0 +1,38 @@
+.split-pane:horizontal *.split-pane-divider {
+    -fx-border-color: transparent;
+    -fx-padding: 0 1 0 1;
+}
+
+.split-pane:vertical *.split-pane-divider {
+    -fx-border-color: transparent;
+    -fx-padding: 1 0 1 0;
+}
+
+* {
+    -fx-font-size: 13px;
+    -fx-text-fill: #000000;
+}
+
+.hyperlink {
+    -fx-font-size: 13px;
+    -fx-text-fill: #1a8cff;
+    -fx-underline: true;
+}
+
+.hyperlink:hover {
+    -fx-underline: false;
+}
+
+.button {
+    -fx-background-radius: 0.3em;
+    -fx-border-radius: 0.3em;
+}
+
+.tooltip {
+    -fx-background-color: #ffffe6;
+    -fx-background-radius: 0px;
+    -fx-background-insets: 0;
+    -fx-padding: 0.667em 0.75em 0.667em 0.75em;
+    -fx-font-size: 0.85em;
+}
+

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+
+<AnchorPane prefHeight="300.0" prefWidth="400.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.apache.lucene.luke.app.controllers.dialog.EditParamsController">
+  <children>
+    <FlowPane prefHeight="30.0" prefWidth="200.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0"
+              AnchorPane.topAnchor="10.0">
+      <children>
+        <Label text="Parameters for:"/>
+        <Label fx:id="target">
+          <FlowPane.margin>
+            <Insets left="10.0"/>
+          </FlowPane.margin>
+        </Label>
+      </children>
+    </FlowPane>
+    <TableView fx:id="paramsTable" editable="true" prefHeight="200.0" prefWidth="200.0" AnchorPane.leftAnchor="10.0"
+               AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="40.0">
+      <columns>
+        <TableColumn fx:id="delColumn" maxWidth="60.0" minWidth="60.0" prefWidth="60.0" sortable="false" text="Delete"/>
+        <TableColumn fx:id="nameColumn" prefWidth="100.0" text="Name" sortable="false"/>
+        <TableColumn fx:id="valueColumn" prefWidth="280.0" text="Value" sortable="false"/>
+      </columns>
+      <columnResizePolicy>
+        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+      </columnResizePolicy>
+    </TableView>
+    <Button fx:id="ok" mnemonicParsing="false" text="%button.ok" AnchorPane.bottomAnchor="10.0"
+            AnchorPane.rightAnchor="80.0"/>
+    <Button fx:id="cancel" mnemonicParsing="false" text="%button.cancel" AnchorPane.bottomAnchor="10.0"
+            AnchorPane.rightAnchor="10.0"/>
+  </children>
+</AnchorPane>

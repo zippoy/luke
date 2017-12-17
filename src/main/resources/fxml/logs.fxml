@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0"
+            prefWidth="830.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+            AnchorPane.topAnchor="0.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.apache.lucene.luke.app.controllers.LogsController">
+  <children>
+    <AnchorPane AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
+                AnchorPane.topAnchor="0">
+      <children>
+        <Label layoutX="20.0" layoutY="14.0" text="%logs.label.see_also" AnchorPane.leftAnchor="20.0"
+               AnchorPane.topAnchor="15.0"/>
+        <Label fx:id="logFile" layoutX="168.0" layoutY="14.0"/>
+        <TextArea fx:id="textArea" editable="false" AnchorPane.bottomAnchor="20" AnchorPane.leftAnchor="20"
+                  AnchorPane.rightAnchor="20" AnchorPane.topAnchor="50.0">
+        </TextArea>
+      </children>
+    </AnchorPane>
+  </children>
+</AnchorPane>

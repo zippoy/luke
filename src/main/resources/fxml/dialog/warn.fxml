@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane prefHeight="200.0" prefWidth="400.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.apache.lucene.luke.app.controllers.dialog.WarnController">
+  <children>
+    <Label fx:id="message" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" wrapText="true"
+           AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0"
+           AnchorPane.topAnchor="20.0"/>
+    <FlowPane alignment="TOP_RIGHT" prefHeight="40.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0"
+              AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0">
+      <children>
+        <Button fx:id="close" mnemonicParsing="false" text="%button.close">
+          <FlowPane.margin>
+            <Insets left="20.0"/>
+          </FlowPane.margin>
+        </Button>
+      </children>
+    </FlowPane>
+  </children>
+</AnchorPane>

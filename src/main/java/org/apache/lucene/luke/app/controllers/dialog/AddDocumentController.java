@@ -1,0 +1,358 @@
+package org.apache.lucene.luke.app.controllers.dialog;
+
+import com.google.common.base.Strings;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.fxml.FXML;
+import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
+import javafx.geometry.Pos;
+import javafx.scene.control.Button;
+import javafx.scene.control.Hyperlink;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.cell.CheckBoxTableCell;
+import javafx.scene.control.cell.ChoiceBoxTableCell;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.FlowPane;
+import javafx.stage.Stage;
+import javafx.util.StringConverter;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.document.DoublePoint;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.FloatPoint;
+import org.apache.lucene.document.IntPoint;
+import org.apache.lucene.document.LongPoint;
+import org.apache.lucene.document.NumericDocValuesField;
+import org.apache.lucene.document.SortedDocValuesField;
+import org.apache.lucene.document.SortedNumericDocValuesField;
+import org.apache.lucene.document.SortedSetDocValuesField;
+import org.apache.lucene.document.StoredField;
+import org.apache.lucene.document.StringField;
+import org.apache.lucene.document.TextField;
+import org.apache.lucene.index.IndexableField;
+import org.apache.lucene.index.IndexableFieldType;
+import org.apache.lucene.luke.app.controllers.DocumentsController;
+import org.apache.lucene.luke.app.controllers.LukeController;
+import org.apache.lucene.luke.app.controllers.dto.NewField;
+import org.apache.lucene.luke.app.util.DialogOpener;
+import org.apache.lucene.luke.app.util.NumericUtils;
+import org.apache.lucene.luke.models.LukeException;
+import org.apache.lucene.luke.models.tools.IndexTools;
+import org.apache.lucene.luke.util.MessageUtils;
+import org.apache.lucene.util.BytesRef;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.lang.reflect.Constructor;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+import static org.apache.lucene.luke.app.util.ExceptionHandler.runnableWrapper;
+
+public class AddDocumentController implements DialogWindowController {
+
+  private static Logger logger = LoggerFactory.getLogger(AddDocumentController.class);
+
+  @FXML
+  private Label analyzerName;
+
+  @FXML
+  private Hyperlink changeAnalyzer;
+
+  @FXML
+  private TableView<NewField> fieldsTable;
+
+  @FXML
+  private TableColumn<NewField, Boolean> delColumn;
+
+  @FXML
+  private TableColumn<NewField, String> nameColumn;
+
+  @FXML
+  private TableColumn<NewField, Class> typeColumn;
+
+  @FXML
+  private TableColumn<NewField, Hyperlink> optColumn;
+
+  @FXML
+  private TableColumn<NewField, String> valueColumn;
+
+  private ObservableList<NewField> newFieldList;
+
+  @FXML
+  private Button add;
+
+  @FXML
+  private Button cancel;
+
+  @FXML
+  private TextArea info;
+
+  @FXML
+  private void initialize() {
+    changeAnalyzer.setOnAction(e -> {
+      parent.switchTab(LukeController.Tab.ANALYZER);
+      closeWindow(cancel);
+    });
+
+    delColumn.setCellValueFactory(data -> {
+      BooleanProperty prop = data.getValue().deletedProperty();
+      prop.addListener((obs, oldV, newV) ->
+          fieldsTable.getSelectionModel().getSelectedItem().setDeleted(newV)
+      );
+      return prop;
+    });
+    delColumn.setCellFactory(col -> {
+      CheckBoxTableCell<NewField, Boolean> cell = new CheckBoxTableCell<>();
+      cell.setAlignment(Pos.CENTER);
+      return cell;
+    });
+
+    nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
+    nameColumn.setCellFactory(TextFieldTableCell.forTableColumn());
+    nameColumn.setOnEditCommit(e -> {
+      int rowIdx = fieldsTable.getSelectionModel().getFocusedIndex();
+      newFieldList.get(rowIdx).setName(e.getNewValue());
+    });
+
+    ImageView imageView = new ImageView(new Image("/img/icon_question_alt2.png"));
+    imageView.setFitWidth(12);
+    imageView.setFitHeight(12);
+    Hyperlink helpLink = new Hyperlink(MessageUtils.getLocalizedMessage("label.help"), imageView);
+    helpLink.setOnMouseClicked(e -> runnableWrapper(this::showTypeHelpDialog));
+    Label flagLabel = new Label("Type");
+    flagLabel.setPadding(new Insets(0, 10, 0, 0));
+    FlowPane flowPane = new FlowPane();
+    flowPane.setOrientation(Orientation.HORIZONTAL);
+    flowPane.setMaxWidth(Double.MAX_VALUE);
+    flowPane.setAlignment(Pos.CENTER);
+    flowPane.getChildren().addAll(flagLabel, helpLink);
+    typeColumn.setGraphic(flowPane);
+
+    typeColumn.setCellValueFactory(data -> {
+      ObjectProperty<Class> prop = data.getValue().getTypeProperty();
+      prop.addListener((obs, oldV, newV) -> {
+        NewField selectedItem = fieldsTable.getSelectionModel().getSelectedItem();
+        selectedItem.setType(newV);
+        selectedItem.resetFieldType(newV);
+        selectedItem.setStored(selectedItem.getFieldType().stored());
+      });
+      return prop;
+    });
+    typeColumn.setCellFactory(col -> {
+      ChoiceBoxTableCell<NewField, Class> cell = new ChoiceBoxTableCell<>();
+      cell.setConverter(new StringConverter<Class>() {
+        @Override
+        public String toString(Class clazz) {
+          return clazz.getSimpleName();
+        }
+
+        @Override
+        public Class fromString(String className) {
+          try {
+            return Class.forName(className);
+          } catch (ClassNotFoundException e) {
+            logger.error(e.getMessage(), e);
+            parent.showUnknownErrorMessage();
+          }
+          return null;
+        }
+      });
+      cell.getItems().addAll(presetFields());
+      return cell;
+    });
+
+    optColumn.setCellValueFactory(new PropertyValueFactory<>("option"));
+    optColumn.setCellFactory(col -> {
+      TableCell<NewField, Hyperlink> cell = new TableCell<NewField, Hyperlink>() {
+        @Override
+        protected void updateItem(Hyperlink link, boolean empty) {
+          setGraphic(link);
+          if (!empty) {
+            int rowIdx = getTableRow().getIndex();
+            link.setOnAction(e -> runnableWrapper(() -> showOptionsDialog(newFieldList.get(rowIdx))));
+          }
+        }
+      };
+      return cell;
+    });
+
+    valueColumn.setCellValueFactory(new PropertyValueFactory<>("value"));
+    valueColumn.setCellFactory(TextFieldTableCell.forTableColumn());
+    valueColumn.setOnEditCommit(e -> {
+      int rowIdx = fieldsTable.getSelectionModel().getFocusedIndex();
+      NewField selectedItem = newFieldList.get(rowIdx);
+      selectedItem.setValue(e.getNewValue());
+      selectedItem.resetFieldType(selectedItem.getType());
+    });
+
+    newFieldList = FXCollections.observableArrayList(
+        IntStream.range(0, 50).mapToObj(i -> NewField.newInstance()).collect(Collectors.toList())
+    );
+    fieldsTable.setItems(newFieldList);
+
+    add.setOnAction(e -> runnableWrapper(this::addDocument));
+    cancel.setOnAction(e -> closeWindow(cancel));
+  }
+
+  private Stage typeHelpDialog;
+
+  private void showTypeHelpDialog() throws Exception {
+    String content = getClass().getResource("/html/fieldTypeHelp.html").toExternalForm();
+    typeHelpDialog = new DialogOpener<InfoController>(parent).show(
+        typeHelpDialog,
+        "About type",
+        "/fxml/dialog/info.fxml",
+        1000, 600,
+        (controller) -> controller.setContent(content));
+  }
+
+  private Stage optionsDialog;
+
+  private void showOptionsDialog(NewField nf) throws Exception {
+    optionsDialog = new DialogOpener<IndexOptionsController>(parent).show(
+        optionsDialog,
+        "Index Options for field: " + nf.getName(),
+        "/fxml/dialog/index_options.fxml",
+        500, 500,
+        (controller) -> {
+          controller.setNewField(nf);
+        },
+        "/styles/index_options.css"
+    );
+  }
+
+  private void addDocument() throws LukeException {
+    List<NewField> validFields = newFieldList.stream()
+        .filter(nf -> !nf.isDeleted())
+        .filter(nf -> !Strings.isNullOrEmpty(nf.getName()))
+        .filter(nf -> !Strings.isNullOrEmpty(nf.getValue()))
+        .collect(Collectors.toList());
+    if (validFields.isEmpty()) {
+      info.setText("Please add one or more fields. Name and Value are both required.");
+      return;
+    }
+
+    Document doc = new Document();
+    try {
+      for (NewField nf : validFields) {
+        doc.add(toIndexableField(nf));
+        System.out.println(doc);
+      }
+    } catch (NumberFormatException e) {
+      logger.error(e.getMessage(), e);
+      throw new LukeException("Invalid value: " + e.getMessage(), e);
+    } catch (Exception e) {
+      logger.error(e.getMessage(), e);
+      throw new LukeException(e.getMessage(), e);
+    }
+
+    try {
+      documentsController.addDocument(doc);
+      parent.onIndexReopen();
+      documentsController.displayLatestDoc();
+      info.setText(MessageUtils.getLocalizedMessage("add_document.message.success"));
+      add.setDisable(true);
+    } catch (LukeException e) {
+      info.setText(MessageUtils.getLocalizedMessage("add_document.message.fail"));
+      throw e;
+    } catch (Exception e) {
+      info.setText(MessageUtils.getLocalizedMessage("add_document.message.fail"));
+      throw new LukeException(e.getMessage(), e);
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  private IndexableField toIndexableField(NewField nf) throws Exception {
+    if (nf.getType().equals(TextField.class) || nf.getType().equals(StringField.class)) {
+      Field.Store store = nf.isStored() ? Field.Store.YES : Field.Store.NO;
+      Constructor<IndexableField> constr = nf.getType().getConstructor(String.class, String.class, Field.Store.class);
+      return constr.newInstance(nf.getName(), nf.getValue(), store);
+    } else if (nf.getType().equals(IntPoint.class)) {
+      Constructor<IndexableField> constr = nf.getType().getConstructor(String.class, int[].class);
+      int[] values = NumericUtils.convertToIntArray(nf.getValue(), false);
+      return constr.newInstance(nf.getName(), values);
+    } else if (nf.getType().equals(LongPoint.class)) {
+      Constructor<IndexableField> constr = nf.getType().getConstructor(String.class, long[].class);
+      long[] values = NumericUtils.convertToLongArray(nf.getValue(), false);
+      return constr.newInstance(nf.getName(), values);
+    } else if (nf.getType().equals(FloatPoint.class)) {
+      Constructor<IndexableField> constr = nf.getType().getConstructor(String.class, float[].class);
+      float[] values = NumericUtils.convertToFloatArray(nf.getValue(), false);
+      return constr.newInstance(nf.getName(), values);
+    } else if (nf.getType().equals(DoublePoint.class)) {
+      Constructor<IndexableField> constr = nf.getType().getConstructor(String.class, double[].class);
+      double[] values = NumericUtils.convertToDoubleArray(nf.getValue(), false);
+      return constr.newInstance(nf.getName(), values);
+    } else if (nf.getType().equals(SortedDocValuesField.class) ||
+        nf.getType().equals(SortedSetDocValuesField.class)) {
+      Constructor<IndexableField> constr = nf.getType().getConstructor(String.class, BytesRef.class);
+      return constr.newInstance(nf.getName(), new BytesRef(nf.getValue()));
+    } else if (nf.getType().equals(NumericDocValuesField.class) ||
+        nf.getType().equals(SortedNumericDocValuesField.class)) {
+      Constructor<IndexableField> constr = nf.getType().getConstructor(String.class, long.class);
+      long value = NumericUtils.tryConvertToLongValue(nf.getValue());
+      return constr.newInstance(nf.getName(), value);
+    } else if (nf.getType().equals(StoredField.class)) {
+      Constructor<IndexableField> constr = nf.getType().getConstructor(String.class, String.class);
+      return constr.newInstance(nf.getName(), nf.getValue());
+    } else if (nf.getType().equals(Field.class)) {
+      Constructor<IndexableField> constr = nf.getType().getConstructor(String.class, String.class, IndexableFieldType.class);
+      return constr.newInstance(nf.getName(), nf.getValue(), nf.getFieldType());
+    } else {
+      // TODO: unknown field
+      return new StringField(nf.getName(), nf.getValue(), Field.Store.YES);
+    }
+  }
+
+  private IndexTools indexTools;
+
+  private LukeController parent;
+
+  private DocumentsController documentsController;
+
+  private Analyzer analyzer;
+
+  private Collection<Class<? extends Field>> presetFields;
+
+  public void setParent(LukeController parent, DocumentsController documentsController) {
+    this.parent = parent;
+    this.documentsController = documentsController;
+  }
+
+  public void setAnalyzer(Analyzer analyzer) {
+    this.analyzer = analyzer;
+    analyzerName.setText(analyzer.getClass().getName());
+  }
+
+  public void setPresetFields(Collection<Class<? extends Field>> presetFields) {
+    this.presetFields = presetFields;
+  }
+
+  @SuppressWarnings("unchecked")
+  private static List<Class<? extends Field>> presetFields() {
+    final Class[] presetFieldClasses = new Class[]{
+        TextField.class, StringField.class,
+        IntPoint.class, LongPoint.class, FloatPoint.class, DoublePoint.class,
+        SortedDocValuesField.class, SortedSetDocValuesField.class,
+        NumericDocValuesField.class, SortedNumericDocValuesField.class,
+        StoredField.class, Field.class
+    };
+    return Arrays.asList(presetFieldClasses);
+  }
+
+
+}

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="200.0"
+            prefWidth="800.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.apache.lucene.luke.app.controllers.fragments.analysis.PresetAnalyzerController">
+  <children>
+    <Label text="%analysis_preset.label.preset" AnchorPane.leftAnchor="20.0" AnchorPane.topAnchor="10.0"/>
+    <ChoiceBox fx:id="presetAnalyzers" layoutX="14.0" layoutY="45.0" prefHeight="28.0" prefWidth="700.0"
+               AnchorPane.leftAnchor="20.0" AnchorPane.topAnchor="50.0"/>
+  </children>
+</AnchorPane>

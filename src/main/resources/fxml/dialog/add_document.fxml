@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane prefHeight="550.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.apache.lucene.luke.app.controllers.dialog.AddDocumentController">
+  <children>
+    <FlowPane prefHeight="40.0" prefWidth="200.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+              AnchorPane.topAnchor="10.0">
+      <children>
+        <Label text="%add_document.label.analyzer">
+          <FlowPane.margin>
+            <Insets left="10.0"/>
+          </FlowPane.margin>
+        </Label>
+        <Label fx:id="analyzerName">
+          <FlowPane.margin>
+            <Insets left="10.0"/>
+          </FlowPane.margin>
+        </Label>
+        <Hyperlink fx:id="changeAnalyzer" text="%add_document.hyperlink.change">
+          <FlowPane.margin>
+            <Insets left="20.0"/>
+          </FlowPane.margin>
+        </Hyperlink>
+      </children>
+    </FlowPane>
+    <Label layoutX="8.0" layoutY="41.0" text="%add_document.label.fields" AnchorPane.topAnchor="50.0"/>
+    <TableView fx:id="fieldsTable" editable="true" layoutX="8.0" layoutY="65.0" prefHeight="300.0" prefWidth="200.0"
+               AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="70.0">
+      <columns>
+        <TableColumn fx:id="delColumn" maxWidth="50.0" minWidth="50.0" prefWidth="50.0" sortable="false" text="Del"/>
+        <TableColumn fx:id="nameColumn" maxWidth="200" minWidth="100.0" prefWidth="100.0" sortable="false" text="Name"/>
+        <TableColumn fx:id="typeColumn" maxWidth="120.0" minWidth="120.0" prefWidth="120.0" sortable="false"/>
+        <TableColumn fx:id="optColumn" maxWidth="75.0" minWidth="75.0" prefWidth="75.0" sortable="false"
+                     text="Options"/>
+        <TableColumn fx:id="valueColumn" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefWidth="205.0"
+                     sortable="false" text="Value"/>
+      </columns>
+      <columnResizePolicy>
+        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+      </columnResizePolicy>
+    </TableView>
+    <FlowPane alignment="CENTER_RIGHT" prefHeight="40.0" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="380.0">
+      <children>
+        <Button fx:id="add" mnemonicParsing="false" text="%add_document.button.add"/>
+        <Button fx:id="cancel" mnemonicParsing="false" text="%button.cancel">
+          <FlowPane.margin>
+            <Insets left="30.0"/>
+          </FlowPane.margin>
+        </Button>
+      </children>
+    </FlowPane>
+    <TextArea fx:id="info" editable="false" layoutX="10.0" layoutY="447.0" prefHeight="200.0" prefWidth="200.0"
+              promptText="%add_document.info" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="10.0"
+              AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="430.0"/>
+  </children>
+</AnchorPane>

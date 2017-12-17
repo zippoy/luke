@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.image.*?>
+<?import javafx.scene.web.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.apache.lucene.luke.app.controllers.dialog.InfoController">
+  <children>
+    <Button fx:id="back" mnemonicParsing="false" text="%button.back" AnchorPane.leftAnchor="20.0"
+            AnchorPane.topAnchor="10.0">
+      <graphic>
+        <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+          <image>
+            <Image url="@/img/arrow_left_alt.png"/>
+          </image>
+        </ImageView>
+      </graphic>
+    </Button>
+    <WebView fx:id="webView" prefHeight="-1.0" prefWidth="-1.0" AnchorPane.bottomAnchor="50.0"
+             AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="50.0"/>
+    <Button fx:id="close" mnemonicParsing="false" text="%button.close" AnchorPane.bottomAnchor="10.0"
+            AnchorPane.rightAnchor="20.0"/>
+  </children>
+</AnchorPane>
