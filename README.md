@@ -56,6 +56,11 @@ Committers
 * [Dmitry Kan](https://github.com/DmitryKey)
 * [Tomoko Uchida](https://github.com/mocobeta)
 
+System Requirements
+====
+
+Java 8 and JavaFX runtime is required.
+
 Launching luke
 ====
 1. Clone the repository.
