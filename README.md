@@ -1,7 +1,7 @@
 luke
 ====
 
-![Luke, the Lucene Toolbox Project](src/main/resources/html/luke-logo.gif) + ![JavaFX](javafx.gif)
+![Luke, the Lucene Toolbox Project](src/main/resources/img/luke-logo.gif) + ![JavaFX](javafx.gif)
 
 This branch runs Luke atop JavaFX.
 

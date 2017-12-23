@@ -10,12 +10,14 @@ import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TreeItem;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.ChoiceBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -23,6 +25,7 @@ import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
 import org.apache.lucene.analysis.Analyzer;
@@ -211,13 +214,45 @@ public class AddDocumentController implements DialogWindowController {
   private Stage typeHelpDialog;
 
   private void showTypeHelpDialog() throws Exception {
-    String content = getClass().getResource("/html/fieldTypeHelp.html").toExternalForm();
-    typeHelpDialog = new DialogOpener<InfoController>(parent).show(
+    VBox vBox = new VBox();
+    String desc = "Select Field classes:";
+    ObservableList<String> typesList = FXCollections.observableArrayList(
+        "TextField",
+        "StringField",
+        "IntPoint",
+        "LongPoint",
+        "FloatPoint",
+        "DoublePoint",
+        "SortedDocValuesField",
+        "SortedSetDocValuesField",
+        "NumericDocValuesField",
+        "SortedNumericDocValuesField",
+        "StoredField",
+        "Field"
+    );
+    ChoiceBox<String> types = new ChoiceBox<>(typesList);
+    TextArea details = new TextArea();
+    details.setPadding(new Insets(10));
+    details.setEditable(false);
+    details.setWrapText(true);
+    details.setPrefHeight(300);
+    types.setOnAction(e -> {
+      String detail = MessageUtils.getLocalizedMessage("help.fieldtype." + types.getValue());
+      details.setText(detail);
+    });
+    types.setValue(typesList.get(0));
+    vBox.getChildren().addAll(types, details);
+    vBox.setFillWidth(true);
+    typeHelpDialog = new DialogOpener<HelpController>(parent).show(
         typeHelpDialog,
         "About type",
-        "/fxml/dialog/info.fxml",
-        1000, 600,
-        (controller) -> controller.setContent(content));
+        "/fxml/dialog/help.fxml",
+        500, 400,
+        (controller) -> {
+          controller.setDescription(desc);
+          controller.setContent(vBox);
+        }
+    );
   }
 
   private Stage optionsDialog;

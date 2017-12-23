@@ -5,8 +5,8 @@ import javafx.fxml.FXML;
 import javafx.scene.control.MenuItem;
 import javafx.stage.Stage;
 import org.apache.lucene.index.CheckIndex;
+import org.apache.lucene.luke.app.controllers.dialog.AboutController;
 import org.apache.lucene.luke.app.controllers.dialog.CheckIndexController;
-import org.apache.lucene.luke.app.controllers.dialog.InfoController;
 import org.apache.lucene.luke.app.controllers.dialog.OpenIndexController;
 import org.apache.lucene.luke.app.controllers.dialog.OptimizeController;
 import org.apache.lucene.luke.app.desktop.Preferences;
@@ -140,14 +140,14 @@ public class MenubarController implements ChildController {
   private Stage aboutDialog = null;
 
   private void showAboutDialog() throws Exception {
-    String content = getClass().getResource("/html/about.html").toExternalForm();
     String version = Version.LATEST.toString();
-    aboutDialog = new DialogOpener<InfoController>(parent).show(
+    aboutDialog = new DialogOpener<AboutController>(parent).show(
         aboutDialog,
         "About Luke v" + version,
-        "/fxml/dialog/info.fxml",
-        1000, 500,
-        (controller) -> controller.setContent(content));
+        "/fxml/dialog/about.fxml",
+        1000, 480,
+        (controller) -> {}
+    );
 
   }
 

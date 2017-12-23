@@ -12,6 +12,7 @@ import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
@@ -32,7 +33,7 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.luke.app.controllers.dialog.AddDocumentController;
 import org.apache.lucene.luke.app.controllers.dialog.DocValuesController;
-import org.apache.lucene.luke.app.controllers.dialog.InfoController;
+import org.apache.lucene.luke.app.controllers.dialog.HelpController;
 import org.apache.lucene.luke.app.controllers.dialog.StoredValueController;
 import org.apache.lucene.luke.app.controllers.dialog.TermVectorController;
 import org.apache.lucene.luke.app.controllers.dto.DocumentField;
@@ -398,13 +399,29 @@ public class DocumentsController implements ChildController {
   private Stage flagsHelpDialog;
 
   private void showFlagsHelpDialog() throws Exception {
-    String content = getClass().getResource("/html/flagsHelp.html").toExternalForm();
-    flagsHelpDialog = new DialogOpener<InfoController>(parent).show(
+    String desc = "Format: IdfpoNPSB#txxVDtxxxxTx/x";
+    ObservableList<String> items = FXCollections.observableArrayList(
+        "I - index options(docs, frequencies, positions, offsets)",
+        "N - norms",
+        "P - payloads",
+        "S - stored",
+        "B - binary stored values",
+        "#txx - numeric stored values(type, precision)",
+        "V - term vectors",
+        "Dtxxxxx - doc values(type)",
+        "Tx/x - point values(num bytes/dimension)"
+    );
+    ListView<String> content = new ListView<>(items);
+    flagsHelpDialog = new DialogOpener<HelpController>(parent).show(
         flagsHelpDialog,
         "About Flags",
-        "/fxml/dialog/info.fxml",
+        "/fxml/dialog/help.fxml",
         600, 350,
-        (controller) -> controller.setContent(content));
+        (controller) -> {
+          controller.setDescription(desc);
+          controller.setContent(content);
+        }
+    );
   }
 
   private ContextMenu createDocTableMenu() {
