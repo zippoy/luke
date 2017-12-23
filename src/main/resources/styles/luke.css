@@ -28,27 +28,10 @@
 }
 
 .tooltip {
-    -fx-background-color: #ffffe6;
     -fx-background-radius: 0px;
     -fx-background-insets: 0;
     -fx-padding: 0.667em 0.75em 0.667em 0.75em;
     -fx-font-size: 0.85em;
-}
-
-.about_proj_title {
-    -fx-font-size: 32px;
-    -fx-font-weight: bold;
-    -fx-text-fill: #5aaa88;
-}
-
-.about_proj_sub_title .label {
-    -fx-font-size: 20px;
-}
-
-.about_proj_sub_title .hyperlink {
-    -fx-font-size: 20px;
-    -fx-underline: false;
-    -fx-border-color: transparent;
 }
 
 

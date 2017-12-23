@@ -1,4 +1,4 @@
-.root, .anchor-pane, .border-pane, .split-pane, .scroll-pane, .menu-bar {
+.root, .anchor-pane, .border-pane, .split-pane, .scroll-pane, .menu-bar, .tooltip {
     -fx-background-color: #e6e6ff;
     -fx-border-color: #919b9a;
 }

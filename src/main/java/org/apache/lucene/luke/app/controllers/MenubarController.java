@@ -146,7 +146,8 @@ public class MenubarController implements ChildController {
         "About Luke v" + version,
         "/fxml/dialog/about.fxml",
         1000, 480,
-        (controller) -> {}
+        (controller) -> {},
+        "/styles/about.css"
     );
 
   }
