@@ -293,7 +293,7 @@ public class SearchController implements ChildController {
       prev.setDisable(res.getOffset() == 0);
       next.setDisable(res.getTotalHits() <= res.getOffset() + res.size());
 
-      if (!parent.isReadOnly()) {
+      if (!parent.isReadOnly() && parent.hasDirectoryReader()) {
         delAll.setDisable(false);
       }
     } else {

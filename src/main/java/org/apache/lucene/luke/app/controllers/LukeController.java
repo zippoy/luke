@@ -215,7 +215,9 @@ public class LukeController {
     tabPane.getTabs().get(Tab.OVERVIEW.index()).setDisable(false);
     tabPane.getTabs().get(Tab.DOCUMENTS.index()).setDisable(false);
     tabPane.getTabs().get(Tab.SEARCH.index()).setDisable(false);
-    tabPane.getTabs().get(Tab.COMMITS.index()).setDisable(false);
+    if (hasDirectoryReader()) {
+      tabPane.getTabs().get(Tab.COMMITS.index()).setDisable(false);
+    }
 
     documentsController.setCurrentAnalyzer(analysisModel.currentAnalyzer());
     searchController.setCurrentAnalyzer(analysisModel.currentAnalyzer());

@@ -189,7 +189,7 @@ public class DocumentsController implements ChildController {
 
   @Override
   public void onIndexOpen() throws LukeException {
-    addDoc.setDisable(parent.isReadOnly());
+    addDoc.setDisable(parent.isReadOnly() || !parent.hasDirectoryReader());
 
     int maxDoc = documentsModel.getMaxDoc();
     maxDocs.setText(String.format("in %d docs", maxDoc));
