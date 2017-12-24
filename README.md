@@ -59,7 +59,7 @@ Committers
 System Requirements
 ====
 
-Java 8 and JavaFX runtime is required.
+Java 8+ and JavaFX runtime are required.
 
 Launching luke
 ====
