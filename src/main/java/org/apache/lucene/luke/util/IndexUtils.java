@@ -209,8 +209,10 @@ public class IndexUtils {
               format = "Lucene 5.3 or later";
             } else if (actualVersion == SegmentInfos.VERSION_70) {
               format = "Lucene 7.0 or later";
+            } else if (actualVersion == SegmentInfos.VERSION_72) {
+              format = "Lucene 7.2 or later";
             } else if (actualVersion > SegmentInfos.VERSION_70) {
-              format = "Lucene 7.0 or later (UNSUPPORTED)";
+              format = "Lucene 7.2 or later (UNSUPPORTED)";
             }
           } else {
             format = "Lucene 5.x or prior (UNSUPPORTED)";
