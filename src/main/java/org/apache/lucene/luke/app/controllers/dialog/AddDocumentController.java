@@ -214,8 +214,6 @@ public class AddDocumentController implements DialogWindowController {
   private Stage typeHelpDialog;
 
   private void showTypeHelpDialog() throws Exception {
-    VBox vBox = new VBox();
-    String desc = "Select Field classes:";
     ObservableList<String> typesList = FXCollections.observableArrayList(
         "TextField",
         "StringField",
@@ -231,8 +229,8 @@ public class AddDocumentController implements DialogWindowController {
         "Field"
     );
     ChoiceBox<String> types = new ChoiceBox<>(typesList);
+
     TextArea details = new TextArea();
-    details.setPadding(new Insets(10));
     details.setEditable(false);
     details.setWrapText(true);
     details.setPrefHeight(300);
@@ -241,15 +239,21 @@ public class AddDocumentController implements DialogWindowController {
       details.setText(detail);
     });
     types.setValue(typesList.get(0));
-    vBox.getChildren().addAll(types, details);
+
+    Label description = new Label("Brief description and Examples");
+
+    VBox vBox = new VBox();
+    vBox.getChildren().addAll(types, description, details);
     vBox.setFillWidth(true);
+    vBox.setSpacing(10);
+
     typeHelpDialog = new DialogOpener<HelpController>(parent).show(
         typeHelpDialog,
         "About type",
         "/fxml/dialog/help.fxml",
         500, 400,
         (controller) -> {
-          controller.setDescription(desc);
+          controller.setDescription("Select Field Class:");
           controller.setContent(vBox);
         }
     );

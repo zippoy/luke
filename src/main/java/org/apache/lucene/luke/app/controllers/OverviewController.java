@@ -170,6 +170,7 @@ public class OverviewController implements ChildController {
       Tooltip.install(mode, new Tooltip(MessageUtils.getLocalizedMessage("tooltip.multi_reader")));
     } else {
       mode.setText("");
+      mode.setGraphic(null);
     }
     numFields.setText(overviewModel.getNumFields().toString());
     numDocs.setText(overviewModel.getNumDocuments().toString());
