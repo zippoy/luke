@@ -196,7 +196,7 @@ public class IndexGate {
             int actualVersion = SegmentInfos.VERSION_53;
             try {
               actualVersion = CodecUtil.checkHeaderNoMagic(in, "segments", SegmentInfos.VERSION_53, Integer.MAX_VALUE);
-              if (actualVersion > SegmentInfos.VERSION_70) {
+              if (actualVersion > SegmentInfos.VERSION_CURRENT) {
                 res.capabilities += " (WARNING: newer version of Lucene than this tool)";
                 System.out.println("WARNING: newer version of Lucene than this tool supports");
               }
@@ -213,6 +213,11 @@ public class IndexGate {
               case SegmentInfos.VERSION_70:
                 res.genericName = "Lucene 7.0 or later";
                 res.version = "7.0 or later";
+                res.indexCreatedVersionMajor = 7;
+                break;
+              case SegmentInfos.VERSION_72:
+                res.genericName = "Lucene 7.2 or later";
+                res.version = "7.2 or later";
                 res.indexCreatedVersionMajor = 7;
                 break;
             }
