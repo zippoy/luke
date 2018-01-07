@@ -64,7 +64,7 @@ public class OverviewImplTest extends OverviewTestBase {
   public void testGetIndexFormat() throws Exception {
     OverviewImpl overview = new OverviewImpl();
     overview.reset(reader, indexDir.toString());
-    assertEquals("Lucene 7.0 or later", overview.getIndexFormat());
+    assertEquals("Lucene 7.2 or later", overview.getIndexFormat());
   }
 
   @Test
