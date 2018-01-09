@@ -25,8 +25,6 @@ import org.apache.lucene.luke.models.tools.IndexTools;
 import org.apache.lucene.luke.models.tools.IndexToolsImpl;
 import org.apache.lucene.luke.util.MessageUtils;
 
-import java.io.File;
-
 import static org.apache.lucene.luke.app.util.ExceptionHandler.handle;
 
 public class LukeMain extends Application {
@@ -62,7 +60,6 @@ public class LukeMain extends Application {
     this.mainController = loader.getController();
     primaryStage.setTitle(MessageUtils.getLocalizedMessage("window.title"));
     primaryStage.setScene(new Scene(root, 900, 650));
-    System.out.println(new File(".").getAbsolutePath() + " <--- we are here.");
     primaryStage.getIcons().add(new Image("file:src/main/resources/img/lucene.gif"));
     primaryStage.show();
 
