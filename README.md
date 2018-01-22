@@ -110,3 +110,9 @@ Licensing
 The license for the code is [ALv2](http://www.apache.org/licenses/LICENSE-2.0.html), excluding the license of the
 thinlet library that is used for the UI. You can also use Apache Pivot based [luke](https://github.com/DmitryKey/luke/tree/pivot-luke).
 It is in its early days, but give it a spin and let us know what you think! We accept [pull-requests](https://github.com/DmitryKey/luke/pulls) :)
+
+Credits
+===
+We would like to express our gratitude to JetBrains for their support of luke with awesome suit of IDEs, in particular: Intellij IDEA.
+
+Thank you! ![JetBrains](src/main/resources/img/jetbrains.svg)
