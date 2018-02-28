@@ -111,6 +111,9 @@ The license for the code is [ALv2](http://www.apache.org/licenses/LICENSE-2.0.ht
 thinlet library that is used for the UI. You can also use Apache Pivot based [luke](https://github.com/DmitryKey/luke/tree/pivot-luke).
 It is in its early days, but give it a spin and let us know what you think! We accept [pull-requests](https://github.com/DmitryKey/luke/pulls) :)
 
+Update: we now have JavaFX based version of luke. It is an overhaul of the UI: much slicker and nicer. We intend to replace thinlet with it, so it is your change to try it out and give us your feedback! https://github.com/DmitryKey/luke/tree/luke-javafx
+Take a look at the feature walk-through in Dmitry's blog post: http://dmitrykan.blogspot.fi/2018/01/new-luke-on-javafx.html
+
 Credits
 ===
 We would like to express our gratitude to JetBrains for their support of luke with awesome suit of IDEs, in particular: Intellij IDEA.
