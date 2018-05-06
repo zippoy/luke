@@ -84,12 +84,11 @@ public class AnalysisImplTest extends AnalysisTestBase {
   @Test
   public void testAnalyze_custom() throws Exception {
     AnalysisImpl analysis = new AnalysisImpl();
-    CustomAnalyzerConfig config = new CustomAnalyzerConfig(
+    CustomAnalyzerConfig.Builder builder = new CustomAnalyzerConfig.Builder(
         "org.apache.lucene.analysis.core.KeywordTokenizerFactory",
-        Maps.newHashMap(ImmutableMap.of("maxTokenLen", "128")),
-        null);
-    config.addTokenFilterConfig("org.apache.lucene.analysis.core.LowerCaseFilterFactory", Collections.emptyMap());
-    CustomAnalyzer analyzer = analysis.buildCustomAnalyzer(config);
+        ImmutableMap.of("maxTokenLen", "128"))
+        .addTokenFilterConfig("org.apache.lucene.analysis.core.LowerCaseFilterFactory", Collections.emptyMap());
+    CustomAnalyzer analyzer = (CustomAnalyzer) analysis.buildCustomAnalyzer(builder.build());
     assertEquals("org.apache.lucene.analysis.custom.CustomAnalyzer", analyzer.getClass().getName());
     assertEquals("org.apache.lucene.analysis.core.KeywordTokenizerFactory", analyzer.getTokenizerFactory().getClass().getName());
     assertEquals("org.apache.lucene.analysis.core.LowerCaseFilterFactory", analyzer.getTokenFilterFactories().get(0).getClass().getName());
@@ -107,14 +106,14 @@ public class AnalysisImplTest extends AnalysisTestBase {
     Files.write(stopFile, "of\nthe\nby\nfor\n".getBytes());
 
     AnalysisImpl analysis = new AnalysisImpl();
-    CustomAnalyzerConfig config = new CustomAnalyzerConfig(
+    CustomAnalyzerConfig.Builder builder = new CustomAnalyzerConfig.Builder(
         "org.apache.lucene.analysis.core.WhitespaceTokenizerFactory",
-        Maps.newHashMap(ImmutableMap.of("maxTokenLen", "128")),
-        confDir.toString());
-    config.addTokenFilterConfig("org.apache.lucene.analysis.core.LowerCaseFilterFactory", Collections.emptyMap());
-    config.addTokenFilterConfig("org.apache.lucene.analysis.core.StopFilterFactory",
-        Maps.newHashMap(ImmutableMap.of("ignoreCase", "true", "words", "stop.txt", "format", "wordset")));
-    CustomAnalyzer analyzer = analysis.buildCustomAnalyzer(config);
+        ImmutableMap.of("maxTokenLen", "128"))
+        .configDir(confDir.toString())
+        .addTokenFilterConfig("org.apache.lucene.analysis.core.LowerCaseFilterFactory", Collections.emptyMap())
+        .addTokenFilterConfig("org.apache.lucene.analysis.core.StopFilterFactory",
+            ImmutableMap.of("ignoreCase", "true", "words", "stop.txt", "format", "wordset"));
+    CustomAnalyzer analyzer = (CustomAnalyzer) analysis.buildCustomAnalyzer(builder.build());
     assertEquals("org.apache.lucene.analysis.custom.CustomAnalyzer", analyzer.getClass().getName());
     assertEquals("org.apache.lucene.analysis.core.WhitespaceTokenizerFactory", analyzer.getTokenizerFactory().getClass().getName());
     assertEquals("org.apache.lucene.analysis.core.LowerCaseFilterFactory", analyzer.getTokenFilterFactories().get(0).getClass().getName());
@@ -135,10 +134,10 @@ public class AnalysisImplTest extends AnalysisTestBase {
 
   private void printTokens(List<Analysis.Token> tokens) {
     for (Analysis.Token token : tokens) {
-      System.out.println("---- Token(term=" + token.term + ") ----");
-      for (Analysis.TokenAttribute att : token.attributes) {
-        System.out.println(att.attClass);
-        for (Map.Entry<String, String> entry : att.attValues.entrySet()) {
+      System.out.println("---- Token(term=" + token.getTerm() + ") ----");
+      for (Analysis.TokenAttribute att : token.getAttributes()) {
+        System.out.println(att.getAttClass());
+        for (Map.Entry<String, String> entry : att.getAttValues().entrySet()) {
           System.out.println(String.format("  %s=%s", entry.getKey(), entry.getValue()));
         }
       }

@@ -17,42 +17,105 @@
 
 package org.apache.lucene.luke.models.overview;
 
-import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.luke.models.LukeException;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * A dedicated interface for Luke's Overview tab.
+ */
 public interface Overview {
 
-  void reset(IndexReader reader, String indexPath) throws LukeException;
-
+  /**
+   * Returns the currently opened index directory path,
+   * or the root directory path if multiple index directories are opened.
+   */
   String getIndexPath();
 
-  Integer getNumFields();
+  /**
+   * Returns the number of fields in this index.
+   */
+  int getNumFields();
 
-  Integer getNumDocuments();
+  /**
+   * Returns the number of documents in this index.
+   */
+  int getNumDocuments();
 
-  Long getNumTerms() throws LukeException;
+  /**
+   * Returns the total number of terms in this index.
+   *
+   * @throws org.apache.lucene.luke.models.LukeException - if an internal error occurs when accessing index
+   */
+  long getNumTerms();
 
-  Boolean hasDeletions();
+  /**
+   * Returns true if this index includes deleted documents.
+   */
+  boolean hasDeletions();
 
-  Integer getNumDeletedDocs();
+  /**
+   * Returns the number of deleted documents in this index.
+   */
+  int getNumDeletedDocs();
 
+  /**
+   * Returns true if the index is optimized.
+   * Empty Optional instance is returned if multiple indexes are opened.
+   */
   Optional<Boolean> isOptimized();
 
+  /**
+   * Returns the version number when this index was opened.
+   * Empty Optional instance is returned if multiple indexes are opened.
+   */
   Optional<Long> getIndexVersion();
 
-  String getIndexFormat() throws LukeException;
+  /**
+   * Returns the string representation for the Lucene segment version when the index was created.
+   * Empty Optional instance is returned if multiple indexes are opened.
+   *
+   * @throws org.apache.lucene.luke.models.LukeException - if an internal error occurs when accessing index
+   */
+  Optional<String> getIndexFormat();
 
-  String getDirImpl();
+  /**
+   * Returns the currently opened {@link org.apache.lucene.store.Directory} implementation class name.
+   * Empty Optional instance is returned if multiple indexes are opened.
+   */
+  Optional<String> getDirImpl();
 
+  /**
+   * Returns the information of the commit point that reader has opened.
+   *
+   * Empty Optional instance is returned if multiple indexes are opened.
+   */
   Optional<String> getCommitDescription();
 
-  Optional<String> getCommitUserData() throws LukeException;
+  /**
+   * Returns the user provided data for the commit point.
+   * Empty Optional instance is returned if multiple indexes are opened.
+   *
+   * @throws org.apache.lucene.luke.models.LukeException - if an internal error occurs when accessing index
+   */
+  Optional<String> getCommitUserData();
 
-  Map<String, Long> getSortedTermCounts(TermCounts.Order order) throws LukeException;
+  /**
+   * Returns all fields with the number of terms for each field sorted by {@link TermCountsOrder}
+   *
+   * @param order - the sort order
+   * @return the ordered map of terms and their frequencies
+   * @throws org.apache.lucene.luke.models.LukeException - if an internal error occurs when accessing index
+   */
+  Map<String, Long> getSortedTermCounts(TermCountsOrder order);
 
-  List<TermStats> getTopTerms(String field, int numTerms) throws LukeException;
+  /**
+   * Returns the top indexed terms with their statistics for the specified field.
+   *
+   * @param field - the field name
+   * @param numTerms - the max number of terms to be returned
+   * @return the list of top terms and their document frequencies
+   * @throws org.apache.lucene.luke.models.LukeException - if an internal error occurs when accessing index
+   */
+  List<TermStats> getTopTerms(String field, int numTerms);
 }

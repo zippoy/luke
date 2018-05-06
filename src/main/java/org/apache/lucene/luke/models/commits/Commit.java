@@ -22,10 +22,17 @@ import org.apache.lucene.luke.util.IndexUtils;
 
 import java.io.IOException;
 
-public class Commit {
+/**
+ * Holder for a commit.
+ */
+public final class Commit {
+
   private long generation;
+
   private boolean isDeleted;
+
   private int segCount;
+
   private String userData;
 
   static Commit of(IndexCommit ic) {

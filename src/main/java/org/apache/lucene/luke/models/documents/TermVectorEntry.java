@@ -26,19 +26,29 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.OptionalInt;
+import java.util.stream.Collectors;
 
-public class TermVectorEntry {
-  private String termText;
-  private long freq;
-  private List<TermVectorPosition> positions;
+/**
+ * Holder for term vector entry representing the term and their number of occurrences, and optionally, positions in the document field.
+ */
+public final class TermVectorEntry {
 
-  static TermVectorEntry of(@Nonnull TermsEnum te, PostingsEnum pe) throws IOException {
-    TermVectorEntry entry = new TermVectorEntry();
-    entry.termText = BytesRefUtils.decode(te.term());
-    entry.freq = te.totalTermFreq();
+  private final String termText;
+  private final long freq;
+  private final List<TermVectorPosition> positions;
+
+  /**
+   * Returns a new term vector entry representing the specified term, and optionally, positions.
+   *
+   * @param te - positioned terms iterator
+   * @return term vector entry
+   * @throws IOException
+   */
+  static TermVectorEntry of(@Nonnull TermsEnum te) throws IOException {
+    String termText = BytesRefUtils.decode(te.term());
 
     List<TermVectorEntry.TermVectorPosition> tvPositions = new ArrayList<>();
-    pe = te.postings(pe, PostingsEnum.OFFSETS);
+    PostingsEnum pe = te.postings(null, PostingsEnum.OFFSETS);
     pe.nextDoc();
     int freq = pe.freq();
     for (int i = 0; i < freq; i++) {
@@ -50,52 +60,114 @@ public class TermVectorEntry {
       TermVectorPosition tvPos = TermVectorPosition.of(pos, pe);
       tvPositions.add(tvPos);
     }
-    entry.positions = tvPositions;
-    return entry;
+
+    return new TermVectorEntry(termText, te.totalTermFreq(), tvPositions);
   }
 
+  private TermVectorEntry(String termText, long freq, List<TermVectorPosition> positions) {
+    this.termText = termText;
+    this.freq = freq;
+    this.positions = positions;
+  }
+
+  /**
+   * Returns the string representation for this term.
+   */
   public String getTermText() {
     return termText;
   }
 
+  /**
+   * Returns the number of occurrences of this term in the document field.
+   */
   public long getFreq() {
     return freq;
   }
 
+  /**
+   * Returns the list of positions for this term in the document field.
+   */
   public List<TermVectorPosition> getPositions() {
     return positions;
   }
 
-  public static class TermVectorPosition {
-    private int position;
-    private int startOffset = -1;
-    private int endOffset = -1;
+  @Override
+  public String toString() {
+    String positionsStr = positions.stream()
+        .map(TermVectorPosition::toString)
+        .collect(Collectors.joining(","));
 
+    return "TermVectorEntry{" +
+        "termText='" + termText + '\'' +
+        ", freq=" + freq +
+        ", positions=" + positionsStr +
+        '}';
+  }
+
+  /**
+   * Holder for position information for a term vector entry.
+   */
+  public static final class TermVectorPosition {
+    private final int position;
+    private final int startOffset;
+    private final int endOffset;
+
+    /**
+     * Returns a new position entry representing the specified posting, and optionally, start and end offsets.
+     * @param pos - term position
+     * @param pe - positioned postings iterator
+     * @return position entry
+     * @throws IOException
+     */
     static TermVectorPosition of(int pos, @Nonnull PostingsEnum pe) throws IOException {
-      TermVectorPosition tvPos = new TermVectorPosition();
-      tvPos.position = pos;
       int sOffset = pe.startOffset();
       int eOffset = pe.endOffset();
       if (sOffset >= 0 && eOffset >= 0) {
-        tvPos.startOffset = sOffset;
-        tvPos.endOffset = eOffset;
+        return new TermVectorPosition(pos, sOffset, eOffset);
       }
-      return tvPos;
+      return new TermVectorPosition(pos);
     }
 
+    /**
+     * Returns the position for this term in the document field.
+     */
     public int getPosition() {
       return position;
     }
 
+    /**
+     * Returns the start offset for this term in the document field.
+     * Empty Optional instance is returned if no offset information available.
+     */
     public OptionalInt getStartOffset() {
       return startOffset >= 0 ? OptionalInt.of(startOffset) : OptionalInt.empty();
     }
 
+    /**
+     * Returns the end offset for this term in the document field.
+     * Empty Optional instance is returned if no offset information available.
+     */
     public OptionalInt getEndOffset() {
       return endOffset >= 0 ? OptionalInt.of(endOffset) : OptionalInt.empty();
     }
 
-    private TermVectorPosition() {
+    @Override
+    public String toString() {
+      return "TermVectorPosition{" +
+          "position=" + position +
+          ", startOffset=" + startOffset +
+          ", endOffset=" + endOffset +
+          '}';
+    }
+
+    private TermVectorPosition(int position) {
+      this(position, -1, -1);
+    }
+
+    private TermVectorPosition(int position, int startOffset, int endOffset) {
+      this.position = position;
+      this.startOffset = startOffset;
+      this.endOffset = endOffset;
     }
   }
 }

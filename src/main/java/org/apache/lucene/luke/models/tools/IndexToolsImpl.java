@@ -35,7 +35,7 @@ import org.apache.lucene.index.CheckIndex;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.luke.models.BaseModel;
+import org.apache.lucene.luke.models.LukeModel;
 import org.apache.lucene.luke.models.LukeException;
 import org.apache.lucene.luke.util.IndexUtils;
 import org.apache.lucene.search.Query;
@@ -48,13 +48,11 @@ import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Collection;
 
-public class IndexToolsImpl extends BaseModel implements IndexTools {
+public final class IndexToolsImpl extends LukeModel implements IndexTools {
 
-  private String indexPath;
+  private final boolean useCompound;
 
-  private boolean useCompound;
-
-  private boolean keepAllCommits;
+  private final boolean keepAllCommits;
 
   private static final Class[] presetFieldClasses = new Class[]{
       TextField.class, StringField.class,
@@ -64,24 +62,34 @@ public class IndexToolsImpl extends BaseModel implements IndexTools {
       StoredField.class
   };
 
-  @Override
-  public void reset(Directory dir, String indexPath, boolean useCompound, boolean keepAllCommits) {
-    super.reset(dir);
-    this.indexPath = indexPath;
+  /**
+   * Constructs an IndexToolsImpl that holds given {@link Directory}.
+   *
+   * @param dir - the index directory
+   * @param useCompound - if true, compound file format is used
+   * @param keepAllCommits - if true, all commit points are reserved
+   */
+  public IndexToolsImpl(@Nonnull Directory dir, boolean useCompound, boolean keepAllCommits) {
+    super(dir);
+    this.useCompound = useCompound;
+    this.keepAllCommits = keepAllCommits;
+  }
+
+  /**
+   * Constructs an IndexToolsImpl that holds given {@link IndexReader}.
+   *
+   * @param reader - the index reader
+   * @param useCompound - if true, compound file format is used
+   * @param keepAllCommits - if true, all commit points are reserved
+   */
+  public IndexToolsImpl(@Nonnull IndexReader reader, boolean useCompound, boolean keepAllCommits) {
+    super(reader);
     this.useCompound = useCompound;
     this.keepAllCommits = keepAllCommits;
   }
 
   @Override
-  public void reset(IndexReader reader, String indexPath, boolean useCompound, boolean keepAllCommits) throws LukeException {
-    super.reset(reader);
-    this.indexPath = indexPath;
-    this.useCompound = useCompound;
-    this.keepAllCommits = keepAllCommits;
-  }
-
-  @Override
-  public void optimize(boolean expunge, int maxNumSegments, PrintStream ps) throws LukeException {
+  public void optimize(boolean expunge, int maxNumSegments, PrintStream ps) {
     if (reader instanceof DirectoryReader) {
       Directory dir = ((DirectoryReader) reader).directory();
       try (IndexWriter writer = IndexUtils.createWriter(dir, null, useCompound, keepAllCommits, ps)) {
@@ -90,12 +98,12 @@ public class IndexToolsImpl extends BaseModel implements IndexTools {
         throw new LukeException("Failed to optimize index", e);
       }
     } else {
-      throw new LukeException("Current reader is not an instance of DirectoryReader.");
+      throw new LukeException("Current reader is not a DirectoryReader.");
     }
   }
 
   @Override
-  public CheckIndex.Status checkIndex(PrintStream ps) throws LukeException {
+  public CheckIndex.Status checkIndex(PrintStream ps) {
     try {
       if (dir != null) {
         return IndexUtils.checkIndex(dir, ps);
@@ -111,7 +119,7 @@ public class IndexToolsImpl extends BaseModel implements IndexTools {
   }
 
   @Override
-  public void repairIndex(CheckIndex.Status st, PrintStream ps) throws LukeException {
+  public void repairIndex(CheckIndex.Status st, PrintStream ps) {
     try {
       if (dir != null) {
         IndexUtils.tryRepairIndex(dir, st, ps);
@@ -124,7 +132,7 @@ public class IndexToolsImpl extends BaseModel implements IndexTools {
   }
 
   @Override
-  public void addDocument(Document doc, @Nullable Analyzer analyzer) throws LukeException {
+  public void addDocument(Document doc, @Nullable Analyzer analyzer) {
     if (reader instanceof DirectoryReader) {
       Directory dir = ((DirectoryReader) reader).directory();
       try (IndexWriter writer = IndexUtils.createWriter(dir, analyzer, useCompound, keepAllCommits)) {
@@ -139,7 +147,7 @@ public class IndexToolsImpl extends BaseModel implements IndexTools {
   }
 
   @Override
-  public void deleteDocuments(@Nonnull Query query) throws LukeException {
+  public void deleteDocuments(@Nonnull Query query) {
     if (reader instanceof DirectoryReader) {
       Directory dir = ((DirectoryReader) reader).directory();
       try (IndexWriter writer = IndexUtils.createWriter(dir, null, useCompound, keepAllCommits)) {

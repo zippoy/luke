@@ -34,6 +34,10 @@ public class PresetAnalyzerController implements AnalyzerController {
 
   private static final String DEFAULT_ANALYZER = "org.apache.lucene.analysis.standard.StandardAnalyzer";
 
+  private AnalysisController analysisController;
+
+  private LukeController parent;
+
   @FXML
   private ChoiceBox<String> presetAnalyzers;
 
@@ -50,10 +54,6 @@ public class PresetAnalyzerController implements AnalyzerController {
     String analyzserType = presetAnalyzers.getValue();
     analysisController.createPresetAnalyzer(analyzserType);
   }
-
-  private AnalysisController analysisController;
-
-  private LukeController parent;
 
   @Override
   public void setParent(AnalysisController analysisController, LukeController parent) {

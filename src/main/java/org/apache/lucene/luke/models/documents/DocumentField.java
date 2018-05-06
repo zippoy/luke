@@ -29,11 +29,15 @@ import org.apache.lucene.util.BytesRef;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 
-public class DocumentField {
+/**
+ * Holder for a document field's information and data.
+ */
+public final class DocumentField {
+
   // field name
   private String name;
 
-  // basic index information
+  // index options
   private IndexOptions idxOptions;
   private boolean hasTermVectors;
   private boolean hasPayloads;
@@ -55,31 +59,41 @@ public class DocumentField {
 
   static DocumentField of(@Nonnull FieldInfo finfo, @Nonnull IndexReader reader, int docId)
       throws IOException {
+    return of(finfo, null, reader, docId);
+  }
+
+  static DocumentField of(@Nonnull FieldInfo finfo, IndexableField field, @Nonnull IndexReader reader, int docId)
+      throws IOException {
+
     DocumentField dfield = new DocumentField();
+
     dfield.name = finfo.name;
     dfield.idxOptions = finfo.getIndexOptions();
     dfield.hasTermVectors = finfo.hasVectors();
     dfield.hasPayloads = finfo.hasPayloads();
     dfield.hasNorms = finfo.hasNorms();
+
     if (finfo.hasNorms()) {
       NumericDocValues norms = MultiDocValues.getNormValues(reader, finfo.name);
       if (norms.advanceExact(docId)) {
         dfield.norm = norms.longValue();
       }
     }
+
     dfield.dvType = finfo.getDocValuesType();
+
     dfield.pointDimensionCount = finfo.getPointDimensionCount();
     dfield.pointNumBytes = finfo.getPointNumBytes();
-    return dfield;
-  }
 
-  static DocumentField of(@Nonnull FieldInfo finfo, @Nonnull IndexableField field, @Nonnull IndexReader reader, int docId)
-      throws IOException {
-    DocumentField dfield = of(finfo, reader, docId);
-    dfield.isStored = field.fieldType().stored();
-    dfield.stringValue = field.stringValue();
-    dfield.binaryValue = field.binaryValue();
-    dfield.numericValue = field.numericValue();
+    if (field != null) {
+      dfield.isStored = field.fieldType().stored();
+      dfield.stringValue = field.stringValue();
+      if (field.binaryValue() != null) {
+        dfield.binaryValue = BytesRef.deepCopyOf(field.binaryValue());
+      }
+      dfield.numericValue = field.numericValue();
+    }
+
     return dfield;
   }
 
@@ -133,6 +147,18 @@ public class DocumentField {
 
   public int getPointNumBytes() {
     return pointNumBytes;
+  }
+
+  @Override
+  public String toString() {
+    return "DocumentField{" +
+        "name='" + name + '\'' +
+        ", idxOptions=" + idxOptions +
+        ", hasTermVectors=" + hasTermVectors +
+        ", isStored=" + isStored +
+        ", dvType=" + dvType +
+        ", pointDimensionCount=" + pointDimensionCount +
+        '}';
   }
 
   private DocumentField() {

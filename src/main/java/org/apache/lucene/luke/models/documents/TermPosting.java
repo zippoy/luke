@@ -22,7 +22,11 @@ import org.apache.lucene.util.BytesRef;
 
 import java.io.IOException;
 
-public class TermPosting {
+/**
+ * Holder for a term's position information, and optionally, offsets and payloads.
+ */
+public final class TermPosting {
+
   // position
   private int position = -1;
 
@@ -35,8 +39,10 @@ public class TermPosting {
 
   static TermPosting of(int position, PostingsEnum penum) throws IOException {
     TermPosting posting = new TermPosting();
+
     // set position
     posting.position = position;
+
     // set offset (if available)
     int sOffset = penum.startOffset();
     int eOffset = penum.endOffset();
@@ -44,13 +50,13 @@ public class TermPosting {
       posting.startOffset = sOffset;
       posting.endOffset = eOffset;
     }
-    // set payload (if available)
-    BytesRef payload = penum.getPayload();
-    if (payload != null) {
-      posting.payload = payload;
-    }
-    return posting;
 
+    // set payload (if available)
+    if (penum.getPayload() != null) {
+      posting.payload = BytesRef.deepCopyOf(penum.getPayload());
+    }
+
+    return posting;
   }
 
   public int getPosition() {
@@ -67,6 +73,16 @@ public class TermPosting {
 
   public BytesRef getPayload() {
     return payload;
+  }
+
+  @Override
+  public String toString() {
+    return "TermPosting{" +
+        "position=" + position +
+        ", startOffset=" + startOffset +
+        ", endOffset=" + endOffset +
+        ", payload=" + payload +
+        '}';
   }
 
   private TermPosting() {

@@ -21,23 +21,33 @@ import com.google.inject.Inject;
 import javafx.fxml.FXML;
 import javafx.scene.control.MenuItem;
 import javafx.stage.Stage;
-import org.apache.lucene.index.CheckIndex;
-import org.apache.lucene.luke.app.controllers.dialog.AboutController;
-import org.apache.lucene.luke.app.controllers.dialog.CheckIndexController;
-import org.apache.lucene.luke.app.controllers.dialog.OpenIndexController;
-import org.apache.lucene.luke.app.controllers.dialog.OptimizeController;
+import org.apache.lucene.luke.app.DirectoryHandler;
+import org.apache.lucene.luke.app.DirectoryObserver;
+import org.apache.lucene.luke.app.IndexHandler;
+import org.apache.lucene.luke.app.IndexObserver;
+import org.apache.lucene.luke.app.LukeState;
+import org.apache.lucene.luke.app.controllers.dialog.menubar.AboutController;
+import org.apache.lucene.luke.app.controllers.dialog.menubar.CheckIndexController;
+import org.apache.lucene.luke.app.controllers.dialog.menubar.OpenIndexController;
+import org.apache.lucene.luke.app.controllers.dialog.menubar.OptimizeController;
 import org.apache.lucene.luke.app.desktop.Preferences;
 import org.apache.lucene.luke.app.util.DialogOpener;
 import org.apache.lucene.luke.models.LukeException;
-import org.apache.lucene.luke.models.tools.IndexTools;
-import org.apache.lucene.luke.util.MessageUtils;
 import org.apache.lucene.util.Version;
 
-import java.io.PrintStream;
+import java.io.IOException;
 
 import static org.apache.lucene.luke.app.util.ExceptionHandler.runnableWrapper;
 
-public class MenubarController implements ChildController {
+public class MenubarController implements IndexObserver, DirectoryObserver {
+
+  private final Preferences prefs;
+
+  private final DirectoryHandler directoryHandler;
+
+  private final IndexHandler indexHandler;
+
+  private LukeController mainController;
 
   @FXML
   private MenuItem menuOpenIndex;
@@ -72,20 +82,25 @@ public class MenubarController implements ChildController {
   @FXML
   private MenuItem menuAbout;
 
+  @Inject
+  public MenubarController(Preferences prefs, DirectoryHandler directoryHandler, IndexHandler indexHandler) {
+    this.prefs = prefs;
+    this.directoryHandler = directoryHandler;
+    this.indexHandler = indexHandler;
+  }
+
   @FXML
   private void initialize() {
     menuOpenIndex.setOnAction(e -> runnableWrapper(this::showOpenIndexDialog));
 
     menuReopenIndex.setOnAction(e -> runnableWrapper(() -> {
-      parent.onIndexReopen();
-      parent.switchTab(LukeController.Tab.OVERVIEW);
+      indexHandler.reOpen();
     }));
     menuReopenIndex.setDisable(true);
 
     menuCloseIndex.setOnAction(e -> runnableWrapper(() -> {
-      parent.onClose();
-      parent.switchTab(LukeController.Tab.OVERVIEW);
-      parent.showStatusMessage(MessageUtils.getLocalizedMessage("menu.message.index_closed"));
+      directoryHandler.close();
+      indexHandler.close();
     }));
     menuCloseIndex.setDisable(true);
 
@@ -97,10 +112,10 @@ public class MenubarController implements ChildController {
     menuCheckIndex.setOnAction(e -> runnableWrapper(this::showCheckIndexDialog));
     menuCheckIndex.setDisable(true);
 
-    menuThemeGray.setOnAction(e -> changeTheme(LukeController.ColorTheme.GRAY));
-    menuThemeClassic.setOnAction(e -> changeTheme(LukeController.ColorTheme.CLASSIC));
-    menuThemeSandstone.setOnAction(e -> changeTheme(LukeController.ColorTheme.SANDSTONE));
-    menuThemeNavy.setOnAction(e -> changeTheme(LukeController.ColorTheme.NAVY));
+    menuThemeGray.setOnAction(e -> runnableWrapper(() -> changeTheme(LukeController.ColorTheme.GRAY)));
+    menuThemeClassic.setOnAction(e -> runnableWrapper(() -> changeTheme(LukeController.ColorTheme.CLASSIC)));
+    menuThemeSandstone.setOnAction(e -> runnableWrapper(() -> changeTheme(LukeController.ColorTheme.SANDSTONE)));
+    menuThemeNavy.setOnAction(e -> runnableWrapper(() -> changeTheme(LukeController.ColorTheme.NAVY)));
 
     menuAbout.setOnAction(e -> runnableWrapper(this::showAboutDialog));
   }
@@ -108,14 +123,13 @@ public class MenubarController implements ChildController {
   private Stage openIndexDialog = null;
 
   public void showOpenIndexDialog() throws Exception {
-    openIndexDialog = new DialogOpener<OpenIndexController>(parent).show(
+    openIndexDialog = new DialogOpener<OpenIndexController>(mainController).show(
         openIndexDialog,
         "Choose index directory path",
-        "/fxml/dialog/openindex.fxml",
+        "/fxml/dialog/menubar/openindex.fxml",
         600, 400,
         (controller) -> {
-          controller.setParent(parent);
-          controller.setPrefs(prefs);
+          controller.setMainController(mainController);
         }
     );
   }
@@ -123,45 +137,40 @@ public class MenubarController implements ChildController {
   private Stage optimizeDialog = null;
 
   private void showOptimizeDialog() throws Exception {
-    optimizeDialog = new DialogOpener<OptimizeController>(parent).show(
+    optimizeDialog = new DialogOpener<OptimizeController>(mainController).show(
         optimizeDialog,
         "Optimize index",
-        "/fxml/dialog/optimize.fxml",
+        "/fxml/dialog/menubar/optimize.fxml",
         600, 600,
-        (controller) -> {
-          controller.setParent(parent, this);
-          controller.setIndexPath(parent.getIndexPath());
-        }
+        (controller) -> {}
     );
   }
 
   private Stage checkIndexDialog = null;
 
   private void showCheckIndexDialog() throws Exception {
-    checkIndexDialog = new DialogOpener<CheckIndexController>(parent).show(
+    checkIndexDialog = new DialogOpener<CheckIndexController>(mainController).show(
         checkIndexDialog,
         "Check index",
-        "/fxml/dialog/checkindex.fxml",
+        "/fxml/dialog/menubar/checkindex.fxml",
         600, 600,
-        (controller) -> {
-          controller.setParent(parent, this);
-          controller.setIndexPath(parent.getIndexPath());
-        }
+        (controller) -> {}
     );
   }
 
-  private void changeTheme(LukeController.ColorTheme theme) {
-    parent.setColorTheme(theme);
+  private void changeTheme(LukeController.ColorTheme theme) throws IOException {
+    prefs.setTheme(theme);
+    mainController.setColorTheme(theme);
   }
 
   private Stage aboutDialog = null;
 
   private void showAboutDialog() throws Exception {
     String version = Version.LATEST.toString();
-    aboutDialog = new DialogOpener<AboutController>(parent).show(
+    aboutDialog = new DialogOpener<AboutController>(mainController).show(
         aboutDialog,
         "About Luke v" + version,
-        "/fxml/dialog/about.fxml",
+        "/fxml/dialog/menubar/about.fxml",
         1000, 480,
         (controller) -> {},
         "/styles/about.css"
@@ -169,25 +178,14 @@ public class MenubarController implements ChildController {
 
   }
 
-  private Preferences prefs;
-
-  private LukeController parent;
-
-  private IndexTools toolsModel;
-
   private void exit() {
-    parent.onClose();
-    ((Stage) parent.getPrimaryWindow()).close();
-  }
-
-  @Inject
-  public MenubarController(Preferences prefs, IndexTools toolsModel) {
-    this.prefs = prefs;
-    this.toolsModel = toolsModel;
+    directoryHandler.close();
+    indexHandler.close();
+    ((Stage) mainController.getPrimaryWindow()).close();
   }
 
   @Override
-  public void onDirectoryOpen() {
+  public void openDirectory(LukeState state) {
     menuReopenIndex.setDisable(true);
     menuCloseIndex.setDisable(false);
     menuOptimizeIndex.setDisable(true);
@@ -195,39 +193,36 @@ public class MenubarController implements ChildController {
   }
 
   @Override
-  public void onIndexOpen() throws LukeException {
+  public void openIndex(LukeState state) throws LukeException {
     menuReopenIndex.setDisable(false);
     menuCloseIndex.setDisable(false);
-    if (!parent.isReadOnly() && parent.hasDirectoryReader()) {
+    if (!state.readOnly() && state.hasDirectoryReader()) {
       menuOptimizeIndex.setDisable(false);
     }
-    if (parent.hasDirectoryReader()) {
+    if (state.hasDirectoryReader()) {
       menuCheckIndex.setDisable(false);
     }
   }
 
   @Override
-  public void onClose() {
+  public void closeDirectory() {
+    close();
+  }
+
+  @Override
+  public void closeIndex() {
+    close();
+  }
+
+  private void close() {
     menuReopenIndex.setDisable(true);
     menuCloseIndex.setDisable(true);
     menuOptimizeIndex.setDisable(true);
     menuCheckIndex.setDisable(true);
   }
 
-  @Override
-  public void setParent(LukeController parent) {
-    this.parent = parent;
+  void setMainController(LukeController mainController) {
+    this.mainController = mainController;
   }
 
-  public void optimize(boolean expunge, int maxNumSegments, PrintStream ps) throws LukeException {
-    toolsModel.optimize(expunge, maxNumSegments, ps);
-  }
-
-  public CheckIndex.Status checkIndex(PrintStream ps) throws LukeException {
-    return toolsModel.checkIndex(ps);
-  }
-
-  public void repairIndex(CheckIndex.Status st, PrintStream ps) throws LukeException {
-    toolsModel.repairIndex(st, ps);
-  }
 }

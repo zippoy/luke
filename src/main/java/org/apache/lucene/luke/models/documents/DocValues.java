@@ -21,32 +21,64 @@ import org.apache.lucene.index.DocValuesType;
 import org.apache.lucene.util.BytesRef;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
-public class DocValues {
-  private DocValuesType dvType;
-  private List<BytesRef> values;
-  private List<Long> numericValues;
+/**
+ * Holder for doc values.
+ */
+public final class DocValues {
 
+  private final DocValuesType dvType;
+
+  private final List<BytesRef> values;
+
+  private final List<Long> numericValues;
+
+  /**
+   * Returns a new doc values entry representing the specified doc values type and values.
+   * @param dvType - doc values type
+   * @param values - (string) values
+   * @param numericValues numeric values
+   * @return doc values
+   */
   static DocValues of(DocValuesType dvType, List<BytesRef> values, List<Long> numericValues) {
-    DocValues dv = new DocValues();
-    dv.dvType = dvType;
-    dv.values = values;
-    dv.numericValues = numericValues;
-    return dv;
+    return new DocValues(dvType, values, numericValues);
   }
 
+  private DocValues(DocValuesType dvType, List<BytesRef> values, List<Long> numericValues) {
+    this.dvType = dvType;
+    this.values = values;
+    this.numericValues = numericValues;
+  }
+
+  /**
+   * Returns the type of this doc values.
+   */
   public DocValuesType getDvType() {
     return dvType;
   }
 
+  /**
+   * Returns the list of (string) values.
+   */
   public List<BytesRef> getValues() {
     return values;
   }
 
+  /**
+   * Returns the list of numeric values.
+   */
   public List<Long> getNumericValues() {
     return numericValues;
   }
 
-  private DocValues() {
+  @Override
+  public String toString() {
+    String numValuesStr = numericValues.stream().map(String::valueOf).collect(Collectors.joining(","));
+    return "DocValues{" +
+        "dvType=" + dvType +
+        ", values=" + values +
+        ", numericValues=[" + numValuesStr + "]" +
+        '}';
   }
 }

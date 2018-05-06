@@ -18,7 +18,6 @@
 package org.apache.lucene.luke.app.controllers.fragments.search;
 
 import com.google.common.base.Strings;
-import com.google.inject.Inject;
 import javafx.beans.property.BooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -35,16 +34,19 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.util.converter.IntegerStringConverter;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.luke.app.controllers.LukeController;
-import org.apache.lucene.luke.app.controllers.SearchController;
-import org.apache.lucene.luke.app.controllers.dto.SelectedField;
+import org.apache.lucene.luke.app.controllers.dto.search.SelectedField;
 import org.apache.lucene.luke.app.util.IntegerTextFormatter;
 import org.apache.lucene.luke.models.search.MLTConfig;
-import org.apache.lucene.luke.models.search.Search;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.stream.Collectors;
 
-
 public class MLTController {
+
+  private LukeController parent;
+
+  private MLTConfig config = new MLTConfig.Builder().build();
 
   @FXML
   private TextField maxDocFreq;
@@ -77,8 +79,6 @@ public class MLTController {
 
   @FXML
   private void initialize() {
-    this.config = new MLTConfig();
-
     maxDocFreq.setTextFormatter(new IntegerTextFormatter(new IntegerStringConverter(), config.getMaxDocFreq()));
     minDocFreq.setTextFormatter(new IntegerTextFormatter(new IntegerStringConverter(), config.getMinDocFreq()));
     minTermFreq.setTextFormatter(new IntegerTextFormatter(new IntegerStringConverter(), config.getMinTermFreq()));
@@ -110,21 +110,7 @@ public class MLTController {
     fieldsTable.setItems(fieldList);
   }
 
-  private Search searchModel;
-
-  private LukeController parent;
-
-  private SearchController searchController;
-
-  private MLTConfig config;
-
-  @Inject
-  public MLTController(Search searchModel) {
-    this.searchModel = searchModel;
-  }
-
-  public void setParent(SearchController searchController, LukeController parent) {
-    this.searchController = searchController;
+  public void setParent(LukeController parent) {
     this.parent = parent;
   }
 
@@ -132,34 +118,32 @@ public class MLTController {
     this.analyzerName.setText(analyzer.getClass().getSimpleName());
   }
 
-  public void populateFields() {
+  public void populateFields(Collection<String> fieldNames) {
     fieldList.clear();
-    fieldList.addAll(searchModel.getFieldNames().stream()
+    fieldList.addAll(fieldNames.stream()
         .map(SelectedField::of).collect(Collectors.toList()));
   }
 
   public MLTConfig getMLTConfig() {
-    if (Strings.isNullOrEmpty(maxDocFreq.getText())) {
-      config.setMaxDocFreq(0);
-    } else {
-      config.setMaxDocFreq(Integer.parseInt(maxDocFreq.getText()));
-    }
-    if (Strings.isNullOrEmpty(minDocFreq.getText())) {
-      config.setMinDocFreq(0);
-    } else {
-      config.setMinDocFreq(Integer.parseInt(minDocFreq.getText()));
-    }
-    if (Strings.isNullOrEmpty(minTermFreq.getText())) {
-      config.setMinTermFreq(0);
-    } else {
-      config.setMinTermFreq(Integer.parseInt(minTermFreq.getText()));
-    }
-    config.clearFields();
-    fieldList.stream()
+    List<String> fields = fieldList.stream()
         .filter(SelectedField::isSelected)
         .map(SelectedField::getField)
-        .forEach(f -> config.addField(f));
-    return config;
+        .collect(Collectors.toList());
+
+    return new MLTConfig.Builder()
+        .fields(fields)
+        .maxDocFreq(textFieldToInt(maxDocFreq))
+        .minDocFreq(textFieldToInt(minDocFreq))
+        .minTermFreq(textFieldToInt(minTermFreq))
+        .build();
+  }
+
+  private int textFieldToInt(TextField textField) {
+    if (Strings.isNullOrEmpty(textField.getText())) {
+      return 0;
+    } else {
+      return Integer.parseInt(textField.getText());
+    }
   }
 
 }

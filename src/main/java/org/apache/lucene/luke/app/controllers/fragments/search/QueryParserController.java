@@ -17,7 +17,6 @@
 
 package org.apache.lucene.luke.app.controllers.fragments.search;
 
-import com.google.inject.Inject;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -31,10 +30,9 @@ import javafx.scene.control.cell.ChoiceBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.util.StringConverter;
 import org.apache.lucene.document.DateTools;
-import org.apache.lucene.luke.app.controllers.dto.PVField;
+import org.apache.lucene.luke.app.controllers.dto.search.PVField;
 import org.apache.lucene.luke.models.LukeException;
 import org.apache.lucene.luke.models.search.QueryParserConfig;
-import org.apache.lucene.luke.models.search.Search;
 import org.apache.lucene.queryparser.classic.QueryParser;
 
 import java.util.Arrays;
@@ -51,6 +49,8 @@ public class QueryParserController {
   private static final String PARSER_CLASSIC = "classic";
 
   private static final int ROW_HEIGHT = 30;
+
+  private QueryParserConfig config = new QueryParserConfig.Builder().build();
 
   @FXML
   private ToggleGroup parserGroup;
@@ -113,8 +113,6 @@ public class QueryParserController {
 
   @FXML
   private void initialize() {
-    this.config = new QueryParserConfig();
-
     parserGroup.selectedToggleProperty().addListener((obs, oldV, newV) -> {
       if (newV.getUserData().equals(PARSER_CLASSIC)) {
         splitWs.setDisable(false);
@@ -184,45 +182,27 @@ public class QueryParserController {
 
   }
 
-  private QueryParserConfig config;
-
-  private Search modelSearch;
-
-  @Inject
-  public QueryParserController(Search modelSearch) {
-    this.modelSearch = modelSearch;
-  }
-
   public QueryParserConfig getConfig() throws LukeException {
-    if (parserGroup.getSelectedToggle().getUserData().equals(PARSER_CLASSIC)) {
-      config.setUseClassicParser(true);
-    } else {
-      config.setUseClassicParser(false);
-    }
-    config.setDefaultOperator(QueryParserConfig.Operator.valueOf(defOp.getValue()));
-    config.setEnablePositionIncrements(posIncr.isSelected());
-    config.setAllowLeadingWildcard(leadWildcard.isSelected());
-    config.setSplitOnWhitespace(splitWs.isSelected());
-    config.setAutoGeneratePhraseQueries(genPq.isSelected());
-    config.setAutoGenerateMultiTermSynonymsPhraseQuery(genMTS.isSelected());
+    int phraseSlop;
     try {
-      config.setPhraseSlop(Integer.parseInt(slop.getText()));
+      phraseSlop = Integer.parseInt(slop.getText());
     } catch (NumberFormatException e) {
       throw new LukeException("Invalid input for phrase slop: " + slop.getText(), e);
     }
+
+    float fuzzyMinSimFloat;
     try {
-      config.setFuzzyMinSim(Float.parseFloat(fuzzyMinSim.getText()));
+      fuzzyMinSimFloat = Float.parseFloat(fuzzyMinSim.getText());
     } catch (NumberFormatException e) {
       throw new LukeException("Invalid input for fuzzy minimal similarity: " + fuzzyMinSim.getText(), e);
     }
+
+    int fuzzyPrefLenInt;
     try {
-      config.setFuzzyPrefixLength(Integer.parseInt(fuzzyPrefLen.getText()));
+      fuzzyPrefLenInt = Integer.parseInt(fuzzyPrefLen.getText());
     } catch (NumberFormatException e) {
       throw new LukeException("Invalid input for fuzzy prefix length: " + fuzzyPrefLen.getText(), e);
     }
-    config.setDateResolution(DateTools.Resolution.valueOf(dateRes.getValue()));
-    config.setLocale(new Locale(locale.getText()));
-    config.setTimeZone(TimeZone.getTimeZone(timeZone.getText()));
 
     Map<String, Class<? extends Number>> typeMap = new HashMap<>();
     for (PVField pvField : pvFieldList) {
@@ -243,24 +223,36 @@ public class QueryParserController {
           break;
       }
     }
-    config.setTypeMap(typeMap);
 
-    return config;
+    return new QueryParserConfig.Builder()
+        .useClassicParser(parserGroup.getSelectedToggle().getUserData().equals(PARSER_CLASSIC))
+        .defaultOperator(QueryParserConfig.Operator.valueOf(defOp.getValue()))
+        .enablePositionIncrements(posIncr.isSelected())
+        .allowLeadingWildcard(leadWildcard.isSelected())
+        .splitOnWhitespace(splitWs.isSelected())
+        .autoGeneratePhraseQueries(genPq.isSelected())
+        .autoGenerateMultiTermSynonymsPhraseQuery(genMTS.isSelected())
+        .phraseSlop(phraseSlop)
+        .fuzzyMinSim(fuzzyMinSimFloat)
+        .fuzzyPrefixLength(fuzzyPrefLenInt)
+        .dateResolution(DateTools.Resolution.valueOf(dateRes.getValue()))
+        .locale(new Locale(locale.getText()))
+        .timeZone(TimeZone.getTimeZone(timeZone.getText()))
+        .typeMap(typeMap)
+        .build();
   }
 
   public String getDefField() {
     return defField.getValue();
   }
 
-  public void populateFields() {
-    Collection<String> searchableFields = modelSearch.getSearchableFieldNames();
+  public void populateFields(Collection<String> searchableFields, Collection<String> rangeSearchableFields) {
     defFieldList.clear();
     defFieldList.addAll(searchableFields);
     if (defFieldList.size() > 0) {
       defField.setValue(defFieldList.get(0));
     }
 
-    Collection<String> rangeSearchableFields = modelSearch.getRangeSearchableFieldNames();
     pvFieldList.clear();
     pvFieldList.addAll(rangeSearchableFields.stream().map(PVField::of).collect(Collectors.toSet()));
     pvFieldsTable.setPrefHeight(Math.max(ROW_HEIGHT * pvFieldList.size(), 80));

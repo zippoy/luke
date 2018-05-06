@@ -18,21 +18,62 @@
 package org.apache.lucene.luke.models.overview;
 
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.luke.util.IndexUtils;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
-public interface TermCounts {
+/**
+ * An utility class that collects term counts terms for all fields in a index.
+ */
+final class TermCounts {
 
-  enum Order {
-    NAME_ASC, NAME_DESC,
-    COUNT_ASC, COUNT_DESC
+  private final Map<String, Long> termCountMap;
+
+  TermCounts(@Nonnull IndexReader reader) throws IOException {
+    termCountMap = IndexUtils.countTerms(reader, IndexUtils.getFieldNames(reader));
   }
 
-  void reset(IndexReader reader);
+  /**
+   * Returns the total number of terms in this index.
+   */
+  long numTerms() {
+    return termCountMap.values().stream().mapToLong(Long::longValue).sum();
+  }
 
-  Long numTerms() throws IOException;
+  /**
+   * Returns all fields with the number of terms for each field sorted by {@link TermCountsOrder}
+   * @param order - sort order
+   */
+  Map<String, Long> sortedTermCounts(@Nonnull TermCountsOrder order){
+    Comparator<Map.Entry<String, Long>> comparator;
+    switch (order) {
+      case NAME_ASC:
+        comparator = Map.Entry.comparingByKey();
+        break;
+      case NAME_DESC:
+        comparator = Map.Entry.<String, Long>comparingByKey().reversed();
+        break;
+      case COUNT_ASC:
+        comparator = Map.Entry.comparingByValue();
+        break;
+      case COUNT_DESC:
+        comparator = Map.Entry.<String, Long>comparingByValue().reversed();
+        break;
+      default:
+        comparator = Map.Entry.comparingByKey();
+    }
+    return sortedTermCounts(comparator);
+  }
 
-  Map<String, Long> sortedTermCounts(TermCounts.Order order) throws IOException;
+  private Map<String, Long> sortedTermCounts(Comparator<Map.Entry<String, Long>> comparator) {
+    return termCountMap.entrySet().stream()
+        .sorted(comparator)
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (v1, v2) -> v1, LinkedHashMap::new));
+  }
 
 }

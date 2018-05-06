@@ -17,14 +17,11 @@
 
 package org.apache.lucene.luke.models.overview;
 
-import com.google.inject.Inject;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.luke.models.BaseModel;
+import org.apache.lucene.luke.models.LukeModel;
 import org.apache.lucene.luke.models.LukeException;
 import org.apache.lucene.luke.util.IndexUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -33,28 +30,30 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public class OverviewImpl extends BaseModel implements Overview {
+public final class OverviewImpl extends LukeModel implements Overview {
 
-  private static Logger logger = LoggerFactory.getLogger(OverviewImpl.class);
+  private final String indexPath;
 
-  private String indexPath;
+  private final TermCounts termCounts;
 
-  private TermCounts termCounts;
+  private final TopTerms topTerms;
 
-  private TopTerms topTerms;
-
-  @Inject
-  OverviewImpl() {
-    this.termCounts = new TermCountsImpl();
-    this.topTerms = new TopTermsImpl();
-  }
-
-  @Override
-  public void reset(@Nonnull IndexReader reader, @Nonnull String indexPath) throws LukeException {
-    super.reset(reader);
+  /**
+   * Constructs an OverviewImpl that holds the given {@link IndexReader}.
+   *
+   * @param reader - the index reader
+   * @param indexPath - the (root) index directory path
+   * @throws LukeException - if an internal error is occurred when accessing index
+   */
+  public OverviewImpl(@Nonnull IndexReader reader, @Nonnull String indexPath) {
+    super(reader);
     this.indexPath = indexPath;
-    this.termCounts.reset(reader);
-    this.topTerms.reset(reader);
+    try {
+      this.termCounts = new TermCounts(reader);
+    } catch (IOException e) {
+      throw new LukeException("An error occurred when collecting term statistics.");
+    }
+    this.topTerms = new TopTerms(reader);
   }
 
   @Override
@@ -63,33 +62,27 @@ public class OverviewImpl extends BaseModel implements Overview {
   }
 
   @Override
-  public Integer getNumFields() {
+  public int getNumFields() {
     return IndexUtils.getFieldInfos(reader).size();
   }
 
   @Override
-  public Integer getNumDocuments() {
+  public int getNumDocuments() {
     return reader.numDocs();
   }
 
   @Override
-  public Long getNumTerms() throws LukeException {
-    try {
-      return termCounts.numTerms();
-    } catch (IOException e) {
-      String msg = "Num terms not available";
-      logger.error(msg, e);
-      throw new LukeException(msg, e);
-    }
+  public long getNumTerms() {
+    return termCounts.numTerms();
   }
 
   @Override
-  public Boolean hasDeletions() {
+  public boolean hasDeletions() {
     return reader.hasDeletions();
   }
 
   @Override
-  public Integer getNumDeletedDocs() {
+  public int getNumDeletedDocs() {
     return reader.numDeletedDocs();
   }
 
@@ -110,74 +103,65 @@ public class OverviewImpl extends BaseModel implements Overview {
   }
 
   @Override
-  public String getIndexFormat() throws LukeException {
+  public Optional<String> getIndexFormat() {
     if (dir == null) {
-      return "Index format not available.";
+      return Optional.empty();
     }
     try {
-      return IndexUtils.getIndexFormat(dir);
+      return Optional.of(IndexUtils.getIndexFormat(dir));
     } catch (IOException e) {
-      String msg = "Index format not available.";
-      logger.error(msg, e);
-      throw new LukeException(msg, e);
+      throw new LukeException("Index format not available.", e);
     }
   }
 
   @Override
-  public String getDirImpl() {
+  public Optional<String> getDirImpl() {
     if (dir == null) {
-      return "";
+      return Optional.empty();
     }
-    return dir.getClass().getName();
+    return Optional.of(dir.getClass().getName());
   }
 
   @Override
   public Optional<String> getCommitDescription() {
-    if (commit != null) {
-      return Optional.of(
-          commit.getSegmentsFileName()
-              + " (generation=" + commit.getGeneration()
-              + ", segs=" + commit.getSegmentCount() + ")");
+    if (commit == null) {
+      return Optional.empty();
     }
-    return Optional.empty();
+    return Optional.of(
+        commit.getSegmentsFileName()
+            + " (generation=" + commit.getGeneration()
+            + ", segs=" + commit.getSegmentCount() + ")");
   }
 
   @Override
-  public Optional<String> getCommitUserData() throws LukeException {
-    if (commit != null) {
-      try {
-        return Optional.of(IndexUtils.getCommitUserData(commit));
-      } catch (IOException e) {
-        String msg = "Commit user data not available.";
-        logger.error(msg, e);
-        throw new LukeException(msg, e);
-      }
-    }
-    return Optional.empty();
-  }
-
-  @Override
-  public Map<String, Long> getSortedTermCounts(@Nullable TermCounts.Order order) throws LukeException {
-    if (order == null) {
-      order = TermCounts.Order.COUNT_DESC;
+  public Optional<String> getCommitUserData() {
+    if (commit == null) {
+      return Optional.empty();
     }
     try {
-      return termCounts.sortedTermCounts(order);
+      return Optional.of(IndexUtils.getCommitUserData(commit));
     } catch (IOException e) {
-      String msg = "Term counts not available.";
-      logger.error(msg, e);
-      throw new LukeException(msg, e);
+      throw new LukeException("Commit user data not available.", e);
     }
   }
 
   @Override
-  public List<TermStats> getTopTerms(@Nonnull String field, int numTerms) throws LukeException {
+  public Map<String, Long> getSortedTermCounts(@Nullable TermCountsOrder order) {
+    if (order == null) {
+      order = TermCountsOrder.COUNT_DESC;
+    }
+    return termCounts.sortedTermCounts(order);
+  }
+
+  @Override
+  public List<TermStats> getTopTerms(@Nonnull String field, int numTerms) {
+    if (numTerms < 0) {
+      throw new IllegalArgumentException(String.format("'numTerms' must be a positive integer: %d is not accepted.", numTerms));
+    }
     try {
       return topTerms.getTopTerms(field, numTerms);
     } catch (Exception e) {
-      String msg = "Top terms not available.";
-      logger.error(msg, e);
-      throw new LukeException(msg, e);
+      throw new LukeException(String.format("Top terms for field %s not available.", field), e);
     }
   }
 

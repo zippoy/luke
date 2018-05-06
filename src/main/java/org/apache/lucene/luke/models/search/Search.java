@@ -18,7 +18,6 @@
 package org.apache.lucene.luke.models.search;
 
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.luke.models.LukeException;
 import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.Query;
@@ -30,35 +29,128 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * A dedicated interface for Luke's Search tab.
+ */
 public interface Search {
 
-  void reset(IndexReader reader) throws LukeException;
-
+  /**
+   * Returns all field names in this index.
+   */
   Collection<String> getFieldNames();
 
+  /**
+   * Returns field names those are sortable.
+   */
   Collection<String> getSortableFieldNames();
 
+  /**
+   * Returns field names those are searchable.
+   */
   Collection<String> getSearchableFieldNames();
 
+  /**
+   * Returns field names those are searchable by range query.
+   */
   Collection<String> getRangeSearchableFieldNames();
 
+  /**
+   * Returns the current query.
+   */
   Query getCurrentQuery();
 
-  Query parseQuery(String expression, String defField, Analyzer analyzer, QueryParserConfig config, boolean rewrite) throws LukeException;
+  /**
+   * Parses the specified query expression with given configurations.
+   *
+   * @param expression - query expression
+   * @param defField - default field for the query
+   * @param analyzer - analyzer for parsing query expression
+   * @param config - query parser configuration
+   * @param rewrite - if true, re-written query is returned
+   * @return parsed query
+   * @throws LukeException - if an internal error occurs when accessing index
+   */
+  Query parseQuery(String expression, String defField, Analyzer analyzer, QueryParserConfig config, boolean rewrite);
 
-  Query mltQuery(int docNum, MLTConfig mltConfig, Analyzer analyzer) throws LukeException;
+  /**
+   * Creates the MoreLikeThis query for the specified document with given configurations.
+   *
+   * @param docid - document id
+   * @param mltConfig - MoreLikeThis configuration
+   * @param analyzer - analyzer for analyzing the document
+   * @return MoreLikeThis query
+   * @throws LukeException - if an internal error occurs when accessing index
+   */
+  Query mltQuery(int docid, MLTConfig mltConfig, Analyzer analyzer);
 
-  Optional<SearchResults> search(Query query, SimilarityConfig simConfig, Set<String> fieldsToLoad, int pageSize) throws LukeException;
+  /**
+   * Searches this index by the query with given configurations.
+   *
+   * @param query - search query
+   * @param simConfig - similarity configuration
+   * @param fieldsToLoad - field names to load
+   * @param pageSize - page size
+   * @return search results
+   * @throws LukeException - if an internal error occurs when accessing index
+   */
+  SearchResults search(Query query, SimilarityConfig simConfig, Set<String> fieldsToLoad, int pageSize);
 
-  Optional<SearchResults> search(Query query, SimilarityConfig simConfig, Sort sort, Set<String> fieldsToLoad, int pageSize) throws LukeException;
+  /**
+   * Searches this index by the query with given sort criteria and configurations.
+   *
+   * @param query - search query
+   * @param simConfig - similarity configuration
+   * @param sort - sort criteria
+   * @param fieldsToLoad - fields to load
+   * @param pageSize - page size
+   * @return search results
+   * @throws LukeException - if an internal error occurs when accessing index
+   */
+  SearchResults search(Query query, SimilarityConfig simConfig, Sort sort, Set<String> fieldsToLoad, int pageSize);
 
-  Optional<SearchResults> nextPage() throws LukeException;
+  /**
+   * Returns the next page for the current query.
+   *
+   * @return search results, or empty if there are no more results
+   * @throws LukeException - if an internal error occurs when accessing index
+   */
+  Optional<SearchResults> nextPage();
 
-  Optional<SearchResults> prevPage() throws LukeException;
+  /**
+   * Returns the previous page for the current query.
+   *
+   * @return search results, or empty if there are no more results.
+   * @throws LukeException - if an internal error occurs when accessing index
+   */
+  Optional<SearchResults> prevPage();
 
-  Explanation explain(Query query, int doc) throws LukeException;
+  /**
+   * Explains the document for the specified query.
+   *
+   * @param query - query
+   * @param docid - document id to be explained
+   * @return explanations
+   * @throws LukeException - if an internal error occurs when accessing index
+   */
+  Explanation explain(Query query, int docid);
 
-  List<SortField> guessSortTypes(String name) throws LukeException;
+  /**
+   * Returns possible {@link SortField}s for the specified field.
+   *
+   * @param name - field name
+   * @return list of possible sort types
+   * @throws LukeException - if an internal error occurs when accessing index
+   */
+  List<SortField> guessSortTypes(String name);
 
-  Optional<SortField> getSortType(String name, String type, boolean reverse) throws LukeException;
+  /**
+   * Returns the {@link SortField} for the specified field with the sort type and order.
+   *
+   * @param name - field name
+   * @param type - string representation for a type
+   * @param reverse - if true, descending order is used
+   * @return sort type, or empty if the type is incompatible with the field
+   * @throws LukeException - if an internal error occurs when accessing index
+   */
+  Optional<SortField> getSortType(String name, String type, boolean reverse);
 }

@@ -17,6 +17,7 @@
 
 package org.apache.lucene.luke.models.analysis;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.custom.CustomAnalyzer;
@@ -49,23 +50,33 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
-public class AnalysisImpl implements Analysis {
+public final class AnalysisImpl implements Analysis {
 
   private static final Logger logger = LoggerFactory.getLogger(AnalysisImpl.class);
 
-  private List<Class<? extends Analyzer>> presetAnalyzerTypes;
+  private final List<Class<? extends Analyzer>> presetAnalyzerTypes;
 
   private Analyzer analyzer;
 
-  Analyzer getAnalyzer() {
-    return this.analyzer;
+  public AnalysisImpl() {
+    presetAnalyzerTypes = new ArrayList<>();
+    for (Class<? extends Analyzer> clazz : getInstantiableSubTypesBuiltIn(Analyzer.class)) {
+      try {
+        // add to presets if no args constructor is available
+        clazz.getConstructor();
+        presetAnalyzerTypes.add(clazz);
+      } catch (NoSuchMethodException e) {
+      }
+    }
   }
 
   @Override
-  public void addExternalJars(List<String> jarFiles) throws LukeException {
+  public void addExternalJars(List<String> jarFiles) {
     List<URL> urls = new ArrayList<>();
+
     for (String jarFile : jarFiles) {
       Path path = FileSystems.getDefault().getPath(jarFile);
       if (!Files.exists(path) || !jarFile.endsWith(".jar")) {
@@ -78,6 +89,7 @@ public class AnalysisImpl implements Analysis {
       }
     }
 
+    // reload available tokenizers, charfilters, and tokenfilters
     URLClassLoader classLoader = new URLClassLoader(
         urls.toArray(new URL[urls.size()]), ClassLoader.getSystemClassLoader());
     CharFilterFactory.reloadCharFilters(classLoader);
@@ -87,18 +99,7 @@ public class AnalysisImpl implements Analysis {
 
   @Override
   public Collection<Class<? extends Analyzer>> getPresetAnalyzerTypes() {
-    if (presetAnalyzerTypes == null) {
-      presetAnalyzerTypes = new ArrayList<>();
-      for (Class<? extends Analyzer> clazz : getInstantiableSubTypesBuiltIn(Analyzer.class)) {
-        try {
-          // add to presets if no args constructor is available
-          clazz.getConstructor();
-          presetAnalyzerTypes.add(clazz);
-        } catch (NoSuchMethodException e) {
-        }
-      }
-    }
-    return presetAnalyzerTypes;
+    return ImmutableList.copyOf(presetAnalyzerTypes);
   }
 
   @Override
@@ -138,33 +139,35 @@ public class AnalysisImpl implements Analysis {
   }
 
   @Override
-  public List<Token> analyze(@Nonnull String text) throws LukeException {
+  public List<Token> analyze(@Nonnull String text) {
     if (analyzer == null) {
       throw new LukeException("Analyzer is not set.");
     }
 
-    List<Token> result = new ArrayList<>();
     try {
+      List<Token> result = new ArrayList<>();
+
       TokenStream stream = analyzer.tokenStream("", text);
       stream.reset();
 
       CharTermAttribute charAtt = stream.getAttribute(CharTermAttribute.class);
+
+      // iterate tokens
       while (stream.incrementToken()) {
-        Token token = new Token();
-        token.term = charAtt.toString();
+        List<TokenAttribute> attributes = new ArrayList<>();
         Iterator<AttributeImpl> itr = stream.getAttributeImplsIterator();
+
         while (itr.hasNext()) {
           AttributeImpl att = itr.next();
-          TokenAttribute tokenAtt = new TokenAttribute();
-          tokenAtt.attClass = att.getClass().getSimpleName();
-          tokenAtt.attValues = new LinkedHashMap<>();
+          Map<String, String> attValues = new LinkedHashMap<>();
           att.reflectWith((attClass, key, value) -> {
             if (value != null)
-              tokenAtt.attValues.put(key, value.toString());
+              attValues.put(key, value.toString());
           });
-          token.attributes.add(tokenAtt);
+          attributes.add(new TokenAttribute(att.getClass().getSimpleName(), attValues));
         }
-        result.add(token);
+
+        result.add(new Token(charAtt.toString(), attributes));
       }
       stream.close();
 
@@ -175,20 +178,18 @@ public class AnalysisImpl implements Analysis {
   }
 
   @Override
-  public Analyzer createAnalyzerFromClassName(@Nonnull String analyzerType) throws LukeException {
+  public Analyzer createAnalyzerFromClassName(@Nonnull String analyzerType) {
     try {
       Class<? extends Analyzer> clazz = Class.forName(analyzerType).asSubclass(Analyzer.class);
       this.analyzer = clazz.newInstance();
       return analyzer;
     } catch (ReflectiveOperationException e) {
-      String errMsg = String.format("Failed to instantiate class: %s", analyzerType);
-      logger.error(errMsg, e);
-      throw new LukeException(errMsg, e);
+      throw new LukeException(String.format("Failed to instantiate class: %s", analyzerType), e);
     }
   }
 
   @Override
-  public CustomAnalyzer buildCustomAnalyzer(@Nonnull CustomAnalyzerConfig config) throws LukeException {
+  public Analyzer buildCustomAnalyzer(@Nonnull CustomAnalyzerConfig config) {
     try {
       // create builder
       CustomAnalyzer.Builder builder = config.getConfigDir()
@@ -211,16 +212,14 @@ public class AnalysisImpl implements Analysis {
 
       // build analyzer
       this.analyzer = builder.build();
-      return (CustomAnalyzer) analyzer;
+      return analyzer;
     } catch (Exception e) {
-      String errMsg = "Failed to build custom analyzer. " + e.getMessage();
-      logger.error(errMsg, e);
-      throw new LukeException(errMsg, e);
+      throw new LukeException("Failed to build custom analyzer.", e);
     }
   }
 
   @Override
-  public Analyzer currentAnalyzer() throws LukeException {
+  public Analyzer currentAnalyzer() {
     if (analyzer == null) {
       throw new LukeException("Analyzer is not set.");
     }

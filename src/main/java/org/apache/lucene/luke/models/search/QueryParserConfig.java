@@ -17,6 +17,7 @@
 
 package org.apache.lucene.luke.models.search;
 
+import com.google.common.collect.ImmutableMap;
 import org.apache.lucene.document.DateTools;
 
 import java.util.HashMap;
@@ -25,148 +26,203 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
 
-public class QueryParserConfig {
+/**
+ * Configurations for query parser.
+ */
+public final class QueryParserConfig {
 
   public enum Operator {
     AND, OR
   }
 
-  private boolean useClassicParser = true;
+  private final boolean useClassicParser;
 
-  private boolean enablePositionIncrements = true;
+  private final boolean enablePositionIncrements;
 
-  private boolean allowLeadingWildcard = false;
+  private final boolean allowLeadingWildcard;
 
-  private DateTools.Resolution dateResolution = DateTools.Resolution.MILLISECOND;
+  private final DateTools.Resolution dateResolution;
 
-  private Operator defaultOperator = Operator.OR;
+  private final Operator defaultOperator;
 
-  private float fuzzyMinSim = 2f;
+  private final float fuzzyMinSim;
 
-  private int fuzzyPrefixLength = 0;
+  private final int fuzzyPrefixLength;
 
-  private Locale locale = Locale.getDefault();
+  private final Locale locale;
 
-  private TimeZone timeZone = TimeZone.getDefault();
+  private final TimeZone timeZone;
 
-  private int phraseSlop = 0;
+  private final int phraseSlop;
 
   // classic parser only configurations
-  private boolean autoGenerateMultiTermSynonymsPhraseQuery = false;
+  private final boolean autoGenerateMultiTermSynonymsPhraseQuery;
 
-  private boolean autoGeneratePhraseQueries = false;
+  private final boolean autoGeneratePhraseQueries;
 
-  private boolean splitOnWhitespace = false;
+  private final boolean splitOnWhitespace;
 
   // standard parser only configurations
-  private Map<String, Class<? extends Number>> typeMap = new HashMap<>();
+  private final Map<String, Class<? extends Number>> typeMap;
+
+  public static class Builder {
+    private boolean useClassicParser = true;
+    private boolean enablePositionIncrements = true;
+    private boolean allowLeadingWildcard = false;
+    private DateTools.Resolution dateResolution = DateTools.Resolution.MILLISECOND;
+    private Operator defaultOperator = Operator.OR;
+    private float fuzzyMinSim = 2f;
+    private int fuzzyPrefixLength = 0;
+    private Locale locale = Locale.getDefault();
+    private TimeZone timeZone = TimeZone.getDefault();
+    private int phraseSlop = 0;
+    private boolean autoGenerateMultiTermSynonymsPhraseQuery = false;
+    private boolean autoGeneratePhraseQueries = false;
+    private boolean splitOnWhitespace = false;
+    private Map<String, Class<? extends Number>> typeMap = new HashMap<>();
+
+    public Builder useClassicParser(boolean value) {
+      useClassicParser = value;
+      return this;
+    }
+
+    public Builder enablePositionIncrements(boolean value) {
+      enablePositionIncrements = value;
+      return this;
+    }
+
+    public Builder allowLeadingWildcard(boolean value) {
+      allowLeadingWildcard = value;
+      return this;
+    }
+
+    public Builder dateResolution(DateTools.Resolution value) {
+      dateResolution = value;
+      return this;
+    }
+
+    public Builder defaultOperator(Operator op) {
+      defaultOperator = op;
+      return this;
+    }
+
+    public Builder fuzzyMinSim(float val) {
+      fuzzyMinSim = val;
+      return this;
+    }
+
+    public Builder fuzzyPrefixLength(int val) {
+      fuzzyPrefixLength = val;
+      return this;
+    }
+
+    public Builder locale(Locale val) {
+      locale = val;
+      return this;
+    }
+
+    public Builder timeZone(TimeZone val) {
+      timeZone = val;
+      return this;
+    }
+
+    public Builder phraseSlop(int val) {
+      phraseSlop = val;
+      return this;
+    }
+
+    public Builder autoGenerateMultiTermSynonymsPhraseQuery(boolean val) {
+      autoGenerateMultiTermSynonymsPhraseQuery = val;
+      return this;
+    }
+
+    public Builder autoGeneratePhraseQueries(boolean val) {
+      autoGeneratePhraseQueries = val;
+      return this;
+    }
+
+    public Builder splitOnWhitespace(boolean val) {
+      splitOnWhitespace = val;
+      return this;
+    }
+
+    public Builder typeMap(Map<String, Class<? extends Number>> val) {
+      typeMap = val;
+      return this;
+    }
+
+    public QueryParserConfig build() {
+      return new QueryParserConfig(this);
+    }
+  }
+
+  private QueryParserConfig(Builder builder) {
+    this.useClassicParser = builder.useClassicParser;
+    this.enablePositionIncrements = builder.enablePositionIncrements;
+    this.allowLeadingWildcard = builder.allowLeadingWildcard;
+    this.dateResolution = builder.dateResolution;
+    this.defaultOperator = builder.defaultOperator;
+    this.fuzzyMinSim = builder.fuzzyMinSim;
+    this.fuzzyPrefixLength = builder.fuzzyPrefixLength;
+    this.locale = builder.locale;
+    this.timeZone = builder.timeZone;
+    this.phraseSlop = builder.phraseSlop;
+    this.autoGenerateMultiTermSynonymsPhraseQuery = builder.autoGenerateMultiTermSynonymsPhraseQuery;
+    this.autoGeneratePhraseQueries = builder.autoGeneratePhraseQueries;
+    this.splitOnWhitespace = builder.splitOnWhitespace;
+    this.typeMap = ImmutableMap.copyOf(builder.typeMap);
+  }
 
   public boolean isUseClassicParser() {
     return useClassicParser;
-  }
-
-  public void setUseClassicParser(boolean useClassicParser) {
-    this.useClassicParser = useClassicParser;
   }
 
   public boolean isAutoGenerateMultiTermSynonymsPhraseQuery() {
     return autoGenerateMultiTermSynonymsPhraseQuery;
   }
 
-  public void setAutoGenerateMultiTermSynonymsPhraseQuery(boolean autoGenerateMultiTermSynonymsPhraseQuery) {
-    this.autoGenerateMultiTermSynonymsPhraseQuery = autoGenerateMultiTermSynonymsPhraseQuery;
-  }
-
   public boolean isEnablePositionIncrements() {
     return enablePositionIncrements;
-  }
-
-  public void setEnablePositionIncrements(boolean enablePositionIncrements) {
-    this.enablePositionIncrements = enablePositionIncrements;
   }
 
   public boolean isAllowLeadingWildcard() {
     return allowLeadingWildcard;
   }
 
-  public void setAllowLeadingWildcard(boolean allowLeadingWildcard) {
-    this.allowLeadingWildcard = allowLeadingWildcard;
-  }
-
   public boolean isAutoGeneratePhraseQueries() {
     return autoGeneratePhraseQueries;
-  }
-
-  public void setAutoGeneratePhraseQueries(boolean autoGeneratePhraseQueries) {
-    this.autoGeneratePhraseQueries = autoGeneratePhraseQueries;
   }
 
   public boolean isSplitOnWhitespace() {
     return splitOnWhitespace;
   }
 
-  public void setSplitOnWhitespace(boolean splitOnWhitespace) {
-    this.splitOnWhitespace = splitOnWhitespace;
-  }
-
   public DateTools.Resolution getDateResolution() {
     return dateResolution;
-  }
-
-  public void setDateResolution(DateTools.Resolution dateResolution) {
-    this.dateResolution = dateResolution;
   }
 
   public Operator getDefaultOperator() {
     return defaultOperator;
   }
 
-  public void setDefaultOperator(Operator defaultOperator) {
-    this.defaultOperator = defaultOperator;
-  }
-
   public float getFuzzyMinSim() {
     return fuzzyMinSim;
-  }
-
-  public void setFuzzyMinSim(float fuzzyMinSim) {
-    this.fuzzyMinSim = fuzzyMinSim;
   }
 
   public int getFuzzyPrefixLength() {
     return fuzzyPrefixLength;
   }
 
-  public void setFuzzyPrefixLength(int fuzzyPrefixLength) {
-    this.fuzzyPrefixLength = fuzzyPrefixLength;
-  }
-
   public Locale getLocale() {
     return locale;
-  }
-
-  public void setLocale(Locale locale) {
-    this.locale = locale;
   }
 
   public TimeZone getTimeZone() {
     return timeZone;
   }
 
-  public void setTimeZone(TimeZone timeZone) {
-    this.timeZone = timeZone;
-  }
-
   public int getPhraseSlop() {
     return phraseSlop;
-  }
-
-  public void setPhraseSlop(int phraseSlop) {
-    this.phraseSlop = phraseSlop;
-  }
-
-  public void setTypeMap(Map<String, Class<? extends Number>> typeMap) {
-    this.typeMap = typeMap;
   }
 
   public Map<String, Class<? extends Number>> getTypeMap() {

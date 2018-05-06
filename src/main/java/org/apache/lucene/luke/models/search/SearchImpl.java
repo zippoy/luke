@@ -17,14 +17,14 @@
 
 package org.apache.lucene.luke.models.search;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.google.inject.Inject;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.index.DocValuesType;
 import org.apache.lucene.index.FieldInfo;
 import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.luke.models.BaseModel;
+import org.apache.lucene.luke.models.LukeModel;
 import org.apache.lucene.luke.models.LukeException;
 import org.apache.lucene.luke.util.IndexUtils;
 import org.apache.lucene.queries.mlt.MoreLikeThis;
@@ -64,21 +64,21 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class SearchImpl extends BaseModel implements Search {
+public final class SearchImpl extends LukeModel implements Search {
 
   private static final Logger logger = LoggerFactory.getLogger(SearchImpl.class);
 
   private static final int DEFAULT_PAGE_SIZE = 10;
 
-  private IndexSearcher searcher;
+  private final IndexSearcher searcher;
 
-  private int pageSize;
+  private int pageSize = DEFAULT_PAGE_SIZE;
 
-  private int currentPage;
+  private int currentPage = -1;
 
-  private long totalHits;
+  private long totalHits = -1;
 
-  private ScoreDoc[] docs;
+  private ScoreDoc[] docs = new ScoreDoc[0];
 
   private Query query;
 
@@ -86,24 +86,18 @@ public class SearchImpl extends BaseModel implements Search {
 
   private Set<String> fieldsToLoad;
 
-  @Inject
-  public SearchImpl() {
-    pageSize = DEFAULT_PAGE_SIZE;
-    currentPage = -1;
-    totalHits = -1;
-    docs = new ScoreDoc[0];
-  }
-
-  @Override
-  public void reset(IndexReader reader) throws LukeException {
-    super.reset(reader);
+  /**
+   * Constructs a SearchImpl that holds given {@link IndexReader}
+   * @param reader - the index reader
+   */
+  public SearchImpl(@Nonnull IndexReader reader) {
+    super(reader);
     this.searcher = new IndexSearcher(reader);
   }
 
   @Override
   public Collection<String> getSortableFieldNames() {
-    Collection<String> fields = IndexUtils.getFieldNames(reader);
-    return fields.stream()
+    return IndexUtils.getFieldNames(reader).stream()
         .map(f -> IndexUtils.getFieldInfo(reader, f))
         .filter(info -> !info.getDocValuesType().equals(DocValuesType.NONE))
         .map(info -> info.name)
@@ -112,8 +106,7 @@ public class SearchImpl extends BaseModel implements Search {
 
   @Override
   public Collection<String> getSearchableFieldNames() {
-    Collection<String> fields = IndexUtils.getFieldNames(reader);
-    return fields.stream()
+    return IndexUtils.getFieldNames(reader).stream()
         .map(f -> IndexUtils.getFieldInfo(reader, f))
         .filter(info -> !info.getIndexOptions().equals(IndexOptions.NONE))
         .map(info -> info.name)
@@ -122,8 +115,7 @@ public class SearchImpl extends BaseModel implements Search {
 
   @Override
   public Collection<String> getRangeSearchableFieldNames() {
-    Collection<String> fields = IndexUtils.getFieldNames(reader);
-    return fields.stream()
+    return IndexUtils.getFieldNames(reader).stream()
         .map(f -> IndexUtils.getFieldInfo(reader, f))
         .filter(info -> info.getPointDimensionCount() > 0)
         .map(info -> info.name)
@@ -137,11 +129,7 @@ public class SearchImpl extends BaseModel implements Search {
 
   @Override
   public Query parseQuery(@Nonnull String expression, @Nonnull String defField, @Nonnull Analyzer analyzer,
-                          @Nonnull QueryParserConfig config, boolean rewrite) throws LukeException {
-    //logger.debug("expression=" + expression);
-    //logger.debug("defField=" + defField);
-    //logger.debug("parser config=" + config.toString());
-    //logger.debug("rewrite=" + rewrite);
+                          @Nonnull QueryParserConfig config, boolean rewrite) {
 
     Query query = config.isUseClassicParser() ?
         parseByClassicParser(expression, defField, analyzer, config) :
@@ -151,9 +139,7 @@ public class SearchImpl extends BaseModel implements Search {
       try {
         query = query.rewrite(reader);
       } catch (IOException e) {
-        String msg = "Failed to rewrite query: " + query.toString();
-        logger.error(msg, e);
-        throw new LukeException(msg, e);
+        throw new LukeException(String.format("Failed to rewrite query: %s", query.toString()), e);
       }
     }
 
@@ -161,7 +147,7 @@ public class SearchImpl extends BaseModel implements Search {
   }
 
   private Query parseByClassicParser(@Nonnull String expression, @Nonnull String defField, @Nonnull Analyzer analyzer,
-                                     @Nonnull QueryParserConfig config) throws LukeException {
+                                     @Nonnull QueryParserConfig config) {
     QueryParser parser = new QueryParser(defField, analyzer);
 
     switch (config.getDefaultOperator()) {
@@ -188,15 +174,13 @@ public class SearchImpl extends BaseModel implements Search {
     try {
       return parser.parse(expression);
     } catch (ParseException e) {
-      String msg = "Failed to parser query expression: " + expression;
-      logger.error(msg, e);
-      throw new LukeException(msg, e);
+      throw new LukeException(String.format("Failed to parse query expression: %s", expression), e);
     }
 
   }
 
   private Query parseByStandardParser(@Nonnull String expression, @Nonnull String defField, @Nonnull Analyzer analyzer,
-                                      @Nonnull QueryParserConfig config) throws LukeException {
+                                      @Nonnull QueryParserConfig config) {
     StandardQueryParser parser = new StandardQueryParser(analyzer);
 
     switch (config.getDefaultOperator()) {
@@ -219,6 +203,7 @@ public class SearchImpl extends BaseModel implements Search {
 
     if (config.getTypeMap() != null) {
       Map<String, PointsConfig> pointsConfigMap = new HashMap<>();
+
       for (Map.Entry<String, Class<? extends Number>> entry : config.getTypeMap().entrySet()) {
         String field = entry.getKey();
         Class<? extends Number> type = entry.getValue();
@@ -233,83 +218,101 @@ public class SearchImpl extends BaseModel implements Search {
         }
         pointsConfigMap.put(field, pc);
       }
+
       parser.setPointsConfigMap(pointsConfigMap);
     }
 
     try {
       return parser.parse(expression, defField);
     } catch (QueryNodeException e) {
-      String msg = "Failed to parser query expression: " + expression;
-      logger.error(msg, e);
-      throw new LukeException(msg, e);
+      throw new LukeException(String.format("Failed to parse query expression: %s", expression), e);
     }
 
   }
 
   @Override
-  public Query mltQuery(int docNum, MLTConfig mltConfig, Analyzer analyzer) throws LukeException {
+  public Query mltQuery(int docid, MLTConfig mltConfig, Analyzer analyzer) {
     MoreLikeThis mlt = new MoreLikeThis(reader);
+
     mlt.setAnalyzer(analyzer);
     mlt.setFieldNames(mltConfig.getFieldNames());
     mlt.setMinDocFreq(mltConfig.getMinDocFreq());
     mlt.setMaxDocFreq(mltConfig.getMaxDocFreq());
     mlt.setMinTermFreq(mltConfig.getMinTermFreq());
+
     try {
-      return mlt.like(docNum);
+      return mlt.like(docid);
     } catch (IOException e) {
-      throw new LukeException("Failed to create MLT query for doc: " + docNum);
+      throw new LukeException("Failed to create MLT query for doc: " + docid);
     }
   }
 
   @Override
-  public Optional<SearchResults> search(
-      @Nonnull Query query, @Nonnull SimilarityConfig simConfig, @Nullable Set<String> fieldsToLoad, int pageSize)
-      throws LukeException {
+  public SearchResults search(
+      @Nonnull Query query, @Nonnull SimilarityConfig simConfig, @Nullable Set<String> fieldsToLoad, int pageSize) {
     return search(query, simConfig, null, fieldsToLoad, pageSize);
   }
 
   @Override
-  public Optional<SearchResults> search(
-      @Nonnull Query query, @Nonnull SimilarityConfig simConfig, @Nullable Sort sort, @Nullable Set<String> fieldsToLoad, int pageSize)
-      throws LukeException {
+  public SearchResults search(
+      @Nonnull Query query, @Nonnull SimilarityConfig simConfig, @Nullable Sort sort, @Nullable Set<String> fieldsToLoad, int pageSize) {
     if (pageSize < 0) {
       throw new LukeException(new IllegalArgumentException("Negative integer is not acceptable for page size."));
     }
 
+    // reset internal status to prepare for a new search session
     this.docs = new ScoreDoc[0];
     this.currentPage = 0;
     this.pageSize = pageSize;
     this.query = query;
     this.sort = sort;
-    this.fieldsToLoad = fieldsToLoad;
-
-    //logger.debug("query=" + query);
-    //logger.debug("pageSize=" + pageSize);
-    //logger.debug("similarity config=" + simConfig.toString());
-    //logger.debug("sort=" + (sort == null ? "(null)" : sort.toString()));
-    //logger.debug("fields=" + fieldsToLoad);
-
+    this.fieldsToLoad = fieldsToLoad == null ? null : ImmutableSet.copyOf(fieldsToLoad);
     searcher.setSimilarity(createSimilarity(simConfig));
 
     try {
-      return Optional.of(search());
+      return search();
     } catch (IOException e) {
-      logger.error("Search Failed.", e);
+      throw new LukeException("Search Failed.", e);
     }
-    return Optional.empty();
+  }
+
+  private SearchResults search() throws IOException {
+    // execute search
+    ScoreDoc after = docs.length == 0 ? null : docs[docs.length - 1];
+    TopDocs topDocs = sort == null ?
+        searcher.searchAfter(after, query, pageSize) :
+        searcher.searchAfter(after, query, pageSize, sort);
+
+    // reset total hits for the current query
+    this.totalHits = topDocs.totalHits;
+
+    // cache search results for later use
+    ScoreDoc[] newDocs = new ScoreDoc[docs.length + topDocs.scoreDocs.length];
+    System.arraycopy(docs, 0, newDocs, 0, docs.length);
+    System.arraycopy(topDocs.scoreDocs, 0, newDocs, docs.length, topDocs.scoreDocs.length);
+    this.docs = newDocs;
+
+    return SearchResults.of(topDocs.totalHits, topDocs.scoreDocs, currentPage * pageSize, searcher, fieldsToLoad);
   }
 
   @Override
-  public Optional<SearchResults> nextPage() throws LukeException {
+  public Optional<SearchResults> nextPage() {
     if (currentPage < 0 || query == null) {
       throw new LukeException(new IllegalStateException("Search session not started."));
     }
+
+    // proceed to next page
     currentPage += 1;
+
     if (totalHits == 0 || currentPage * pageSize >= totalHits) {
-      throw new LukeException(new IllegalStateException("No more next search results are available."));
+      logger.warn("No more next search results are available.");
+      return Optional.empty();
     }
+
     try {
+
       if (currentPage * pageSize < docs.length) {
+        // if cached results exist, return that.
         int from = currentPage * pageSize;
         int to = Math.min(from + pageSize, docs.length);
         ScoreDoc[] part = Arrays.copyOfRange(docs, from, to);
@@ -317,49 +320,41 @@ public class SearchImpl extends BaseModel implements Search {
       } else {
         return Optional.of(search());
       }
+
     } catch (IOException e) {
-      logger.error("Search failed.", e);
+      throw new LukeException("Search Failed.", e);
     }
-    return Optional.empty();
   }
 
-  private SearchResults search() throws IOException {
-    ScoreDoc after = docs.length == 0 ? null : docs[docs.length - 1];
-    TopDocs topDocs = sort == null ?
-        searcher.searchAfter(after, query, pageSize) :
-        searcher.searchAfter(after, query, pageSize, sort);
-    ScoreDoc[] newDocs = new ScoreDoc[docs.length + topDocs.scoreDocs.length];
-    System.arraycopy(docs, 0, newDocs, 0, docs.length);
-    System.arraycopy(topDocs.scoreDocs, 0, newDocs, docs.length, topDocs.scoreDocs.length);
-
-    this.totalHits = topDocs.totalHits;
-    this.docs = newDocs;
-
-    return SearchResults.of(topDocs.totalHits, topDocs.scoreDocs, currentPage * pageSize, searcher, fieldsToLoad);
-  }
 
   @Override
-  public Optional<SearchResults> prevPage() throws LukeException {
+  public Optional<SearchResults> prevPage() {
     if (currentPage < 0 || query == null) {
       throw new LukeException(new IllegalStateException("Search session not started."));
     }
+
+    // return to previous page
     currentPage -= 1;
+
     if (currentPage < 0) {
-      throw new LukeException(new IllegalStateException("No more previous search results are available."));
+      logger.warn("No more previous search results are available.");
+      return Optional.empty();
     }
+
     try {
+      // there should be cached results for this page
       int from = currentPage * pageSize;
       int to = Math.min(from + pageSize, docs.length);
       ScoreDoc[] part = Arrays.copyOfRange(docs, from, to);
       return Optional.of(SearchResults.of(totalHits, part, from, searcher, fieldsToLoad));
     } catch (IOException e) {
-      logger.error("Search failed.", e);
+      throw new LukeException("Search Failed.", e);
     }
-    return Optional.empty();
   }
 
   private Similarity createSimilarity(@Nonnull SimilarityConfig config) {
     Similarity similarity;
+
     if (config.isUseClassicSimilarity()) {
       ClassicSimilarity tfidf = new ClassicSimilarity();
       tfidf.setDiscountOverlaps(config.isDiscountOverlaps());
@@ -369,52 +364,60 @@ public class SearchImpl extends BaseModel implements Search {
       bm25.setDiscountOverlaps(config.isDiscountOverlaps());
       similarity = bm25;
     }
+
     return similarity;
   }
 
   @Override
-  public List<SortField> guessSortTypes(String name) throws LukeException {
+  public List<SortField> guessSortTypes(String name) {
     FieldInfo finfo = IndexUtils.getFieldInfo(reader, name);
     if (finfo == null) {
       throw new LukeException("No such field: " + name, new IllegalArgumentException());
     }
+
     DocValuesType dvType = finfo.getDocValuesType();
+
     switch (dvType) {
       case NONE:
         return Collections.emptyList();
+
       case NUMERIC:
         return Lists.newArrayList(
             new SortField(name, SortField.Type.INT),
             new SortField(name, SortField.Type.LONG),
             new SortField(name, SortField.Type.FLOAT),
             new SortField(name, SortField.Type.DOUBLE));
+
       case SORTED_NUMERIC:
         return Lists.newArrayList(
             new SortedNumericSortField(name, SortField.Type.INT),
             new SortedNumericSortField(name, SortField.Type.LONG),
             new SortedNumericSortField(name, SortField.Type.FLOAT),
-            new SortedNumericSortField(name, SortField.Type.DOUBLE)
-        );
+            new SortedNumericSortField(name, SortField.Type.DOUBLE));
+
       case SORTED:
         return Lists.newArrayList(
             new SortField(name, SortField.Type.STRING),
-            new SortField(name, SortField.Type.STRING_VAL)
-        );
+            new SortField(name, SortField.Type.STRING_VAL));
+
       case SORTED_SET:
         return Collections.singletonList(new SortedSetSortField(name, false));
+
       default:
         return Collections.singletonList(new SortField(name, SortField.Type.DOC));
     }
+
   }
 
   @Override
-  public Optional<SortField> getSortType(@Nonnull String name, @Nonnull String type, boolean reverse)
-      throws LukeException {
+  public Optional<SortField> getSortType(@Nonnull String name, @Nonnull String type, boolean reverse) {
     List<SortField> candidates = guessSortTypes(name);
     if (candidates.isEmpty()) {
       logger.warn(String.format("No available sort types for: %s", name));
       return Optional.empty();
     }
+
+    // TODO should be refactored...
     for (SortField sf : candidates) {
       if (sf instanceof SortedSetSortField) {
         return Optional.of(new SortedSetSortField(sf.getField(), reverse));
@@ -434,13 +437,11 @@ public class SearchImpl extends BaseModel implements Search {
   }
 
   @Override
-  public Explanation explain(Query query, int doc) throws LukeException {
+  public Explanation explain(Query query, int docid) {
     try {
-      return searcher.explain(query, doc);
+      return searcher.explain(query, docid);
     } catch (IOException e) {
-      String msg = String.format("Failed to create explanation for doc: %d against query: \"%s\"", doc, query.toString());
-      logger.error(msg, e);
-      throw new LukeException(msg, e);
+      throw new LukeException(String.format("Failed to create explanation for doc: %d for query: \"%s\"", docid, query.toString()), e);
     }
   }
 }

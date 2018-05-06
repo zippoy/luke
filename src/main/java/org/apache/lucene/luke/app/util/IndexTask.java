@@ -20,7 +20,6 @@ package org.apache.lucene.luke.app.util;
 import javafx.concurrent.Task;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.layout.Pane;
-import org.apache.lucene.luke.util.MessageUtils;
 
 public abstract class IndexTask<T> extends Task<T> {
 

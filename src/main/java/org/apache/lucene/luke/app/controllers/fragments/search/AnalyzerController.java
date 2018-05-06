@@ -28,13 +28,14 @@ import javafx.scene.layout.VBox;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.custom.CustomAnalyzer;
 import org.apache.lucene.luke.app.controllers.LukeController;
-import org.apache.lucene.luke.app.controllers.SearchController;
 
 import java.util.stream.Collectors;
 
 public class AnalyzerController {
 
   private static final int LISTVIEW_ROW_HEIGHT = 25;
+
+  private LukeController parent;
 
   @FXML
   private Label analyzerName;
@@ -69,12 +70,7 @@ public class AnalyzerController {
     tokenFilters.setItems(tokenFilterList);
   }
 
-  private LukeController parent;
-
-  private SearchController searchController;
-
-  public void setParent(SearchController searchController, LukeController parent) {
-    this.searchController = searchController;
+  public void setParent(LukeController parent) {
     this.parent = parent;
   }
 

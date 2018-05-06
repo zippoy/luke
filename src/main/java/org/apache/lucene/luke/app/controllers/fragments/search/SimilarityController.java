@@ -25,6 +25,8 @@ import org.apache.lucene.luke.models.search.SimilarityConfig;
 
 public class SimilarityController {
 
+  private SimilarityConfig config = new SimilarityConfig.Builder().build();
+
   @FXML
   private CheckBox useClassic;
 
@@ -39,8 +41,6 @@ public class SimilarityController {
 
   @FXML
   private void initialize() {
-    this.config = new SimilarityConfig();
-
     useClassic.setSelected(config.isUseClassicSimilarity());
     useClassic.setOnAction(e -> {
       if (useClassic.isSelected()) {
@@ -57,22 +57,26 @@ public class SimilarityController {
     bVal.setText(String.valueOf(config.getB()));
   }
 
-  private SimilarityConfig config;
-
   public SimilarityConfig getConfig() throws LukeException {
-    config.setUseClassicSimilarity(useClassic.isSelected());
-    config.setDiscountOverlaps(discountOverlaps.isSelected());
+    float k1;
     try {
-      config.setK1(Float.parseFloat(k1Val.getText()));
+      k1 = Float.parseFloat(k1Val.getText());
     } catch (NumberFormatException e) {
       throw new LukeException("Invalid input for k1: " + k1Val.getText());
     }
+
+    float b;
     try {
-      config.setB(Float.parseFloat(bVal.getText()));
+      b = Float.parseFloat(bVal.getText());
     } catch (NumberFormatException e) {
       throw new LukeException("Invalid input for b: " + bVal.getText());
     }
 
-    return config;
+    return new SimilarityConfig.Builder()
+        .useClassicSimilarity(useClassic.isSelected())
+        .discountOverlaps(discountOverlaps.isSelected())
+        .k1(k1)
+        .b(b)
+        .build();
   }
 }

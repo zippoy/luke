@@ -17,12 +17,13 @@
 
 package org.apache.lucene.luke.models.commits;
 
+import com.google.common.collect.ImmutableMap;
 import org.apache.lucene.codecs.Codec;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexCommit;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.SegmentInfos;
-import org.apache.lucene.luke.models.BaseModel;
+import org.apache.lucene.luke.models.LukeModel;
 import org.apache.lucene.luke.models.LukeException;
 import org.apache.lucene.store.Directory;
 import org.slf4j.Logger;
@@ -37,40 +38,61 @@ import java.util.Optional;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
-public class CommitsImpl extends BaseModel implements Commits {
+public final class CommitsImpl extends LukeModel implements Commits {
 
   private static final Logger logger = LoggerFactory.getLogger(CommitsImpl.class);
 
-  private String indexPath;
+  private final String indexPath;
 
-  private Map<Long, IndexCommit> commitMap;
+  private final Map<Long, IndexCommit> commitMap;
 
-  @Override
-  public void reset(Directory dir, String indexPath) {
-    super.reset(dir);
+  /**
+   * Constructs a CommitsImpl that holds given {@link Directory}.
+   *
+   * @param dir - the index directory
+   * @param indexPath - the path to index directory
+   */
+  public CommitsImpl(Directory dir, String indexPath) {
+    super(dir);
     this.indexPath = indexPath;
-    this.commitMap = null;
+    this.commitMap = initCommitMap();
+  }
+
+  /**
+   * Constructs a CommitsImpl that holds the {@link Directory} wrapped in the given {@link DirectoryReader}.
+   *
+   * @param reader - the index reader
+   * @param indexPath - the path to index directory
+   */
+  public CommitsImpl(DirectoryReader reader, String indexPath) {
+    super(reader.directory());
+    this.indexPath = indexPath;
+    this.commitMap = initCommitMap();
+  }
+
+  private Map<Long, IndexCommit> initCommitMap() {
+    try {
+      List<IndexCommit> indexCommits = DirectoryReader.listCommits(dir);
+      return indexCommits.stream()
+          .collect(Collectors.toMap(IndexCommit::getGeneration, UnaryOperator.identity()));
+    } catch (IOException e) {
+      throw new LukeException("Failed to get commits list.", e);
+    }
   }
 
   @Override
-  public void reset(IndexReader reader, String indexPath) throws LukeException {
-    super.reset(reader);
-    this.indexPath = indexPath;
-    this.commitMap = null;
-  }
-
-  @Override
-  public Optional<List<Commit>> listCommits() throws LukeException {
+  public List<Commit> listCommits() throws LukeException {
     List<Commit> commits = getCommitMap().values().stream()
         .map(Commit::of)
         .collect(Collectors.toList());
     Collections.reverse(commits);
-    return Optional.of(commits);
+    return commits;
   }
 
   @Override
   public Optional<Commit> getCommit(long commitGen) throws LukeException {
     IndexCommit ic = getCommitMap().get(commitGen);
+
     if (ic == null) {
       String msg = String.format("Commit generation %d not exists.", commitGen);
       logger.warn(msg);
@@ -81,81 +103,75 @@ public class CommitsImpl extends BaseModel implements Commits {
   }
 
   @Override
-  public Optional<List<File>> getFiles(long commitGen) throws LukeException {
+  public List<File> getFiles(long commitGen) throws LukeException {
     IndexCommit ic = getCommitMap().get(commitGen);
+
     if (ic == null) {
       String msg = String.format("Commit generation %d not exists.", commitGen);
       logger.warn(msg);
-      return Optional.empty();
+      return Collections.emptyList();
     }
 
     try {
-      List<File> files = ic.getFileNames().stream()
+      return ic.getFileNames().stream()
           .map(name -> File.of(indexPath, name))
           .sorted(Comparator.comparing(File::getFileName))
           .collect(Collectors.toList());
-      return Optional.of(files);
     } catch (IOException e) {
-      String msg = String.format("Failed to load files for commit generation %d", commitGen);
-      logger.error(msg, e);
-      throw new LukeException(msg, e);
+      throw new LukeException(String.format("Failed to load files for commit generation %d", commitGen), e);
     }
   }
 
   @Override
-  public Optional<List<Segment>> getSegments(long commitGen) throws LukeException {
+  public List<Segment> getSegments(long commitGen) throws LukeException {
     try {
       SegmentInfos infos = findSegmentInfos(commitGen);
       if (infos == null) {
-        return Optional.empty();
+        return Collections.emptyList();
       }
-      List<Segment> segments = infos.asList().stream()
+
+      return infos.asList().stream()
           .map(Segment::of)
           .sorted(Comparator.comparing(Segment::getName))
           .collect(Collectors.toList());
-      return Optional.of(segments);
     } catch (IOException e) {
-      String msg = String.format("Failed to load segment infos for commit generation %d", commitGen);
-      logger.error(msg, e);
-      throw new LukeException(msg, e);
+      throw new LukeException(String.format("Failed to load segment infos for commit generation %d", commitGen), e);
     }
   }
 
   @Override
-  public Optional<Map<String, String>> getSegmentAttributes(long commitGen, String name) throws LukeException {
+  public Map<String, String> getSegmentAttributes(long commitGen, String name) throws LukeException {
     try {
       SegmentInfos infos = findSegmentInfos(commitGen);
       if (infos == null) {
-        return Optional.empty();
+        return Collections.emptyMap();
       }
 
       return infos.asList().stream()
           .filter(seg -> seg.info.name.equals(name))
           .findAny()
-          .map(seg -> seg.info.getAttributes());
+          .map(seg -> seg.info.getAttributes())
+          .orElse(Collections.emptyMap());
     } catch (IOException e) {
-      String msg = String.format("Failed to load segment infos for commit generation %d", commitGen);
-      logger.error(msg, e);
-      throw new LukeException(msg, e);
+      throw new LukeException(String.format("Failed to load segment infos for commit generation %d", commitGen), e);
     }
   }
 
   @Override
-  public Optional<Map<String, String>> getSegmentDiagnostics(long commitGen, String name) throws LukeException {
+  public Map<String, String> getSegmentDiagnostics(long commitGen, String name) throws LukeException {
     try {
       SegmentInfos infos = findSegmentInfos(commitGen);
       if (infos == null) {
-        return Optional.empty();
+        return Collections.emptyMap();
       }
 
       return infos.asList().stream()
           .filter(seg -> seg.info.name.equals(name))
           .findAny()
-          .map(seg -> seg.info.getDiagnostics());
+          .map(seg -> seg.info.getDiagnostics())
+          .orElse(Collections.emptyMap());
     } catch (IOException e) {
-      String msg = String.format("Failed to load segment infos for commit generation %d", commitGen);
-      logger.error(msg, e);
-      throw new LukeException(msg, e);
+      throw new LukeException(String.format("Failed to load segment infos for commit generation %d", commitGen), e);
     }
   }
 
@@ -172,9 +188,7 @@ public class CommitsImpl extends BaseModel implements Commits {
           .findAny()
           .map(seg -> seg.info.getCodec());
     } catch (IOException e) {
-      String msg = String.format("Failed to load segment infos for commit generation %d", commitGen);
-      logger.error(msg, e);
-      throw new LukeException(msg, e);
+      throw new LukeException(String.format("Failed to load segment infos for commit generation %d", commitGen), e);
     }
   }
 
@@ -182,18 +196,7 @@ public class CommitsImpl extends BaseModel implements Commits {
     if (dir == null) {
       return Collections.emptyMap();
     }
-    if (commitMap == null) {
-      try {
-        List<IndexCommit> indexCommits = DirectoryReader.listCommits(dir);
-        commitMap = indexCommits.stream()
-            .collect(Collectors.toMap(IndexCommit::getGeneration, UnaryOperator.identity()));
-      } catch (IOException e) {
-        String msg = "Failed to get commits list.";
-        logger.error(msg, e);
-        throw new LukeException(msg, e);
-      }
-    }
-    return commitMap;
+    return ImmutableMap.copyOf(commitMap);
   }
 
   private SegmentInfos findSegmentInfos(long commitGen) throws LukeException, IOException {

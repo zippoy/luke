@@ -32,24 +32,21 @@ import java.util.List;
 public class DocumentsImplTest extends DocumentsTestBase {
 
   @Test
-  public void testGetMaxDoc() throws LukeException {
-    DocumentsImpl documents = new DocumentsImpl();
-    documents.reset(reader);
+  public void testGetMaxDoc() {
+    DocumentsImpl documents = new DocumentsImpl(reader);
     assertEquals(5, documents.getMaxDoc());
   }
 
   @Test
-  public void testIsLive() throws Exception {
-    DocumentsImpl documents = new DocumentsImpl();
-    documents.reset(reader);
+  public void testIsLive() {
+    DocumentsImpl documents = new DocumentsImpl(reader);
     assertTrue(documents.isLive(0));
   }
 
   @Test
-  public void testGetDocumentFields() throws Exception {
-    DocumentsImpl documents = new DocumentsImpl();
-    documents.reset(reader);
-    List<DocumentField> fields = documents.getDocumentFields(0).orElseThrow(IllegalStateException::new);
+  public void testGetDocumentFields() {
+    DocumentsImpl documents = new DocumentsImpl(reader);
+    List<DocumentField> fields = documents.getDocumentFields(0);
     assertEquals(5, fields.size());
 
     DocumentField f1 = fields.get(0);
@@ -126,25 +123,23 @@ public class DocumentsImplTest extends DocumentsTestBase {
   }
 
   @Test
-  public void testFirstTerm() throws Exception {
-    DocumentsImpl documents = new DocumentsImpl();
-    documents.reset(reader);
+  public void testFirstTerm() {
+    DocumentsImpl documents = new DocumentsImpl(reader);
     Term term = documents.firstTerm("title").orElseThrow(IllegalStateException::new);
     assertEquals("title", documents.getCurrentField());
     assertEquals("adventures", term.text());
   }
 
   @Test
-  public void testFirstTerm_notAvailable() throws Exception {
-    DocumentsImpl documents = new DocumentsImpl();
-    documents.reset(reader);
+  public void testFirstTerm_notAvailable() {
+    DocumentsImpl documents = new DocumentsImpl(reader);
     assertFalse(documents.firstTerm("subject").isPresent());
+    assertNull(documents.getCurrentField());
   }
 
   @Test
-  public void testNextTerm() throws Exception {
-    DocumentsImpl documents = new DocumentsImpl();
-    documents.reset(reader);
+  public void testNextTerm() {
+    DocumentsImpl documents = new DocumentsImpl(reader);
     documents.firstTerm("title").orElseThrow(IllegalStateException::new);
     Term term = documents.nextTerm().orElseThrow(IllegalStateException::new);
     assertEquals("alice's", term.text());
@@ -155,16 +150,14 @@ public class DocumentsImplTest extends DocumentsTestBase {
   }
 
   @Test
-  public void testNextTerm_unPositioned() throws Exception {
-    DocumentsImpl documents = new DocumentsImpl();
-    documents.reset(reader);
+  public void testNextTerm_unPositioned() {
+    DocumentsImpl documents = new DocumentsImpl(reader);
     assertFalse(documents.nextTerm().isPresent());
   }
 
   @Test
-  public void testSeekTerm() throws Exception {
-    DocumentsImpl documents = new DocumentsImpl();
-    documents.reset(reader);
+  public void testSeekTerm() {
+    DocumentsImpl documents = new DocumentsImpl(reader);
     documents.firstTerm("title").orElseThrow(IllegalStateException::new);
     Term term = documents.seekTerm("pri").orElseThrow(IllegalStateException::new);
     assertEquals("pride", term.text());
@@ -173,16 +166,14 @@ public class DocumentsImplTest extends DocumentsTestBase {
   }
 
   @Test
-  public void testSeekTerm_unPositioned() throws Exception {
-    DocumentsImpl documents = new DocumentsImpl();
-    documents.reset(reader);
+  public void testSeekTerm_unPositioned() {
+    DocumentsImpl documents = new DocumentsImpl(reader);
     assertFalse(documents.seekTerm("a").isPresent());
   }
 
   @Test
-  public void testFirstTermDoc() throws Exception {
-    DocumentsImpl documents = new DocumentsImpl();
-    documents.reset(reader);
+  public void testFirstTermDoc() {
+    DocumentsImpl documents = new DocumentsImpl(reader);
     documents.firstTerm("title").orElseThrow(IllegalStateException::new);
     Term term = documents.seekTerm("adv").orElseThrow(IllegalStateException::new);
     assertEquals("adventures", term.text());
@@ -191,16 +182,14 @@ public class DocumentsImplTest extends DocumentsTestBase {
   }
 
   @Test
-  public void testFirstTermDoc_unPositioned() throws Exception {
-    DocumentsImpl documents = new DocumentsImpl();
-    documents.reset(reader);
+  public void testFirstTermDoc_unPositioned() {
+    DocumentsImpl documents = new DocumentsImpl(reader);
     assertFalse(documents.firstTermDoc().isPresent());
   }
 
   @Test
-  public void testNextTermDoc() throws Exception {
-    DocumentsImpl documents = new DocumentsImpl();
-    documents.reset(reader);
+  public void testNextTermDoc() {
+    DocumentsImpl documents = new DocumentsImpl(reader);
     Term term = documents.firstTerm("title").orElseThrow(IllegalStateException::new);
     term = documents.seekTerm("adv").orElseThrow(IllegalStateException::new);
     assertEquals("adventures", term.text());
@@ -212,17 +201,15 @@ public class DocumentsImplTest extends DocumentsTestBase {
   }
 
   @Test
-  public void testNextTermDoc_unPositioned() throws Exception {
-    DocumentsImpl documents = new DocumentsImpl();
-    documents.reset(reader);
+  public void testNextTermDoc_unPositioned() {
+    DocumentsImpl documents = new DocumentsImpl(reader);
     Term term = documents.firstTerm("title").orElseThrow(IllegalStateException::new);
     assertFalse(documents.nextTermDoc().isPresent());
   }
 
   @Test
-  public void testTermPositions() throws Exception {
-    DocumentsImpl documents = new DocumentsImpl();
-    documents.reset(reader);
+  public void testTermPositions() {
+    DocumentsImpl documents = new DocumentsImpl(reader);
     Term term = documents.firstTerm("author").orElseThrow(IllegalStateException::new);
     term = documents.seekTerm("carroll").orElseThrow(IllegalStateException::new);
     int docid = documents.firstTermDoc().orElseThrow(IllegalStateException::new);
@@ -234,17 +221,15 @@ public class DocumentsImplTest extends DocumentsTestBase {
   }
 
   @Test
-  public void testTermPositions_unPositioned() throws Exception {
-    DocumentsImpl documents = new DocumentsImpl();
-    documents.reset(reader);
+  public void testTermPositions_unPositioned() {
+    DocumentsImpl documents = new DocumentsImpl(reader);
     Term term = documents.firstTerm("author").orElseThrow(IllegalStateException::new);
     assertEquals(0, documents.getTermPositions().size());
   }
 
   @Test
-  public void testTermPositions_noPositions() throws Exception {
-    DocumentsImpl documents = new DocumentsImpl();
-    documents.reset(reader);
+  public void testTermPositions_noPositions() {
+    DocumentsImpl documents = new DocumentsImpl(reader);
     Term term = documents.firstTerm("title").orElseThrow(IllegalStateException::new);
     int docid = documents.firstTermDoc().orElseThrow(IllegalStateException::new);
     assertEquals(0, documents.getTermPositions().size());
@@ -252,8 +237,7 @@ public class DocumentsImplTest extends DocumentsTestBase {
 
   @Test(expected = AlreadyClosedException.class)
   public void testClose() throws Exception {
-    DocumentsImpl documents = new DocumentsImpl();
-    documents.reset(reader);
+    DocumentsImpl documents = new DocumentsImpl(reader);
     reader.close();
     IndexUtils.getFieldNames(reader);
   }

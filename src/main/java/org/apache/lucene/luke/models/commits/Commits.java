@@ -26,23 +26,59 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * A dedicated interface for Luke's Commits tab.
+ */
 public interface Commits {
 
-  void reset(Directory dir, String indexPath);
+  /**
+   * Returns commits that exists in this Directory.
+   * @throws LukeException - if an internal error occurs when accessing index
+   */
+  List<Commit> listCommits();
 
-  void reset(IndexReader reader, String indexPath) throws LukeException;
+  /**
+   * Returns a commit of the specified generation.
+   * @param commitGen - generation
+   * @throws LukeException - if an internal error occurs when accessing index
+   */
+  Optional<Commit> getCommit(long commitGen);
 
-  Optional<List<Commit>> listCommits() throws LukeException;
+  /**
+   * Returns index files for the specified generation.
+   * @param commitGen - generation
+   * @throws LukeException - if an internal error occurs when accessing index
+   */
+  List<File> getFiles(long commitGen);
 
-  Optional<Commit> getCommit(long commitGen) throws LukeException;
+  /**
+   * Returns segments for the specified generation.
+   * @param commitGen - generation
+   * @throws LukeException - if an internal error occurs when accessing index
+   */
+  List<Segment> getSegments(long commitGen);
 
-  Optional<List<File>> getFiles(long commitGen) throws LukeException;
+  /**
+   * Returns internal codec attributes map for the specified segment.
+   * @param commitGen - generation
+   * @param name - segment name
+   * @throws LukeException - if an internal error occurs when accessing index
+   */
+  Map<String, String> getSegmentAttributes(long commitGen, String name);
 
-  Optional<List<Segment>> getSegments(long commitGen) throws LukeException;
+  /**
+   * Returns diagnotics for the specified segment.
+   * @param commitGen - generation
+   * @param name - segment name
+   * @throws LukeException - if an internal error occurs when accessing index
+   */
+  Map<String, String> getSegmentDiagnostics(long commitGen, String name);
 
-  Optional<Map<String, String>> getSegmentAttributes(long commitGen, String name) throws LukeException;
-
-  Optional<Map<String, String>> getSegmentDiagnostics(long commitGen, String name) throws LukeException;
-
-  Optional<Codec> getSegmentCodec(long commitGen, String name) throws LukeException;
+  /**
+   * Returns codec for the specified segment.
+   * @param commitGen - generation
+   * @param name - segment name
+   * @throws LukeException - if an internal error occurs when accessing index
+   */
+  Optional<Codec> getSegmentCodec(long commitGen, String name);
 }

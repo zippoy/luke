@@ -17,31 +17,63 @@
 
 package org.apache.lucene.luke.models.search;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.lucene.queries.mlt.MoreLikeThis;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
-public class MLTConfig {
+/**
+ * Configurations for MoreLikeThis query.
+ */
+public final class MLTConfig {
 
-  private List<String> fields;
+  private final List<String> fields;
 
-  private int maxDocFreq = MoreLikeThis.DEFAULT_MAX_DOC_FREQ;
+  private final int maxDocFreq;
 
-  private int minDocFreq = MoreLikeThis.DEFAULT_MIN_DOC_FREQ;
+  private final int minDocFreq;
 
-  private int minTermFreq = MoreLikeThis.DEFAULT_MIN_TERM_FREQ;
+  private final int minTermFreq;
 
-  public MLTConfig() {
-    this.fields = new ArrayList<>();
+  public static class Builder {
+
+    private final List<String> fields = new ArrayList<>();
+    private int maxDocFreq = MoreLikeThis.DEFAULT_MAX_DOC_FREQ;
+    private int minDocFreq = MoreLikeThis.DEFAULT_MIN_DOC_FREQ;
+    private int minTermFreq = MoreLikeThis.DEFAULT_MIN_TERM_FREQ;
+
+    public Builder fields(Collection<String> val) {
+      fields.addAll(val);
+      return this;
+    }
+
+    public Builder maxDocFreq(int val) {
+      maxDocFreq = val;
+      return this;
+    }
+
+    public Builder minDocFreq(int val) {
+      minDocFreq = val;
+      return this;
+    }
+
+    public Builder minTermFreq(int val) {
+      minTermFreq = val;
+      return this;
+    }
+
+    public MLTConfig build() {
+      return new MLTConfig(this);
+    }
   }
 
-  public void clearFields() {
-    fields.clear();
-  }
-
-  public void addField(String field) {
-    fields.add(field);
+  private MLTConfig(Builder builder) {
+    this.fields = ImmutableList.copyOf(builder.fields);
+    this.maxDocFreq = builder.maxDocFreq;
+    this.minDocFreq = builder.minDocFreq;
+    this.minTermFreq = builder.minTermFreq;
   }
 
   public String[] getFieldNames() {
@@ -52,23 +84,12 @@ public class MLTConfig {
     return maxDocFreq;
   }
 
-  public void setMaxDocFreq(int maxDocFreq) {
-    this.maxDocFreq = maxDocFreq;
-  }
-
   public int getMinDocFreq() {
     return minDocFreq;
-  }
-
-  public void setMinDocFreq(int minDocFreq) {
-    this.minDocFreq = minDocFreq;
   }
 
   public int getMinTermFreq() {
     return minTermFreq;
   }
 
-  public void setMinTermFreq(int minTermFreq) {
-    this.minTermFreq = minTermFreq;
-  }
 }

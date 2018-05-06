@@ -17,7 +17,6 @@
 
 package org.apache.lucene.luke.models.documents;
 
-import com.google.inject.Inject;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.FieldInfo;
 import org.apache.lucene.index.IndexReader;
@@ -26,7 +25,7 @@ import org.apache.lucene.index.PostingsEnum;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
-import org.apache.lucene.luke.models.BaseModel;
+import org.apache.lucene.luke.models.LukeModel;
 import org.apache.lucene.luke.models.LukeException;
 import org.apache.lucene.luke.util.BytesRefUtils;
 import org.apache.lucene.luke.util.IndexUtils;
@@ -41,13 +40,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-public class DocumentsImpl extends BaseModel implements Documents {
+public final class DocumentsImpl extends LukeModel implements Documents {
 
-  private static Logger logger = LoggerFactory.getLogger(DocumentsImpl.class);
+  private static final Logger logger = LoggerFactory.getLogger(DocumentsImpl.class);
 
-  private TermVectorsAdapter tvAdapter;
+  private final TermVectorsAdapter tvAdapter;
 
-  private DocValuesAdapter dvAdapter;
+  private final DocValuesAdapter dvAdapter;
 
   private String curField;
 
@@ -55,20 +54,14 @@ public class DocumentsImpl extends BaseModel implements Documents {
 
   private PostingsEnum penum;
 
-  @Inject
-  DocumentsImpl() {
-    this.tvAdapter = new TermVectorsAdapterImpl();
-    this.dvAdapter = new DocValuesAdapterImpl();
-  }
-
-  @Override
-  public void reset(@Nonnull IndexReader reader) throws LukeException {
-    super.reset(reader);
-    tvAdapter.reset(reader);
-    dvAdapter.reset(reader);
-    this.curField = null;
-    this.tenum = null;
-    this.penum = null;
+  /**
+   * Constructs an DocumentsImpl that holds given {@link IndexReader}.
+   * @param reader - the index reader
+   */
+  public DocumentsImpl(@Nonnull IndexReader reader) {
+    super(reader);
+    this.tvAdapter = new TermVectorsAdapter(reader);
+    this.dvAdapter = new DocValuesAdapter(reader);
   }
 
   @Override
@@ -82,18 +75,22 @@ public class DocumentsImpl extends BaseModel implements Documents {
   }
 
   @Override
-  public Optional<List<DocumentField>> getDocumentFields(int docid) throws LukeException {
+  public List<DocumentField> getDocumentFields(int docid) {
     if (!isLive(docid)) {
       logger.info("Doc #{} was deleted", docid);
-      return Optional.empty();
+      return Collections.emptyList();
     }
+
+    List<DocumentField> res = new ArrayList<>();
 
     try {
       Document doc = reader.document(docid);
-      List<DocumentField> res = new ArrayList<>();
+
       for (FieldInfo finfo : IndexUtils.getFieldInfos(reader)) {
+        // iterate all fields for this document
         IndexableField[] fields = doc.getFields(finfo.name);
         if (fields.length == 0) {
+          // no stored data is available
           res.add(DocumentField.of(finfo, reader, docid));
         } else {
           for (IndexableField field : fields) {
@@ -101,12 +98,12 @@ public class DocumentsImpl extends BaseModel implements Documents {
           }
         }
       }
-      return Optional.of(res);
+
     } catch (IOException e) {
-      String msg = String.format("Fields information not available for doc %d.", docid);
-      logger.error(msg, e);
-      throw new LukeException(msg, e);
+      throw new LukeException(String.format("Fields information not available for doc %d.", docid), e);
     }
+
+    return res;
   }
 
   @Override
@@ -115,153 +112,156 @@ public class DocumentsImpl extends BaseModel implements Documents {
   }
 
   @Override
-  public Optional<Term> firstTerm(@Nonnull String field) throws LukeException {
+  public Optional<Term> firstTerm(@Nonnull String field) {
     try {
       Terms terms = IndexUtils.getTerms(reader, field);
+
       if (terms == null) {
         // no such field?
-        this.curField = null;
-        this.tenum = null;
+        resetCurrentField();
+        resetTermsIterator();
         logger.warn("Terms not available for field: {}.", field);
         return Optional.empty();
       } else {
-        this.curField = field;
-        this.tenum = terms.iterator();
+        setCurrentField(field);
+        setTermsIterator(terms.iterator());
+
         if (tenum.next() == null) {
           // no term available for this field
-          tenum = null;
+          resetTermsIterator();
           logger.warn("No term available for field: {}.", field);
           return Optional.empty();
         } else {
           return Optional.of(new Term(curField, tenum.term()));
         }
       }
+
     } catch (IOException e) {
-      tenum = null;
-      String msg = String.format("Terms not available for field: %s.", field);
-      logger.error(msg, e);
-      throw new LukeException(msg, e);
+      resetTermsIterator();
+      throw new LukeException(String.format("Terms not available for field: %s.", field), e);
     } finally {
       // discard current postings enum
-      this.penum = null;
+      resetPostingsIterator();
     }
   }
 
   @Override
-  public Optional<Term> nextTerm() throws LukeException {
+  public Optional<Term> nextTerm() {
     if (tenum == null) {
       // terms enum not initialized
       logger.warn("Terms enum un-positioned.");
       return Optional.empty();
     }
+
     try {
       if (tenum.next() == null) {
         // end of the iterator
-        tenum = null;
+        resetTermsIterator();
         logger.info("Reached the end of the term iterator for field: {}.", curField);
         return Optional.empty();
+
       } else {
         return Optional.of(new Term(curField, tenum.term()));
       }
     } catch (IOException e) {
-      tenum = null;
-      String msg = String.format("Terms not available for field: %s.", curField);
-      logger.error(msg, e);
-      throw new LukeException(msg, e);
+      resetTermsIterator();
+      throw new LukeException(String.format("Terms not available for field: %s.", curField), e);
     } finally {
       // discard current postings enum
-      this.penum = null;
+      resetPostingsIterator();
     }
   }
 
   @Override
-  public Optional<Term> seekTerm(@Nonnull String termText) throws LukeException {
+  public Optional<Term> seekTerm(@Nonnull String termText) {
     if (curField == null) {
       // field is not selected
       logger.warn("Field not selected.");
       return Optional.empty();
     }
+
     try {
       Terms terms = IndexUtils.getTerms(reader, curField);
-      this.tenum = terms.iterator();
+      setTermsIterator(terms.iterator());
+
       if (tenum.seekCeil(new BytesRef(termText)) == TermsEnum.SeekStatus.END) {
-        // end of the iterator
-        tenum = null;
+        // reached to the end of the iterator
+        resetTermsIterator();
         logger.info("Reached the end of the term iterator for field: {}.", curField);
         return Optional.empty();
       } else {
         return Optional.of(new Term(curField, tenum.term()));
       }
     } catch (IOException e) {
-      tenum = null;
-      String msg = String.format("Terms not available for field: %s.", curField);
-      logger.error(msg, e);
-      throw new LukeException(msg, e);
+      resetTermsIterator();
+      throw new LukeException(String.format("Terms not available for field: %s.", curField), e);
     } finally {
       // discard current postings enum
-      this.penum = null;
+      resetPostingsIterator();
     }
   }
 
   @Override
-  public Optional<Integer> firstTermDoc() throws LukeException {
+  public Optional<Integer> firstTermDoc() {
     if (tenum == null) {
       // terms enum is not set
       logger.warn("Terms enum un-positioned.");
       return Optional.empty();
     }
+
     try {
-      this.penum = tenum.postings(penum, PostingsEnum.ALL);
+      setPostingsIterator(tenum.postings(penum, PostingsEnum.ALL));
+
       if (penum.nextDoc() == PostingsEnum.NO_MORE_DOCS) {
         // no docs available for this term
-        penum = null;
+        resetPostingsIterator();
         logger.warn("No docs available for term: {} in field: {}.", BytesRefUtils.decode(tenum.term()), curField);
         return Optional.empty();
       } else {
         return Optional.of(penum.docID());
       }
     } catch (IOException e) {
-      penum = null;
-      String msg = String.format("Term docs not available for field: %s.", curField);
-      logger.error(msg, e);
-      throw new LukeException(msg, e);
+      resetPostingsIterator();
+      throw new LukeException(String.format("Term docs not available for field: %s.", curField), e);
     }
   }
 
   @Override
-  public Optional<Integer> nextTermDoc() throws LukeException {
+  public Optional<Integer> nextTermDoc() {
     if (penum == null) {
       // postings enum is not initialized
       logger.warn("Postings enum un-positioned for field: {}.", curField);
       return Optional.empty();
     }
+
     try {
       if (penum.nextDoc() == PostingsEnum.NO_MORE_DOCS) {
         // end of the iterator
-        penum = null;
+        resetPostingsIterator();
         logger.info("Reached the end of the postings iterator for term: {} in field: {}", BytesRefUtils.decode(tenum.term()), curField);
         return Optional.empty();
       } else {
         return Optional.of(penum.docID());
       }
     } catch (IOException e) {
-      penum = null;
-      String msg = String.format("Term docs not available for field: %s.", curField);
-      logger.error(msg, e);
-      throw new LukeException(msg, e);
+      resetPostingsIterator();
+      throw new LukeException(String.format("Term docs not available for field: %s.", curField), e);
     }
   }
 
   @Override
-  public List<TermPosting> getTermPositions() throws LukeException {
+  public List<TermPosting> getTermPositions() {
     if (penum == null) {
       // postings enum is not initialized
       logger.warn("Postings enum un-positioned for field: {}.", curField);
       return Collections.emptyList();
     }
+
+    List<TermPosting> res = new ArrayList<>();
+
     try {
-      List<TermPosting> res = new ArrayList<>();
       int freq = penum.freq();
+
       for (int i = 0; i < freq; i++) {
         int position = penum.nextPosition();
         if (position < 0) {
@@ -271,50 +271,70 @@ public class DocumentsImpl extends BaseModel implements Documents {
         TermPosting posting = TermPosting.of(position, penum);
         res.add(posting);
       }
-      return res;
+
     } catch (IOException e) {
-      String msg = String.format("Postings not available for field %s.", curField);
-      logger.error(msg, e);
-      throw new LukeException(msg, e);
+      throw new LukeException(String.format("Postings not available for field %s.", curField), e);
     }
+
+    return res;
   }
 
 
   @Override
-  public Optional<Integer> getDocFreq() throws LukeException {
+  public Optional<Integer> getDocFreq() {
     if (tenum == null) {
       // terms enum is not initialized
       logger.warn("Terms enum un-positioned for field: {}.", curField);
       return Optional.empty();
     }
+
     try {
       return Optional.of(tenum.docFreq());
     } catch (IOException e) {
-      String msg = String.format("Doc frequency not available for field: %s.", curField);
-      logger.error(msg, e);
-      throw new LukeException(msg, e);
+      throw new LukeException(String.format("Doc frequency not available for field: %s.", curField), e);
     }
   }
 
   @Override
-  public List<TermVectorEntry> getTermVectors(int docid, String field) throws LukeException {
+  public List<TermVectorEntry> getTermVectors(int docid, String field) {
     try {
       return tvAdapter.getTermVector(docid, field);
     } catch (IOException e) {
-      String msg = String.format("Term vector not available for doc: #%d and field: %s", docid, field);
-      logger.error(msg, e);
-      throw new LukeException(msg, e);
+      throw new LukeException(String.format("Term vector not available for doc: #%d and field: %s", docid, field), e);
     }
   }
 
   @Override
-  public Optional<DocValues> getDocValues(int docid, String field) throws LukeException {
+  public Optional<DocValues> getDocValues(int docid, String field) {
     try {
       return dvAdapter.getDocValues(docid, field);
     } catch (IOException e) {
-      String msg = String.format("Doc values not available for doc: #%d and field: %s", docid, field);
-      logger.error(msg, e);
-      throw new LukeException(msg, e);
+      throw new LukeException(String.format("Doc values not available for doc: #%d and field: %s", docid, field), e);
     }
   }
+
+  private void resetCurrentField() {
+    this.curField = null;
+  }
+
+  private void setCurrentField(String field) {
+    this.curField = field;
+  }
+
+  private void resetTermsIterator() {
+    this.tenum = null;
+  }
+
+  private void setTermsIterator(TermsEnum tenum) {
+    this.tenum = tenum;
+  }
+
+  private void resetPostingsIterator() {
+    this.penum = null;
+  }
+
+  private void setPostingsIterator(PostingsEnum penum) {
+    this.penum = penum;
+  }
+
 }

@@ -17,7 +17,10 @@
 
 package org.apache.lucene.luke.models.commits;
 
-public class File {
+/**
+ * Holder for a index file.
+ */
+public final class File {
   private String fileName;
   private String displaySize;
 

@@ -17,7 +17,6 @@
 
 package org.apache.lucene.luke.app.controllers;
 
-import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -27,30 +26,21 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Window;
-import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.luke.app.DirectoryHandler;
+import org.apache.lucene.luke.app.DirectoryObserver;
+import org.apache.lucene.luke.app.IndexHandler;
+import org.apache.lucene.luke.app.IndexObserver;
+import org.apache.lucene.luke.app.LukeState;
 import org.apache.lucene.luke.app.desktop.Preferences;
-import org.apache.lucene.luke.models.LukeException;
-import org.apache.lucene.luke.models.analysis.Analysis;
-import org.apache.lucene.luke.models.commits.Commits;
-import org.apache.lucene.luke.models.documents.Documents;
-import org.apache.lucene.luke.models.overview.Overview;
-import org.apache.lucene.luke.models.search.Search;
-import org.apache.lucene.luke.models.tools.IndexTools;
-import org.apache.lucene.luke.util.IndexUtils;
-import org.apache.lucene.luke.util.MessageUtils;
-import org.apache.lucene.store.Directory;
+import org.apache.lucene.luke.app.util.MessageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.List;
 
 import static org.apache.lucene.luke.app.util.ExceptionHandler.runnableWrapper;
 
-public class LukeController {
+public class LukeController implements IndexObserver, DirectoryObserver {
 
   private static final Logger logger = LoggerFactory.getLogger(LukeController.class);
 
@@ -96,24 +86,30 @@ public class LukeController {
   @FXML
   private ImageView noReaderIcon;
 
-  private String indexPath;
+  private Preferences prefs;
 
-  private String dirImpl;
+  private DirectoryHandler directoryHandler;
 
+  private IndexHandler indexHandler;
 
   @FXML
   private void initialize() {
-    this.children = Lists.newArrayList(
-        menubarController,
-        overviewController,
-        documentsController,
-        searchController,
-        analysisController,
-        commitsController);
+    menubarController.setMainController(this);
+    overviewController.setParent(this);
+    documentsController.setParent(this);
+    searchController.setParent(this);
+    analysisController.setParent(this);
 
-    for (ChildController child : children) {
-      child.setParent(this);
-    }
+    directoryHandler.addObserver(menubarController);
+    directoryHandler.addObserver(commitsController);
+    directoryHandler.addObserver(this);
+
+    indexHandler.addObserver(menubarController);
+    indexHandler.addObserver(overviewController);
+    indexHandler.addObserver(documentsController);
+    indexHandler.addObserver(searchController);
+    indexHandler.addObserver(commitsController);
+    indexHandler.addObserver(this);
 
     // disable tabs until an index opened.
     tabPane.getTabs().get(Tab.OVERVIEW.index()).setDisable(true);
@@ -125,10 +121,10 @@ public class LukeController {
         runnableWrapper(() -> {
           clearStatusMessage();
           if (newV.equals(Tab.DOCUMENTS.index())) {
-            documentsController.setCurrentAnalyzer(analysisModel.currentAnalyzer());
+            documentsController.setCurrentAnalyzer(analysisController.getCurrentAnalyzer());
           }
           if (newV.equals(Tab.SEARCH.index())) {
-            searchController.setCurrentAnalyzer(analysisModel.currentAnalyzer());
+            searchController.setCurrentAnalyzer(analysisController.getCurrentAnalyzer());
           }
         }));
 
@@ -166,51 +162,34 @@ public class LukeController {
     return searchController;
   }
 
-  public void onDirectoryOpen(@Nonnull String indexPath, @Nullable String dirImpl) throws Exception {
-    // close old index
-    onClose();
-
-    this.dir = IndexUtils.openDirectory(indexPath, dirImpl);
-    this.indexPath = indexPath;
-    this.dirImpl = dirImpl;
-
+  @Override
+  public void openDirectory(LukeState state) {
     roIcon.setVisible(false);
     noReaderIcon.setVisible(true);
 
-    commitsModel.reset(dir, indexPath);
-    toolsModel.reset(dir, indexPath, useCompound, keepAllCommits);
-
-    for (ChildController child : children) {
-      child.onDirectoryOpen();
-    }
-
     tabPane.getTabs().get(Tab.COMMITS.index()).setDisable(false);
+    showStatusMessage(MessageUtils.getLocalizedMessage("message.directory_opened"));
   }
 
-  public void onIndexOpen(@Nonnull String indexPath, @Nullable String dirImpl, boolean readOnly, boolean useCompound, boolean keepAllCommits)
-      throws LukeException {
-    // close old index
-    onClose();
+  @Override
+  public void closeDirectory() {
+    roIcon.setVisible(false);
+    noReaderIcon.setVisible(false);
 
-    try {
-      this.reader = IndexUtils.openIndex(indexPath, dirImpl);
-    } catch (Exception e) {
-      logger.error("Failed to open index: " + indexPath, e);
-      throw new LukeException(MessageUtils.getLocalizedMessage("openindex.message.index_path_invalid", indexPath), e);
-    }
-    this.indexPath = indexPath;
-    this.dirImpl = dirImpl;
-    this.readOnly = readOnly;
-    this.useCompound = useCompound;
-    this.keepAllCommits = keepAllCommits;
+    switchTab(LukeController.Tab.OVERVIEW);
+    showStatusMessage(MessageUtils.getLocalizedMessage("message.directory_closed"));
+  }
 
-    if (hasDirectoryReader()) {
+  @Override
+  public void openIndex(LukeState state) {
+
+    if (state.hasDirectoryReader()) {
       multiIcon.setVisible(false);
     } else {
       multiIcon.setVisible(true);
     }
 
-    if (readOnly) {
+    if (state.readOnly()) {
       roIcon.setVisible(true);
     } else {
       roIcon.setVisible(false);
@@ -218,131 +197,51 @@ public class LukeController {
 
     noReaderIcon.setVisible(false);
 
-    overviewModel.reset(reader, indexPath);
-    documentsModel.reset(reader);
-    searchModel.reset(reader);
-    commitsModel.reset(reader, indexPath);
-    toolsModel.reset(reader, indexPath, useCompound, keepAllCommits);
-
-    for (ChildController child : children) {
-      child.onIndexOpen();
-    }
-
     // enable tabs
     tabPane.getTabs().get(Tab.OVERVIEW.index()).setDisable(false);
     tabPane.getTabs().get(Tab.DOCUMENTS.index()).setDisable(false);
     tabPane.getTabs().get(Tab.SEARCH.index()).setDisable(false);
-    if (hasDirectoryReader()) {
+    if (state.hasDirectoryReader()) {
       tabPane.getTabs().get(Tab.COMMITS.index()).setDisable(false);
     }
 
-    documentsController.setCurrentAnalyzer(analysisModel.currentAnalyzer());
-    searchController.setCurrentAnalyzer(analysisModel.currentAnalyzer());
-  }
+    // show Overview tab
+    switchTab(LukeController.Tab.OVERVIEW);
 
-  public void onClose() {
-    IndexUtils.close(dir);
-    IndexUtils.close(reader);
-
-    for (ChildController child : children) {
-      child.onClose();
+    if (state.readOnly()) {
+      showStatusMessage(MessageUtils.getLocalizedMessage("message.index_opened_ro"));
+    } else if (!state.hasDirectoryReader()) {
+      showStatusMessage(MessageUtils.getLocalizedMessage("message.index_opened_multi"));
+    } else {
+      showStatusMessage(MessageUtils.getLocalizedMessage("message.index_opened"));
     }
 
-    // disable tabs until an index opened.
-    tabPane.getTabs().get(Tab.OVERVIEW.index()).setDisable(true);
-    tabPane.getTabs().get(Tab.DOCUMENTS.index()).setDisable(true);
-    tabPane.getTabs().get(Tab.SEARCH.index()).setDisable(true);
-    tabPane.getTabs().get(Tab.COMMITS.index()).setDisable(true);
-
-    this.indexPath = null;
-    this.dirImpl = null;
+    documentsController.setCurrentAnalyzer(analysisController.getCurrentAnalyzer());
+    searchController.setCurrentAnalyzer(analysisController.getCurrentAnalyzer());
   }
 
-  public void onIndexReopen() throws LukeException {
-    if (indexPath == null || indexPath.length() == 0) {
-      showStatusMessage(MessageUtils.getLocalizedMessage("menu.message.index_not_opened"));
-      return;
-    }
-    // save current settings
-    String currentPath = this.indexPath;
-    String currentDirImpl = this.dirImpl;
+  @Override
+  public void closeIndex() {
+    multiIcon.setVisible(false);
+    roIcon.setVisible(false);
+    noReaderIcon.setVisible(false);
 
-    onIndexOpen(currentPath, currentDirImpl, readOnly, useCompound, keepAllCommits);
-  }
-
-  public void onDirectoryReopen() throws Exception {
-    if (indexPath == null || indexPath.length() == 0) {
-      showStatusMessage(MessageUtils.getLocalizedMessage("menu.message.index_not_opened"));
-      return;
-    }
-    // save current settings
-    String currentPath = this.indexPath;
-    String currentDirImpl = this.dirImpl;
-
-    onDirectoryOpen(currentPath, currentDirImpl);
+    switchTab(LukeController.Tab.OVERVIEW);
+    showStatusMessage(MessageUtils.getLocalizedMessage("message.index_closed"));
   }
 
   public void switchTab(Tab tab) {
     tabPane.getSelectionModel().select(tab.index());
   }
 
-  public String getIndexPath() {
-    return indexPath;
-  }
-
-  public boolean isReadOnly() {
-    return readOnly;
-  }
-
-  public boolean hasDirectoryReader() {
-    return reader instanceof DirectoryReader;
-  }
-
-  private Directory dir;
-
-  private IndexReader reader;
-
-  private boolean readOnly;
-
-  private boolean useCompound;
-
-  private boolean keepAllCommits;
-
-  private Overview overviewModel;
-
-  private Documents documentsModel;
-
-  private Search searchModel;
-
-  private Analysis analysisModel;
-
-  private Commits commitsModel;
-
-  private IndexTools toolsModel;
-
-  private Preferences prefs;
-
-  private List<ChildController> children;
-
-  private ColorTheme colorTheme;
-
   @Inject
-  public LukeController(Preferences prefs,
-                        Overview overviewModel, Documents documentsModel,
-                        Search searchModel, Analysis analysisModel,
-                        Commits commitsModel, IndexTools toolsModel) {
+  public LukeController(Preferences prefs, DirectoryHandler directoryHandler, IndexHandler indexHandler) {
     this.prefs = prefs;
-    this.overviewModel = overviewModel;
-    this.documentsModel = documentsModel;
-    this.searchModel = searchModel;
-    this.analysisModel = analysisModel;
-    this.commitsModel = commitsModel;
-    this.toolsModel = toolsModel;
-    this.colorTheme = prefs.getTheme();
+    this.directoryHandler = directoryHandler;
+    this.indexHandler = indexHandler;
   }
 
-  public void setColorTheme(ColorTheme colorTheme) {
-    this.colorTheme = colorTheme;
+  void setColorTheme(ColorTheme colorTheme) {
     try {
       prefs.setTheme(colorTheme);
     } catch (IOException e) {
@@ -355,16 +254,12 @@ public class LukeController {
     getPrimaryWindow().getScene().getStylesheets().clear();
     getPrimaryWindow().getScene().getStylesheets().addAll(
         getClass().getResource("/styles/luke.css").toExternalForm(),
-        getClass().getResource(colorTheme.resourceName()).toExternalForm()
+        getClass().getResource(prefs.getTheme().resourceName()).toExternalForm()
     );
   }
 
   public String getStyleResourceName() {
-    return colorTheme.resourceName();
-  }
-
-  public Preferences getPrefs() {
-    return prefs;
+    return prefs.getTheme().resourceName();
   }
 
   public void showStatusMessage(String message) {

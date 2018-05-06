@@ -18,13 +18,15 @@
 package org.apache.lucene.luke.app.util;
 
 
+import com.google.inject.Injector;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import org.apache.lucene.luke.app.LukeModule;
+import org.apache.lucene.luke.app.controllers.ChildTabController;
 import org.apache.lucene.luke.app.controllers.LukeController;
-import org.apache.lucene.luke.util.MessageUtils;
 
 import java.util.function.Consumer;
 
@@ -39,10 +41,18 @@ public class DialogOpener<T> {
     this.styleResourceName = parent.getStyleResourceName();
   }
 
+  public DialogOpener(ChildTabController controller) {
+    this.owner = controller.getPrimaryWindow();
+    this.styleResourceName = controller.getStyleResourceName();
+  }
+
   public Stage show(Stage stage, String title, String resourceName, int width, int height, Consumer<? super T> initializer,
                     String... styleSheets)
       throws Exception {
     FXMLLoader loader = new FXMLLoader(DialogOpener.class.getResource(resourceName), MessageUtils.getBundle());
+    Injector injector = LukeModule.getIngector();
+    loader.setControllerFactory(injector::getInstance);
+
     Parent root = loader.load();
     initializer.accept(loader.getController());
 

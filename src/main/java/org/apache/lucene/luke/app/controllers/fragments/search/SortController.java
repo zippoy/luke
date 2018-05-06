@@ -18,7 +18,6 @@
 package org.apache.lucene.luke.app.controllers.fragments.search;
 
 import com.google.common.base.Strings;
-import com.google.inject.Inject;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -41,6 +40,8 @@ import static org.apache.lucene.luke.app.util.ExceptionHandler.runnableWrapper;
 public class SortController {
 
   private static final String DEFAULT_ORDER = Order.ASC.name();
+
+  private Search searchModel;
 
   @FXML
   private ChoiceBox<String> field1;
@@ -130,7 +131,7 @@ public class SortController {
       order.setValue(DEFAULT_ORDER);
       order.setDisable(true);
     } else {
-      List<SortField> sortFields = modelSearch.guessSortTypes(field.getValue());
+      List<SortField> sortFields = searchModel.guessSortTypes(field.getValue());
       typeList.addAll(sortFields.stream()
           .map(sf -> {
             if (sf instanceof SortedNumericSortField) {
@@ -147,16 +148,11 @@ public class SortController {
     }
   }
 
-  private Search modelSearch;
-
-  @Inject
-  public SortController(Search modelSearch) {
-    this.modelSearch = modelSearch;
+  public void setSearchModel(Search searchModel) {
+    this.searchModel = searchModel;
   }
 
-  public void populateFields() {
-    Collection<String> fieldNames = modelSearch.getSortableFieldNames();
-
+  public void populateFields(Collection<String> fieldNames) {
     fieldList1.clear();
     fieldList1.add("");
     fieldList1.addAll(fieldNames);
@@ -173,12 +169,12 @@ public class SortController {
 
     List<SortField> li = new ArrayList<>();
     if (!Strings.isNullOrEmpty(field1.getValue())) {
-      modelSearch.getSortType(field1.getValue(), type1.getValue(), isReverse(order1)).ifPresent(sf ->
+      searchModel.getSortType(field1.getValue(), type1.getValue(), isReverse(order1)).ifPresent(sf ->
           li.add(sf)
       );
     }
     if (!Strings.isNullOrEmpty(field2.getValue())) {
-      modelSearch.getSortType(field2.getValue(), type2.getValue(), isReverse(order2)).ifPresent(sf ->
+      searchModel.getSortType(field2.getValue(), type2.getValue(), isReverse(order2)).ifPresent(sf ->
           li.add(sf)
       );
     }

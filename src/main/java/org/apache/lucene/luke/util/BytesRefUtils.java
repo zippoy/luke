@@ -19,7 +19,10 @@ package org.apache.lucene.luke.util;
 
 import org.apache.lucene.util.BytesRef;
 
-public class BytesRefUtils {
+/**
+ * An utility class for handling {@link BytesRef} objects.
+ */
+public final class BytesRefUtils {
 
   public static String decode(BytesRef ref) {
     try {

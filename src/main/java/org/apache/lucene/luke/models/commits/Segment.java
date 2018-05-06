@@ -21,14 +21,25 @@ import org.apache.lucene.index.SegmentCommitInfo;
 
 import java.io.IOException;
 
-public class Segment {
+/**
+ * Holder for a segment.
+ */
+public final class Segment {
+
   private String name;
+
   private int maxDoc;
+
   private long delGen;
+
   private int delCount;
+
   private String luceneVer;
+
   private String codecName;
+
   private String displaySize;
+
   private boolean useCompoundFile;
 
   static Segment of(SegmentCommitInfo segInfo) {

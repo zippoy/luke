@@ -17,13 +17,52 @@
 
 package org.apache.lucene.luke.models.overview;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.misc.HighFreqTerms;
 
+import javax.annotation.Nonnull;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
+import java.util.stream.Collectors;
 
-public interface TopTerms {
+/**
+ * An utility class that collects terms and their statistics in a specific field.
+ */
+final class TopTerms {
 
-  void reset(IndexReader reader);
+  private final IndexReader reader;
 
-  List<TermStats> getTopTerms(String field, int numTerms) throws Exception;
+  private final Map<String, List<TermStats>> topTermsCache;
+
+  TopTerms(@Nonnull IndexReader reader) {
+    this.reader = reader;
+    this.topTermsCache = new WeakHashMap<>();
+  }
+
+  /**
+   * Returns the top indexed terms with their statistics for the specified field.
+   *
+   * @param field - the field name
+   * @param numTerms - the max number of terms to be returned
+   * @throws Exception - if an error occurs when collecting term statistics
+   */
+  List<TermStats> getTopTerms(String field, int numTerms) throws Exception {
+
+    if (!topTermsCache.containsKey(field) || topTermsCache.get(field).size() < numTerms) {
+      org.apache.lucene.misc.TermStats[] stats =
+          HighFreqTerms.getHighFreqTerms(reader, numTerms, field, new HighFreqTerms.DocFreqComparator());
+
+      List<TermStats> topTerms = Arrays.stream(stats)
+          .map(TermStats::of)
+          .collect(Collectors.toList());
+
+      // cache computed statistics for later uses
+      topTermsCache.put(field, topTerms);
+    }
+
+    return ImmutableList.copyOf(topTermsCache.get(field));
+  }
 }

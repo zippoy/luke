@@ -39,9 +39,12 @@ import javafx.stage.Stage;
 import javafx.util.converter.IntegerStringConverter;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.index.Term;
+import org.apache.lucene.luke.app.IndexHandler;
+import org.apache.lucene.luke.app.IndexObserver;
+import org.apache.lucene.luke.app.LukeState;
 import org.apache.lucene.luke.app.controllers.dialog.ConfirmController;
-import org.apache.lucene.luke.app.controllers.dialog.ExplanationController;
-import org.apache.lucene.luke.app.controllers.dto.SearchResult;
+import org.apache.lucene.luke.app.controllers.dialog.search.ExplanationController;
+import org.apache.lucene.luke.app.controllers.dto.search.SearchResult;
 import org.apache.lucene.luke.app.controllers.fragments.search.AnalyzerController;
 import org.apache.lucene.luke.app.controllers.fragments.search.FieldValuesController;
 import org.apache.lucene.luke.app.controllers.fragments.search.MLTController;
@@ -54,10 +57,12 @@ import org.apache.lucene.luke.models.LukeException;
 import org.apache.lucene.luke.models.search.MLTConfig;
 import org.apache.lucene.luke.models.search.QueryParserConfig;
 import org.apache.lucene.luke.models.search.Search;
+import org.apache.lucene.luke.models.search.SearchFactory;
 import org.apache.lucene.luke.models.search.SearchResults;
 import org.apache.lucene.luke.models.search.SimilarityConfig;
 import org.apache.lucene.luke.models.tools.IndexTools;
-import org.apache.lucene.luke.util.MessageUtils;
+import org.apache.lucene.luke.app.util.MessageUtils;
+import org.apache.lucene.luke.models.tools.IndexToolsFactory;
 import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Sort;
@@ -69,9 +74,21 @@ import java.util.stream.Collectors;
 
 import static org.apache.lucene.luke.app.util.ExceptionHandler.runnableWrapper;
 
-public class SearchController implements ChildController {
+public class SearchController extends ChildTabController implements IndexObserver {
 
   private static final int DEFAULT_PAGE_SIZE = 10;
+
+  private final SearchFactory searchFactory;
+
+  private final IndexToolsFactory toolsFactory;
+
+  private final IndexHandler indexHandler;
+
+  private Search searchModel;
+
+  private IndexTools toolsModel;
+
+  private Analyzer curAnalyzer;
 
   @FXML
   private Accordion settings;
@@ -171,6 +188,13 @@ public class SearchController implements ChildController {
 
   private ObservableList<SearchResult> resultList;
 
+  @Inject
+  public SearchController(SearchFactory searchFactory, IndexToolsFactory toolsFactory, IndexHandler indexHandler) {
+    this.searchFactory = searchFactory;
+    this.toolsFactory = toolsFactory;
+    this.indexHandler = indexHandler;
+  }
+
   @FXML
   private void initialize() throws LukeException {
     settings.setExpandedPane(parserPane);
@@ -221,16 +245,23 @@ public class SearchController implements ChildController {
   }
 
   @Override
-  public void onIndexOpen() throws LukeException {
+  public void openIndex(LukeState state) throws LukeException {
+    searchModel = searchFactory.newInstance(state.getIndexReader());
+    toolsModel = toolsFactory.newInstance(state.getIndexReader(), state.useCompound(), state.keepAllCommits());
+    sortController.setSearchModel(searchModel);
+
     queryExpr.setText("*:*");
-    parserController.populateFields();
-    sortController.populateFields();
-    valuesController.populateFields();
-    mltController.populateFields();
+    parserController.populateFields(searchModel.getSearchableFieldNames(), searchModel.getRangeSearchableFieldNames());
+    sortController.populateFields(searchModel.getSortableFieldNames());
+    valuesController.populateFields(searchModel.getFieldNames());
+    mltController.populateFields(searchModel.getFieldNames());
   }
 
   @Override
-  public void onClose() {
+  public void closeIndex() {
+    searchModel = null;
+    toolsModel = null;
+
     queryExpr.setText("");
     parsedQuery.setText("");
     totalHits.setText("0");
@@ -245,7 +276,7 @@ public class SearchController implements ChildController {
   private void execParse() throws LukeException {
     Query query = parse(rewrite.isSelected());
     parsedQuery.setText(query.toString());
-    parent.clearStatusMessage();
+    clearStatusMessage();
   }
 
   private void execSearch() throws LukeException {
@@ -267,7 +298,8 @@ public class SearchController implements ChildController {
     Sort sort = sortController.getSort();
     Set<String> fieldsToLoad = valuesController.getFieldsToLoad();
     resultList.clear();
-    searchModel.search(query, simConfig, sort, fieldsToLoad, DEFAULT_PAGE_SIZE).ifPresent(this::populateResults);
+    SearchResults results = searchModel.search(query, simConfig, sort, fieldsToLoad, DEFAULT_PAGE_SIZE);
+    populateResults(results);
   }
 
   private void execMLTSearch() throws LukeException {
@@ -280,7 +312,8 @@ public class SearchController implements ChildController {
     Query query = searchModel.mltQuery(docNum, mltConfig, curAnalyzer);
     Set<String> fieldsToLoad = valuesController.getFieldsToLoad();
     resultList.clear();
-    searchModel.search(query, new SimilarityConfig(), fieldsToLoad, DEFAULT_PAGE_SIZE).ifPresent(this::populateResults);
+    SearchResults results = searchModel.search(query, new SimilarityConfig.Builder().build(), fieldsToLoad, DEFAULT_PAGE_SIZE);
+    populateResults(results);
   }
 
   private void nextPage() throws LukeException {
@@ -310,7 +343,7 @@ public class SearchController implements ChildController {
       prev.setDisable(res.getOffset() == 0);
       next.setDisable(res.getTotalHits() <= res.getOffset() + res.size());
 
-      if (!parent.isReadOnly() && parent.hasDirectoryReader()) {
+      if (!indexHandler.getState().readOnly() && indexHandler.getState().hasDirectoryReader()) {
         delAll.setDisable(false);
       }
     } else {
@@ -325,7 +358,7 @@ public class SearchController implements ChildController {
   private Stage confirmDialog;
 
   private void showDeleteConfirmDialog() throws Exception {
-    confirmDialog = new DialogOpener<ConfirmController>(parent).show(
+    confirmDialog = new DialogOpener<ConfirmController>(getParent()).show(
         confirmDialog,
         "Confirm Deletion",
         "/fxml/dialog/confirm.fxml",
@@ -341,9 +374,9 @@ public class SearchController implements ChildController {
   private void deleteAllDocs() throws LukeException {
     Query query = searchModel.getCurrentQuery();
     if (query != null) {
-      indexToolsModel.deleteDocuments(query);
-      parent.onIndexReopen();
-      parent.showStatusMessage(MessageUtils.getLocalizedMessage("search.message.delete_success", query.toString()));
+      toolsModel.deleteDocuments(query);
+      indexHandler.reOpen();
+      showStatusMessage(MessageUtils.getLocalizedMessage("search.message.delete_success", query.toString()));
     }
     delAll.setDisable(true);
   }
@@ -356,10 +389,10 @@ public class SearchController implements ChildController {
     item1.setOnAction(e -> runnableWrapper(() -> {
       SearchResult result = resultsTable.getSelectionModel().getSelectedItem();
       Explanation explanation = searchModel.explain(parse(false), result.getDocId());
-      explanationDialog = new DialogOpener<ExplanationController>(parent).show(
+      explanationDialog = new DialogOpener<ExplanationController>(getParent()).show(
           explanationDialog,
           "Explanation",
-          "/fxml/dialog/explanation.fxml",
+          "/fxml/dialog/search/explanation.fxml",
           600, 400,
           (controller) -> {
             controller.setDocNum(result.getDocId());
@@ -371,33 +404,19 @@ public class SearchController implements ChildController {
     MenuItem item2 = new MenuItem(MessageUtils.getLocalizedMessage("search.results.menu.showdoc"));
     item2.setOnAction(e -> runnableWrapper(() -> {
       SearchResult result = resultsTable.getSelectionModel().getSelectedItem();
-      parent.getDocumentsController().displayDoc(result.getDocId());
-      parent.switchTab(LukeController.Tab.DOCUMENTS);
+      getDocumentsController().displayDoc(result.getDocId());
+      switchTab(LukeController.Tab.DOCUMENTS);
     }));
 
     menu.getItems().addAll(item1, item2);
     return menu;
   }
 
-  private Search searchModel;
-
-  private IndexTools indexToolsModel;
-
-  private LukeController parent;
-
-  private Analyzer curAnalyzer;
-
   @Override
   public void setParent(LukeController parent) {
-    this.parent = parent;
-    analyzerController.setParent(this, parent);
-    mltController.setParent(this, parent);
-  }
-
-  @Inject
-  public SearchController(Search searchModel, IndexTools indexToolsModel) {
-    this.searchModel = searchModel;
-    this.indexToolsModel = indexToolsModel;
+    super.setParent(parent);
+    analyzerController.setParent(parent);
+    mltController.setParent(parent);
   }
 
   // -------------------------------------------------

@@ -17,60 +17,100 @@
 
 package org.apache.lucene.luke.models.analysis;
 
+import com.google.common.collect.ImmutableList;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public class CustomAnalyzerConfig {
+/**
+ * Configurations for a custom analyzer.
+ */
+public final class CustomAnalyzerConfig {
 
-  private Optional<String> configDir;
+  private final String configDir;
 
-  private ComponentConfig tokenizerConfig;
+  private final ComponentConfig tokenizerConfig;
 
-  private List<ComponentConfig> charFilterConfigs;
+  private final List<ComponentConfig> charFilterConfigs;
 
-  private List<ComponentConfig> tokenFilterConfigs;
+  private final List<ComponentConfig> tokenFilterConfigs;
 
-  public CustomAnalyzerConfig(@Nonnull String tokenizerName, @Nonnull Map<String, String> tokenizerParams, @Nullable String configDir) {
-    this.tokenizerConfig = new ComponentConfig(tokenizerName, tokenizerParams);
-    this.configDir = Optional.ofNullable(configDir);
-    this.charFilterConfigs = new ArrayList<>();
-    this.tokenFilterConfigs = new ArrayList<>();
+  public static class Builder {
+    private String configDir;
+    private final ComponentConfig tokenizerConfig;
+    private final List<ComponentConfig> charFilterConfigs = new ArrayList<>();
+    private final List<ComponentConfig> tokenFilterConfigs = new ArrayList<>();
+
+    public Builder(@Nonnull String tokenizerName, @Nonnull Map<String, String> tokenizerParams) {
+      tokenizerConfig = new ComponentConfig(tokenizerName, new HashMap<>(tokenizerParams));
+    }
+
+    public Builder configDir(String val) {
+      configDir = val;
+      return this;
+    }
+
+    public Builder addCharFilterConfig(@Nonnull String name, @Nonnull Map<String, String> params) {
+      charFilterConfigs.add(new ComponentConfig(name, new HashMap<>(params)));
+      return this;
+    }
+
+    public Builder addTokenFilterConfig(@Nonnull String name, @Nonnull Map<String, String> params) {
+      tokenFilterConfigs.add(new ComponentConfig(name, new HashMap<>(params)));
+      return this;
+    }
+
+    public CustomAnalyzerConfig build() {
+      return new CustomAnalyzerConfig(this);
+    }
   }
 
-  public void addCharFilterConfig(String name, Map<String, String> params) {
-    this.charFilterConfigs.add(new ComponentConfig(name, params));
+  private CustomAnalyzerConfig(Builder builder) {
+    this.tokenizerConfig = builder.tokenizerConfig;
+    this.configDir = builder.configDir;
+    this.charFilterConfigs = builder.charFilterConfigs;
+    this.tokenFilterConfigs = builder.tokenFilterConfigs;
   }
 
-  public void addTokenFilterConfig(String name, Map<String, String> params) {
-    this.tokenFilterConfigs.add(new ComponentConfig(name, params));
-  }
-
+  /**
+   * Returns directory path for configuration files, or empty.
+   */
   Optional<String> getConfigDir() {
-    return configDir;
+    return Optional.ofNullable(configDir);
   }
 
+  /**
+   * Returns Tokenizer configurations.
+   */
   ComponentConfig getTokenizerConfig() {
-    return this.tokenizerConfig;
+    return tokenizerConfig;
   }
 
+  /**
+   * Returns CharFilters configurations.
+   */
   List<ComponentConfig> getCharFilterConfigs() {
-    return this.charFilterConfigs;
+    return ImmutableList.copyOf(charFilterConfigs);
   }
 
+  /**
+   * Returns TokenFilters configurations.
+   */
   List<ComponentConfig> getTokenFilterConfigs() {
-    return this.tokenFilterConfigs;
+    return ImmutableList.copyOf(tokenFilterConfigs);
   }
 
-  class ComponentConfig {
+  static class ComponentConfig {
 
-    private String name;
-    private Map<String, String> params;
+    private final String name;
+    private final Map<String, String> params;
 
-    ComponentConfig(String name, Map<String, String> params) {
+    ComponentConfig(@Nonnull String name, @Nonnull Map<String, String> params) {
       this.name = name;
       this.params = params;
     }

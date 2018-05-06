@@ -40,16 +40,16 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.luke.app.controllers.dialog.TokenAttributeController;
-import org.apache.lucene.luke.app.controllers.dto.Token;
+import org.apache.lucene.luke.app.controllers.dialog.analysis.TokenAttributeController;
+import org.apache.lucene.luke.app.controllers.dto.analysis.Token;
 import org.apache.lucene.luke.app.controllers.fragments.analysis.AnalyzerController;
 import org.apache.lucene.luke.app.controllers.fragments.analysis.CustomAnalyzerController;
 import org.apache.lucene.luke.app.controllers.fragments.analysis.PresetAnalyzerController;
 import org.apache.lucene.luke.app.util.DialogOpener;
-import org.apache.lucene.luke.models.LukeException;
 import org.apache.lucene.luke.models.analysis.Analysis;
+import org.apache.lucene.luke.models.analysis.AnalysisFactory;
 import org.apache.lucene.luke.models.analysis.CustomAnalyzerConfig;
-import org.apache.lucene.luke.util.MessageUtils;
+import org.apache.lucene.luke.app.util.MessageUtils;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -60,10 +60,12 @@ import java.util.stream.Collectors;
 
 import static org.apache.lucene.luke.app.util.ExceptionHandler.runnableWrapper;
 
-public class AnalysisController implements ChildController {
+public class AnalysisController extends ChildTabController {
 
   private static final String ANALYZER_PRESET = "preset";
   private static final String ANALYZER_CUSTOM = "custom";
+
+  private Analysis analysisModel;
 
   @FXML
   private ToggleGroup analyzerGroup;
@@ -113,6 +115,11 @@ public class AnalysisController implements ChildController {
 
   @FXML
   private CustomAnalyzerController customAnalyzerController;
+
+  @Inject
+  public AnalysisController(AnalysisFactory analysisFactory) {
+    this.analysisModel = analysisFactory.newInstance();
+  }
 
   @FXML
   private void initialize() throws Exception {
@@ -171,7 +178,7 @@ public class AnalysisController implements ChildController {
           files.stream().map(File::getAbsolutePath).collect(Collectors.toList())
       );
       customAnalyzerController.populate(analysisModel);
-      parent.showStatusMessage("External jars added.");
+      showStatusMessage("External jars added.");
     }
   }
 
@@ -184,7 +191,7 @@ public class AnalysisController implements ChildController {
       FXMLLoader loader = new FXMLLoader(getClass().getResource(resourceName), MessageUtils.getBundle());
       root = loader.load();
       AnalyzerController controller = loader.getController();
-      controller.setParent(this, parent);
+      controller.setParent(this, getParent());
       controller.populate(analysisModel);
 
       if (controller instanceof PresetAnalyzerController) {
@@ -211,67 +218,49 @@ public class AnalysisController implements ChildController {
     }
   }
 
-  private void testAnalyze() throws Exception {
+  private void testAnalyze() {
     String text = inputText.getText();
     if (text == null || text.length() == 0) {
-      parent.showStatusMessage(MessageUtils.getLocalizedMessage("analysis.message.empry_input"));
+      showStatusMessage(MessageUtils.getLocalizedMessage("analysis.message.empry_input"));
       return;
     }
     List<Analysis.Token> tokens = analysisModel.analyze(text);
     tokenList.clear();
     tokenList.addAll(tokens.stream().map(Token::of).collect(Collectors.toList()));
-    parent.clearStatusMessage();
+    clearStatusMessage();
   }
 
   private Stage tokenAttDialog;
 
   private void showTokenAttributes() throws Exception {
     Analysis.Token token = tokenList.get(tokenTable.getSelectionModel().getFocusedIndex()).getOriginalToken();
-    String termText = token.term;
-    tokenAttDialog = new DialogOpener<TokenAttributeController>(parent).show(
+    String termText = token.getTerm();
+    tokenAttDialog = new DialogOpener<TokenAttributeController>(getParent()).show(
         tokenAttDialog,
         "Token Attributes",
-        "/fxml/dialog/tokenattribute.fxml",
+        "/fxml/dialog/analysis/tokenattribute.fxml",
         600, 400,
         (controller) -> {
-          controller.populate(termText, token.attributes);
+          controller.populate(termText, token.getAttributes());
         }
     );
-    parent.clearStatusMessage();
+    clearStatusMessage();
   }
 
-  @Override
-  public void onIndexOpen() {
+  Analyzer getCurrentAnalyzer() {
+    return analysisModel.currentAnalyzer();
   }
 
-  @Override
-  public void onClose() {
-  }
-
-  @Override
-  public void setParent(LukeController parent) {
-    this.parent = parent;
-  }
-
-  private Analysis analysisModel;
-
-  private LukeController parent;
-
-  @Inject
-  public AnalysisController(Analysis analysisModel) {
-    this.analysisModel = analysisModel;
-  }
-
-  public void createPresetAnalyzer(String analyzerType) throws LukeException {
+  public void createPresetAnalyzer(String analyzerType) {
     Analyzer analyzer = analysisModel.createAnalyzerFromClassName(analyzerType);
     selectedAnalyzer.setText(analyzer.getClass().getName());
   }
 
-  public void buildCustomAnalyzer() throws LukeException {
+  public void buildCustomAnalyzer() {
     CustomAnalyzerConfig config = customAnalyzerController.getAnalyzerConfig(configDir);
     Analyzer analyzer = analysisModel.buildCustomAnalyzer(config);
     selectedAnalyzer.setText(analyzer.getClass().getName());
-    parent.showStatusMessage(MessageUtils.getLocalizedMessage("analysis.message.build_success"));
+    showStatusMessage(MessageUtils.getLocalizedMessage("analysis.message.build_success"));
   }
 
   public void enableBuildButton() {

@@ -21,29 +21,71 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.index.CheckIndex;
-import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.luke.models.LukeException;
 import org.apache.lucene.search.Query;
-import org.apache.lucene.store.Directory;
 
 import java.io.PrintStream;
 import java.util.Collection;
 
+/**
+ * A dedicated interface for Luke's various index manipulations.
+ */
 public interface IndexTools {
 
-  void reset(Directory dir, String indexPath, boolean useCompound, boolean keepAllCommits);
+  /**
+   * Execute force merges.
+   *
+   * <p>
+   * Merges are executed until there are <i>maxNumSegments</i> segments. <br>
+   * When <i>expunge</i> is true, <i>maxNumSegments</i> parameter is ignored.
+   * </p>
+   *
+   * @param expunge - if true, only segments having deleted documents are merged
+   * @param maxNumSegments - max number of segments
+   * @param ps - information stream
+   * @throws LukeException - if an internal error occurs when accessing index
+   */
+  void optimize(boolean expunge, int maxNumSegments, PrintStream ps);
 
-  void reset(IndexReader reader, String indexPath, boolean useCompound, boolean keepAllCommits) throws LukeException;
+  /**
+   * Check the current index status.
+   *
+   * @param ps information stream
+   * @return index status
+   * @throws LukeException - if an internal error occurs when accessing index
+   */
+  CheckIndex.Status checkIndex(PrintStream ps);
 
-  void optimize(boolean expunge, int maxNumSegments, PrintStream ps) throws LukeException;
+  /**
+   * Try to repair the corrupted index using previously returned index status.
+   *
+   * <p>This method must be called with the return value from {@link IndexTools#checkIndex(PrintStream)}.</p>
+   *
+   * @param st - index status
+   * @param ps - information stream
+   * @throws LukeException - if an internal error occurs when accessing index
+   */
+  void repairIndex(CheckIndex.Status st, PrintStream ps);
 
-  CheckIndex.Status checkIndex(PrintStream ps) throws LukeException;
+  /**
+   * Add new document to this index.
+   *
+   * @param doc - document to be added
+   * @param analyzer - analyzer for parsing to document
+   * @throws LukeException - if an internal error occurs when accessing index
+   */
+  void addDocument(Document doc, Analyzer analyzer);
 
-  void repairIndex(CheckIndex.Status st, PrintStream ps) throws LukeException;
+  /**
+   * Delete documents from this index by the specified query.
+   *
+   * @param query - query for deleting
+   * @throws LukeException - if an internal error occurs when accessing index
+   */
+  void deleteDocuments(Query query);
 
-  void addDocument(Document doc, Analyzer analyzer) throws LukeException;
-
-  void deleteDocuments(Query query) throws LukeException;
-
+  /**
+   * Returns preset {@link Field} classes.
+   */
   Collection<Class<? extends Field>> getPresetFields();
 }

@@ -17,6 +17,7 @@
 
 package org.apache.lucene.luke.models.overview;
 
+import com.google.common.collect.ImmutableMap;
 import org.apache.lucene.analysis.MockAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -31,24 +32,28 @@ import org.junit.Before;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 
 public abstract class OverviewTestBase extends LuceneTestCase {
-  protected IndexReader reader;
-  protected Directory dir;
-  protected Path indexDir;
+
+  IndexReader reader;
+
+  Directory dir;
+
+  Path indexDir;
 
   @Override
   @Before
   public void setUp() throws Exception {
     super.setUp();
-    createIndex();
+    indexDir = createIndex();
     dir = newFSDirectory(indexDir);
     reader = DirectoryReader.open(dir);
-
   }
 
-  protected void createIndex() throws IOException {
-    indexDir = createTempDir();
+  private Path createIndex() throws IOException {
+    Path indexDir = createTempDir();
 
     Directory dir = newFSDirectory(indexDir);
     RandomIndexWriter writer = new RandomIndexWriter(random(), dir, new MockAnalyzer(random()));
@@ -57,18 +62,26 @@ public abstract class OverviewTestBase extends LuceneTestCase {
     doc1.add(newStringField("f1", "1", Field.Store.NO));
     doc1.add(newTextField("f2", "a b c d e", Field.Store.NO));
     writer.addDocument(doc1);
+
     Document doc2 = new Document();
     doc2.add(newStringField("f1", "2", Field.Store.NO));
     doc2.add(new TextField("f2", "a c", Field.Store.NO));
     writer.addDocument(doc2);
+
     Document doc3 = new Document();
     doc3.add(newStringField("f1", "3", Field.Store.NO));
     doc3.add(newTextField("f2", "a f", Field.Store.NO));
     writer.addDocument(doc3);
+
+    Map<String, String> userData = ImmutableMap.of("data", "val");
+    writer.w.setLiveCommitData(userData.entrySet());
+
     writer.commit();
 
     writer.close();
     dir.close();
+
+    return indexDir;
   }
 
   @Override

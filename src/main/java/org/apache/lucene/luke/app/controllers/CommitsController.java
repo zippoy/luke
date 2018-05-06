@@ -29,11 +29,16 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.cell.PropertyValueFactory;
-import org.apache.lucene.luke.app.controllers.dto.File;
-import org.apache.lucene.luke.app.controllers.dto.Segment;
+import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.luke.app.DirectoryObserver;
+import org.apache.lucene.luke.app.IndexObserver;
+import org.apache.lucene.luke.app.LukeState;
+import org.apache.lucene.luke.app.controllers.dto.commits.File;
+import org.apache.lucene.luke.app.controllers.dto.commits.Segment;
 import org.apache.lucene.luke.models.LukeException;
 import org.apache.lucene.luke.models.commits.Commit;
 import org.apache.lucene.luke.models.commits.Commits;
+import org.apache.lucene.luke.models.commits.CommitsFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -41,7 +46,11 @@ import java.util.stream.Collectors;
 
 import static org.apache.lucene.luke.app.util.ExceptionHandler.runnableWrapper;
 
-public class CommitsController implements ChildController {
+public class CommitsController implements IndexObserver, DirectoryObserver {
+
+  private final CommitsFactory commitsFactory;
+
+  private Commits commitsModel;
 
   @FXML
   private ChoiceBox<Long> generation;
@@ -112,6 +121,11 @@ public class CommitsController implements ChildController {
   @FXML
   private ObservableList<String> segDetailList;
 
+  @Inject
+  public CommitsController(CommitsFactory commitsFactory) {
+    this.commitsFactory = commitsFactory;
+  }
+
   @FXML
   private void initialize() {
     generationList = FXCollections.observableArrayList();
@@ -150,17 +164,33 @@ public class CommitsController implements ChildController {
   }
 
   @Override
-  public void onDirectoryOpen() throws LukeException {
+  public void openDirectory(LukeState state) {
+    commitsModel = commitsFactory.newInstance(state.getDirectory(), state.getIndexPath());
     populateCommitGenerations();
   }
 
   @Override
-  public void onIndexOpen() throws LukeException {
-    populateCommitGenerations();
+  public void openIndex(LukeState state) {
+    if (state.hasDirectoryReader()) {
+      DirectoryReader dr = (DirectoryReader) state.getIndexReader();
+      commitsModel = commitsFactory.newInstance(dr, state.getIndexPath());
+      populateCommitGenerations();
+    }
   }
 
   @Override
-  public void onClose() {
+  public void closeIndex() {
+    close();
+  }
+
+  @Override
+  public void closeDirectory() {
+    close();
+  }
+
+  private void close() {
+    commitsModel = null;
+
     deleted.setText("");
     segCount.setText("");
     userData.setText("");
@@ -170,13 +200,11 @@ public class CommitsController implements ChildController {
     segmentList.clear();
   }
 
-  private void populateCommitGenerations() throws LukeException {
+  private void populateCommitGenerations() {
     generationList.clear();
-    commitsModel.listCommits().ifPresent(commits -> {
-      for (Commit commit : commits) {
-        generationList.add(commit.getGeneration());
-      }
-    });
+    for (Commit commit : commitsModel.listCommits()) {
+      generationList.add(commit.getGeneration());
+    }
     if (generationList.size() > 0) {
       generation.setValue(generationList.get(0));
     }
@@ -203,17 +231,11 @@ public class CommitsController implements ChildController {
       userData.setText(commit.getUserData());
     });
 
-    commitsModel.getFiles(commitGen).ifPresent(files -> {
-      fileList.addAll(files.stream()
-          .map(File::of)
-          .collect(Collectors.toList()));
-    });
+    fileList.addAll(commitsModel.getFiles(commitGen).stream()
+        .map(File::of).collect(Collectors.toList()));
 
-    commitsModel.getSegments(commitGen).ifPresent(segs -> {
-      segmentList.addAll(segs.stream()
-          .map(Segment::of)
-          .collect(Collectors.toList()));
-    });
+    segmentList.addAll(commitsModel.getSegments(commitGen).stream()
+        .map(Segment::of).collect(Collectors.toList()));
   }
 
   @SuppressWarnings("unchecked")
@@ -229,19 +251,11 @@ public class CommitsController implements ChildController {
     String selected = detailsGroup.getSelectedToggle().getUserData().toString();
 
     if (selected.equals("diag")) {
-      commitsModel.getSegmentDiagnostics(commitGen, segName).ifPresent(map ->
-          segDetailList.addAll(
-              map.entrySet().stream()
-                  .map(e -> e.getKey() + " = " + e.getValue())
-                  .collect(Collectors.toList()))
-      );
+      segDetailList.addAll(commitsModel.getSegmentDiagnostics(commitGen, segName).entrySet().stream()
+          .map(e -> e.getKey() + " = " + e.getValue()).collect(Collectors.toList()));
     } else if (selected.equals("att")) {
-      commitsModel.getSegmentAttributes(commitGen, segName).ifPresent(map ->
-          segDetailList.addAll(
-              map.entrySet().stream()
-                  .map(e -> e.getKey() + " = " + e.getValue())
-                  .collect(Collectors.toList()))
-      );
+      segDetailList.addAll(commitsModel.getSegmentAttributes(commitGen, segName).entrySet().stream()
+          .map(e -> e.getKey() + " = " + e.getValue()).collect(Collectors.toList()));
     } else if (selected.equals("codec")) {
       commitsModel.getSegmentCodec(commitGen, segName).ifPresent(codec -> {
         Map<String, String> map = new HashMap<>();
@@ -271,20 +285,6 @@ public class CommitsController implements ChildController {
     diagRadio.setDisable(value);
     attRadio.setDisable(value);
     codecRadio.setDisable(value);
-  }
-
-  @Override
-  public void setParent(LukeController parent) {
-    this.parent = parent;
-  }
-
-  private LukeController parent;
-
-  private Commits commitsModel;
-
-  @Inject
-  public CommitsController(Commits commitsModel) {
-    this.commitsModel = commitsModel;
   }
 
 }

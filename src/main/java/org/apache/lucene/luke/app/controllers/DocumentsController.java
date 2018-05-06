@@ -46,34 +46,40 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.layout.FlowPane;
 import javafx.stage.Stage;
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.document.Document;
 import org.apache.lucene.index.Term;
-import org.apache.lucene.luke.app.controllers.dialog.AddDocumentController;
-import org.apache.lucene.luke.app.controllers.dialog.DocValuesController;
+import org.apache.lucene.luke.app.IndexObserver;
+import org.apache.lucene.luke.app.LukeState;
+import org.apache.lucene.luke.app.controllers.dialog.documents.AddDocumentController;
+import org.apache.lucene.luke.app.controllers.dialog.documents.DocValuesController;
 import org.apache.lucene.luke.app.controllers.dialog.HelpController;
-import org.apache.lucene.luke.app.controllers.dialog.StoredValueController;
-import org.apache.lucene.luke.app.controllers.dialog.TermVectorController;
-import org.apache.lucene.luke.app.controllers.dto.DocumentField;
-import org.apache.lucene.luke.app.controllers.dto.TermPosting;
+import org.apache.lucene.luke.app.controllers.dialog.documents.StoredValueController;
+import org.apache.lucene.luke.app.controllers.dialog.documents.TermVectorController;
+import org.apache.lucene.luke.app.controllers.dto.documents.DocumentField;
+import org.apache.lucene.luke.app.controllers.dto.documents.TermPosting;
 import org.apache.lucene.luke.app.util.DialogOpener;
 import org.apache.lucene.luke.app.util.IntegerTextFormatter;
 import org.apache.lucene.luke.models.LukeException;
 import org.apache.lucene.luke.models.documents.DocValues;
 import org.apache.lucene.luke.models.documents.Documents;
+import org.apache.lucene.luke.models.documents.DocumentsFactory;
 import org.apache.lucene.luke.models.documents.TermVectorEntry;
-import org.apache.lucene.luke.models.tools.IndexTools;
-import org.apache.lucene.luke.util.MessageUtils;
+import org.apache.lucene.luke.app.util.MessageUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.apache.lucene.luke.app.util.ExceptionHandler.runnableWrapper;
 
-public class DocumentsController implements ChildController {
+public class DocumentsController extends ChildTabController implements IndexObserver {
+
+  private final DocumentsFactory documentsFactory;
+
+  private Documents documentsModel;
+
+  private Analyzer currentAnalyzer;
 
   @FXML
   private Spinner<Integer> docNum;
@@ -148,6 +154,11 @@ public class DocumentsController implements ChildController {
 
   private ObservableList<DocumentField> documentFieldList;
 
+  @Inject
+  public DocumentsController(DocumentsFactory documentsFactory) {
+    this.documentsFactory = documentsFactory;
+  }
+
   @FXML
   private void initialize() {
     // initialize postings table view
@@ -197,16 +208,18 @@ public class DocumentsController implements ChildController {
     nextTermDoc.setDisable(true);
 
     mltSearch.setOnAction(e -> runnableWrapper(() -> {
-      parent.getSearchController().mltSearch(docNum.getValue());
-      parent.switchTab(LukeController.Tab.SEARCH);
+      getSearchController().mltSearch(docNum.getValue());
+      switchTab(LukeController.Tab.SEARCH);
     }));
 
     addDoc.setOnAction(e -> runnableWrapper(this::showAddDocumentDialog));
   }
 
   @Override
-  public void onIndexOpen() throws LukeException {
-    addDoc.setDisable(parent.isReadOnly() || !parent.hasDirectoryReader());
+  public void openIndex(LukeState state) throws LukeException {
+    documentsModel = documentsFactory.newInstance(state.getIndexReader());
+
+    addDoc.setDisable(state.readOnly() || !state.hasDirectoryReader());
 
     int maxDoc = documentsModel.getMaxDoc();
     maxDocs.setText(String.format("in %d docs", maxDoc));
@@ -245,7 +258,9 @@ public class DocumentsController implements ChildController {
   }
 
   @Override
-  public void onClose() {
+  public void closeIndex() {
+    documentsModel = null;
+
     maxDocs.setText("in ? docs");
     docNum.getEditor().setText("");
     field.getItems().clear();
@@ -258,27 +273,21 @@ public class DocumentsController implements ChildController {
     documentFieldList.clear();
   }
 
-  @Override
-  public void setParent(LukeController parent) {
-    this.parent = parent;
-  }
-
   private void showDoc(int docid) throws LukeException {
     showedDocNum.setText(String.valueOf(docid));
     documentFieldList.clear();
 
-    List<DocumentField> doc = documentsModel.getDocumentFields(docid).map(docFields ->
-        docFields.stream()
+    List<DocumentField> doc = documentsModel.getDocumentFields(docid).stream()
             .map(DocumentField::of)
-            .collect(Collectors.toList())).orElse(Collections.emptyList());
+            .collect(Collectors.toList());
     documentFieldList.addAll(doc);
-    parent.clearStatusMessage();
+    clearStatusMessage();
   }
 
-  private void showFirstTerm() throws LukeException {
+  private void showFirstTerm() {
     String fieldName = field.getValue();
     if (fieldName == null || fieldName.length() == 0) {
-      parent.showStatusMessage(MessageUtils.getLocalizedMessage("documents.field.message.not_selected"));
+      showStatusMessage(MessageUtils.getLocalizedMessage("documents.field.message.not_selected"));
       return;
     }
 
@@ -302,7 +311,6 @@ public class DocumentsController implements ChildController {
     }
     nextTermDoc.setDisable(true);
 
-    parent.clearStatusMessage();
   }
 
   private void showNextTerm() throws LukeException {
@@ -325,7 +333,7 @@ public class DocumentsController implements ChildController {
     }
     nextTermDoc.setDisable(true);
 
-    parent.clearStatusMessage();
+    clearStatusMessage();
   }
 
   private void seekTermCeil() throws LukeException {
@@ -349,14 +357,14 @@ public class DocumentsController implements ChildController {
     }
     nextTermDoc.setDisable(true);
 
-    parent.clearStatusMessage();
+    clearStatusMessage();
   }
 
   private void showFirstTermDoc() throws LukeException {
     int doc = documentsModel.firstTermDoc().orElse(-1);
     if (doc < 0) {
       nextTermDoc.setDisable(true);
-      parent.showStatusMessage(MessageUtils.getLocalizedMessage("documents.termdocs.message.not_available"));
+      showStatusMessage(MessageUtils.getLocalizedMessage("documents.termdocs.message.not_available"));
       return;
     }
     termDocIdx.setText(String.valueOf(1));
@@ -371,14 +379,14 @@ public class DocumentsController implements ChildController {
             .collect(Collectors.toList()));
 
     nextTermDoc.setDisable(false);
-    parent.clearStatusMessage();
+    clearStatusMessage();
   }
 
   private void showNextTermDoc() throws LukeException {
     int doc = documentsModel.nextTermDoc().orElse(-1);
     if (doc < 0) {
       nextTermDoc.setDisable(true);
-      parent.showStatusMessage(MessageUtils.getLocalizedMessage("documents.termdocs.message.not_available"));
+      showStatusMessage(MessageUtils.getLocalizedMessage("documents.termdocs.message.not_available"));
       return;
     }
     int curIdx = Integer.parseInt(termDocIdx.getCharacters().toString());
@@ -394,21 +402,20 @@ public class DocumentsController implements ChildController {
             .collect(Collectors.toList()));
 
     nextTermDoc.setDisable(false);
-    parent.clearStatusMessage();
+    clearStatusMessage();
   }
 
   private Stage addDocumentDialog;
 
   private void showAddDocumentDialog() throws Exception {
-    addDocumentDialog = new DialogOpener<AddDocumentController>(parent).show(
+    addDocumentDialog = new DialogOpener<AddDocumentController>(getParent()).show(
         addDocumentDialog,
         "Add Document",
-        "/fxml/dialog/add_document.fxml",
+        "/fxml/dialog/documents/add_document.fxml",
         600, 500,
         (controller) -> {
-          controller.setParent(parent, this);
-          controller.setAnalyzer(curAnalyzer);
-          controller.setPresetFields(indexToolsModel.getPresetFields());
+          controller.setParent(getParent(), this);
+          controller.setAnalyzer(currentAnalyzer);
         }
     );
   }
@@ -429,7 +436,7 @@ public class DocumentsController implements ChildController {
         "Tx/x - point values(num bytes/dimension)"
     );
     ListView<String> content = new ListView<>(items);
-    flagsHelpDialog = new DialogOpener<HelpController>(parent).show(
+    flagsHelpDialog = new DialogOpener<HelpController>(getParent()).show(
         flagsHelpDialog,
         "About Flags",
         "/fxml/dialog/help.fxml",
@@ -481,18 +488,18 @@ public class DocumentsController implements ChildController {
     int docid = Integer.parseInt(showedDocNum.getText());
     List<TermVectorEntry> tvEntries = documentsModel.getTermVectors(docid, field);
     if (tvEntries.isEmpty()) {
-      parent.showStatusMessage(MessageUtils.getLocalizedMessage("documents.termvector.message.not_available", field, docid));
+      showStatusMessage(MessageUtils.getLocalizedMessage("documents.termvector.message.not_available", field, docid));
       return;
     }
 
-    termVectorDialog = new DialogOpener<TermVectorController>(parent).show(
+    termVectorDialog = new DialogOpener<TermVectorController>(getParent()).show(
         termVectorDialog,
         "Term Vector",
-        "/fxml/dialog/termvector.fxml",
+        "/fxml/dialog/documents/termvector.fxml",
         400, 300,
         (controller) -> controller.setTermVector(field, tvEntries));
 
-    parent.clearStatusMessage();
+    clearStatusMessage();
   }
 
   private Stage docValuesDialog = null;
@@ -501,15 +508,15 @@ public class DocumentsController implements ChildController {
     int docid = Integer.parseInt(showedDocNum.getText());
     Optional<DocValues> docValues = documentsModel.getDocValues(docid, field);
     if (docValues.isPresent()) {
-      docValuesDialog = new DialogOpener<DocValuesController>(parent).show(
+      docValuesDialog = new DialogOpener<DocValuesController>(getParent()).show(
           docValuesDialog,
           "Doc Values",
-          "/fxml/dialog/docvalues.fxml",
+          "/fxml/dialog/documents/docvalues.fxml",
           400, 300,
           (controller) -> controller.setValue(field, docValues.get()));
-      parent.clearStatusMessage();
+      clearStatusMessage();
     } else {
-      parent.showStatusMessage(MessageUtils.getLocalizedMessage("documents.docvalues.message.not_available", field, docid));
+      showStatusMessage(MessageUtils.getLocalizedMessage("documents.docvalues.message.not_available", field, docid));
     }
   }
 
@@ -518,23 +525,23 @@ public class DocumentsController implements ChildController {
   private void showStoredValueDialog(@Nonnull String field, @Nullable String stored) throws Exception {
     if (stored == null || stored.length() == 0) {
       int docid = Integer.parseInt(showedDocNum.getText());
-      parent.showStatusMessage(MessageUtils.getLocalizedMessage("documents.stored.message.not_availabe", field, docid));
+      showStatusMessage(MessageUtils.getLocalizedMessage("documents.stored.message.not_availabe", field, docid));
       return;
     }
-    storedValueDialog = new DialogOpener<StoredValueController>(parent).show(
+    storedValueDialog = new DialogOpener<StoredValueController>(getParent()).show(
         storedValueDialog,
         "Stored Value",
-        "/fxml/dialog/stored.fxml",
+        "/fxml/dialog/documents/stored.fxml",
         400, 300,
         (controller) -> controller.setValue(field, stored));
 
-    parent.clearStatusMessage();
+    clearStatusMessage();
   }
 
   private void copyStoredValue(@Nonnull String field, @Nullable String stored) {
     if (stored == null || stored.length() == 0) {
       int docid = Integer.parseInt(showedDocNum.getText());
-      parent.showStatusMessage(MessageUtils.getLocalizedMessage("documents.stored.message.not_availabe", field, docid));
+      showStatusMessage(MessageUtils.getLocalizedMessage("documents.stored.message.not_availabe", field, docid));
       return;
     }
 
@@ -543,7 +550,7 @@ public class DocumentsController implements ChildController {
     content.putString(stored);
     clipboard.setContent(content);
 
-    parent.clearStatusMessage();
+    clearStatusMessage();
   }
 
   // -------------------------------------------------
@@ -567,25 +574,8 @@ public class DocumentsController implements ChildController {
     showDoc(docId);
   }
 
-  private Documents documentsModel;
-
-  private IndexTools indexToolsModel;
-
-  private LukeController parent;
-
-  private Analyzer curAnalyzer;
-
-  @Inject
-  public DocumentsController(Documents documentsModel, IndexTools indexToolsModel) {
-    this.documentsModel = documentsModel;
-    this.indexToolsModel = indexToolsModel;
+  void setCurrentAnalyzer(Analyzer analyzer) {
+    this.currentAnalyzer = analyzer;
   }
 
-  public void setCurrentAnalyzer(Analyzer analyzer) {
-    this.curAnalyzer = analyzer;
-  }
-
-  public void addDocument(Document doc) throws LukeException {
-    indexToolsModel.addDocument(doc, curAnalyzer);
-  }
 }

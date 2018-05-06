@@ -27,12 +27,12 @@ import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import org.apache.lucene.luke.app.controllers.AnalysisController;
 import org.apache.lucene.luke.app.controllers.LukeController;
-import org.apache.lucene.luke.app.controllers.dialog.EditFiltersController;
-import org.apache.lucene.luke.app.controllers.dialog.EditParamsController;
+import org.apache.lucene.luke.app.controllers.dialog.analysis.EditFiltersController;
+import org.apache.lucene.luke.app.controllers.dialog.analysis.EditParamsController;
 import org.apache.lucene.luke.app.util.DialogOpener;
 import org.apache.lucene.luke.models.analysis.Analysis;
 import org.apache.lucene.luke.models.analysis.CustomAnalyzerConfig;
-import org.apache.lucene.luke.util.MessageUtils;
+import org.apache.lucene.luke.app.util.MessageUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -48,6 +48,10 @@ import static org.apache.lucene.luke.app.util.ExceptionHandler.runnableWrapper;
 public class CustomAnalyzerController implements AnalyzerController {
 
   private static final String DEFAULT_TOKENIZER = "org.apache.lucene.analysis.standard.StandardTokenizerFactory";
+
+  private AnalysisController analysisController;
+
+  private LukeController parent;
 
   @FXML
   private ChoiceBox<String> charFilter;
@@ -285,7 +289,7 @@ public class CustomAnalyzerController implements AnalyzerController {
     return new DialogOpener<EditFiltersController>(parent).show(
         dialog,
         title,
-        "/fxml/dialog/edit_filters.fxml",
+        "/fxml/dialog/analysis/edit_filters.fxml",
         400, 300,
         (controller) -> {
           controller.setParent(this, mode);
@@ -317,7 +321,7 @@ public class CustomAnalyzerController implements AnalyzerController {
     return new DialogOpener<EditParamsController>(parent).show(
         dialog,
         title,
-        "/fxml/dialog/edit_params.fxml",
+        "/fxml/dialog/analysis/edit_params.fxml",
         400, 300,
         initializer
     );
@@ -329,9 +333,7 @@ public class CustomAnalyzerController implements AnalyzerController {
     analysisController.enableBuildButton();
   }
 
-  private AnalysisController analysisController;
 
-  private LukeController parent;
 
   @Override
   public void setParent(AnalysisController analysisController, LukeController parent) {
@@ -361,16 +363,19 @@ public class CustomAnalyzerController implements AnalyzerController {
   }
 
   @Override
-  public void resetSelectedAnalyzer() throws Exception {
+  public void resetSelectedAnalyzer() {
     analysisController.buildCustomAnalyzer();
   }
 
   public CustomAnalyzerConfig getAnalyzerConfig(String configDir) {
-    CustomAnalyzerConfig config = new CustomAnalyzerConfig(selectedTkn.getText(), paramMapTkn, configDir);
+    CustomAnalyzerConfig.Builder builder =
+        new CustomAnalyzerConfig.Builder(selectedTkn.getText(), paramMapTkn).configDir(configDir);
+
     IntStream.range(0, Math.min(selectedCharFilterList.size(), paramListCFs.size()))
-        .forEach(i -> config.addCharFilterConfig(selectedCharFilterList.get(i), paramListCFs.get(i)));
+        .forEach(i -> builder.addCharFilterConfig(selectedCharFilterList.get(i), paramListCFs.get(i)));
     IntStream.range(0, Math.min(selectedTokenFilterList.size(), paramListTFs.size()))
-        .forEach(i -> config.addTokenFilterConfig(selectedTokenFilterList.get(i), paramListTFs.get(i)));
-    return config;
+        .forEach(i -> builder.addTokenFilterConfig(selectedTokenFilterList.get(i), paramListTFs.get(i)));
+
+    return builder.build();
   }
 }
