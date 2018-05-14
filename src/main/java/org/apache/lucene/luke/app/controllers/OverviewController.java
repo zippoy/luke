@@ -183,6 +183,7 @@ public class OverviewController extends ChildTabController implements IndexObser
     overviewModel = overviewFactory.newInstance(state.getIndexReader(), state.getIndexPath());
 
     indexPath.setText(state.getIndexPath());
+    indexPath.setTooltip(new Tooltip(state.getIndexPath()));
     if (state.readOnly()) {
       mode.setText("(read-only)");
       ImageView imageView = new ImageView(new Image("/img/icon_lock.png"));
@@ -232,6 +233,7 @@ public class OverviewController extends ChildTabController implements IndexObser
   @Override
   public void closeIndex() {
     indexPath.setText("");
+    indexPath.setTooltip(null);
     numFields.setText("");
     numDocs.setText("");
     numTerms.setText("");
