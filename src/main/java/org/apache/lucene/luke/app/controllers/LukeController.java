@@ -226,6 +226,12 @@ public class LukeController implements IndexObserver, DirectoryObserver {
     roIcon.setVisible(false);
     noReaderIcon.setVisible(false);
 
+    // disable tabs until index re-opened.
+    tabPane.getTabs().get(Tab.OVERVIEW.index()).setDisable(true);
+    tabPane.getTabs().get(Tab.DOCUMENTS.index()).setDisable(true);
+    tabPane.getTabs().get(Tab.SEARCH.index()).setDisable(true);
+    tabPane.getTabs().get(Tab.COMMITS.index()).setDisable(true);
+
     switchTab(LukeController.Tab.OVERVIEW);
     showStatusMessage(MessageUtils.getLocalizedMessage("message.index_closed"));
   }
