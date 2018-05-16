@@ -45,7 +45,7 @@
                               AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="30.0">
                       <children>
                         <Spinner fx:id="docNum" editable="true" layoutX="5.0" layoutY="142.0"
-                                 prefHeight="28.0" prefWidth="80.0"
+                                 prefHeight="28.0" prefWidth="130.0"
                                  styleClass="split-arrows-horizontal"
                                  AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="30.0">
                         </Spinner>
