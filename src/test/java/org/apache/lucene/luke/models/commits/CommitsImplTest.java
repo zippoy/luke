@@ -128,7 +128,7 @@ public class CommitsImplTest extends LuceneTestCase {
   @Test
   public void testGetFiles_generation_notfound() {
     CommitsImpl commits = new CommitsImpl(reader, indexDir.toString());
-    assertTrue(commits.getFiles(3).isEmpty());
+    assertTrue(commits.getFiles(10).isEmpty());
   }
 
   @Test
