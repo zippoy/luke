@@ -21,13 +21,7 @@ import com.google.inject.Inject;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
-import javafx.scene.control.RadioButton;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.ToggleGroup;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.luke.app.DirectoryObserver;
@@ -64,7 +58,7 @@ public class CommitsController implements IndexObserver, DirectoryObserver {
   private Label segCount;
 
   @FXML
-  private Label userData;
+  private TextArea userData;
 
   @FXML
   private TableView<File> filesTable;
