@@ -1,5 +1,5 @@
-luke
-====
+luke (legacy Thinlet UI)
+=========================
 
 ![Luke, the Lucene Toolbox Project](src/main/resources/img/luke-big.gif)
 
