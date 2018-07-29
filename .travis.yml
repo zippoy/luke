@@ -3,6 +3,3 @@ jdk:
   - oraclejdk8
   - oraclejdk9
   - oraclejdk10
-script:
-  - jdk_switcher use openjdk10
-  - # do stuff with OpenJDK 10
