@@ -17,7 +17,6 @@
 
 package org.apache.lucene.luke.app.desktop;
 
-import org.apache.lucene.luke.app.controllers.LukeController;
 import org.apache.lucene.store.FSDirectory;
 import org.ini4j.Ini;
 
@@ -84,17 +83,17 @@ public class PreferencesImpl implements Preferences {
     return FileSystems.getDefault().getPath(CONFIG_DIR, HISTORY_FILE);
   }
 
-  @Override
+  /*@Override
   public LukeController.ColorTheme getTheme() {
     String theme = ini.get("settings", "theme");
     return (theme == null) ? LukeController.ColorTheme.GRAY : LukeController.ColorTheme.valueOf(theme);
-  }
+  }*/
 
-  @Override
+  /*@Override
   public void setTheme(LukeController.ColorTheme theme) throws IOException {
     ini.put("settings", "theme", theme.name());
     ini.store(iniFile());
-  }
+  }*/
 
   @Override
   public boolean isReadOnly() {

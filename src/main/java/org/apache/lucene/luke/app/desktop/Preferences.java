@@ -17,8 +17,6 @@
 
 package org.apache.lucene.luke.app.desktop;
 
-import org.apache.lucene.luke.app.controllers.LukeController;
-
 import java.io.IOException;
 import java.util.List;
 
@@ -27,10 +25,6 @@ public interface Preferences {
   List<String> getHistory();
 
   void addHistory(String indexPath) throws IOException;
-
-  LukeController.ColorTheme getTheme();
-
-  void setTheme(LukeController.ColorTheme theme) throws IOException;
 
   boolean isReadOnly();
 
