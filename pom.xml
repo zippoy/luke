@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>luke</groupId>
-    <artifactId>luke-javafx</artifactId>
+    <artifactId>luke-swing</artifactId>
     <version>7.4.0</version>
 
     <prerequisites>

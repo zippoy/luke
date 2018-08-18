@@ -15,38 +15,32 @@
  * limitations under the License.
  */
 
-package org.apache.lucene.luke.app.util;
+package org.apache.lucene.luke.app.desktop.util;
 
-import javafx.concurrent.Task;
-import javafx.scene.control.ProgressIndicator;
-import javafx.scene.layout.Pane;
+import java.text.MessageFormat;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
-public abstract class IndexTask<T> extends Task<T> {
+/**
+ * Utilities for accessing message resources.
+ */
+public class MessageUtils {
 
-  private Pane indicatorPane;
+  private static ResourceBundle bundle = ResourceBundle.getBundle("messages", Locale.getDefault());
 
-  protected IndexTask(Pane indicatorPane) {
-    this.indicatorPane = indicatorPane;
+  public static ResourceBundle getBundle() {
+    return bundle;
   }
 
-  @Override
-  protected void running() {
-    updateMessage("Running...");
-    ProgressIndicator pi = new ProgressIndicator();
-    pi.setPrefHeight(20);
-    pi.setPrefWidth(20);
-    indicatorPane.getChildren().add(pi);
+  public static String getLocalizedMessage(String key) {
+    return bundle.getString(key);
   }
 
-  @Override
-  protected void succeeded() {
-    updateMessage("Done.");
-    indicatorPane.getChildren().clear();
+  public static String getLocalizedMessage(String key, Object... args) {
+    String pattern = bundle.getString(key);
+    return MessageFormat.format(pattern, args);
   }
 
-  @Override
-  protected void failed() {
-    updateMessage(MessageUtils.getLocalizedMessage("message.error.unknown"));
-    indicatorPane.getChildren().clear();
+  private MessageUtils() {
   }
 }

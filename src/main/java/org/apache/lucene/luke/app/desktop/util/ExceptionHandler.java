@@ -15,10 +15,8 @@
  * limitations under the License.
  */
 
-package org.apache.lucene.luke.app.util;
+package org.apache.lucene.luke.app.desktop.util;
 
-import org.apache.lucene.luke.app.controllers.LukeController;
-import org.apache.lucene.luke.models.LukeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,6 +63,7 @@ public class ExceptionHandler {
     }
   }
 
+  /*
   public static void handle(Throwable t, LukeController lukeController) {
     if (t instanceof ExceptionWrapper) {
       Throwable cause = unwrap((ExceptionWrapper) t);
@@ -79,6 +78,7 @@ public class ExceptionHandler {
       lukeController.showUnknownErrorMessage();
     }
   }
+  */
 
   private static ExceptionWrapper wrap(Exception cause) {
     return new ExceptionWrapper(cause);

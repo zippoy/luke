@@ -31,12 +31,6 @@ import org.apache.lucene.luke.models.tools.IndexToolsFactory;
 
 public class LukeModule extends AbstractModule {
 
-  private static final Injector injector = Guice.createInjector(new LukeModule());
-
-  public static Injector getIngector() {
-    return injector;
-  }
-
   @Override
   protected void configure() {
     bind(OverviewFactory.class).toInstance(new OverviewFactory());
@@ -52,5 +46,5 @@ public class LukeModule extends AbstractModule {
     bind(Preferences.class).to(PreferencesImpl.class);
   }
 
-  private LukeModule() {}
+  public LukeModule() {}
 }

@@ -18,7 +18,7 @@
 package org.apache.lucene.luke.app;
 
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.luke.app.util.MessageUtils;
+import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 import org.apache.lucene.luke.models.LukeException;
 import org.apache.lucene.luke.util.IndexUtils;
 

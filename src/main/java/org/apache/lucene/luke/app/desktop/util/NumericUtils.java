@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.lucene.luke.app.util;
+package org.apache.lucene.luke.app.desktop.util;
 
 import com.google.common.base.Strings;
 

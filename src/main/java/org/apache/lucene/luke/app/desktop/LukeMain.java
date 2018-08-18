@@ -17,9 +17,21 @@
 
 package org.apache.lucene.luke.app.desktop;
 
+import com.google.inject.Injector;
+
+import javax.swing.*;
+
 public class LukeMain {
 
-  public static void main(String[] args) {
+  private static void createAndShowGUI() {
+    Injector injector = DesktopModule.getIngector();
+    JFrame frame = injector.getInstance(JFrame.class);
 
+    frame.setLocation(200, 100);
+    frame.setVisible(true);
+  }
+
+  public static void main(String[] args) {
+    javax.swing.SwingUtilities.invokeLater(LukeMain::createAndShowGUI);
   }
 }
