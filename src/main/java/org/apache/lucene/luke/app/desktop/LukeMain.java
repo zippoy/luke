@@ -18,8 +18,11 @@
 package org.apache.lucene.luke.app.desktop;
 
 import com.google.inject.Injector;
+import com.google.inject.Key;
+import com.google.inject.name.Names;
 
 import javax.swing.*;
+import java.awt.*;
 
 public class LukeMain {
 
@@ -29,6 +32,9 @@ public class LukeMain {
 
     frame.setLocation(200, 100);
     frame.setVisible(true);
+
+    JDialog dialog = injector.getInstance(Key.get(JDialog.class, Names.named("menubar_openindex")));
+    dialog.setVisible(true);
   }
 
   public static void main(String[] args) {
