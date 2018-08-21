@@ -1,6 +1,5 @@
 package org.apache.lucene.luke.app.desktop;
 
-import com.apple.laf.AquaButtonBorder;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
