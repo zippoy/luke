@@ -6,8 +6,22 @@ import com.google.inject.name.Named;
 import org.apache.lucene.luke.app.desktop.util.ImageUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.JTable;
+import javax.swing.JTextArea;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
+
 
 public class AnalysisPanelProvider implements Provider<JPanel> {
 

@@ -9,8 +9,19 @@ import org.apache.lucene.luke.app.LukeState;
 import org.apache.lucene.luke.app.desktop.util.ImageUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.BorderFactory;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenuBar;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
+import javax.swing.WindowConstants;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
+
 
 public class LukeWindowProvider implements IndexObserver, DirectoryObserver, Provider<JFrame> {
 
@@ -102,8 +113,6 @@ public class LukeWindowProvider implements IndexObserver, DirectoryObserver, Pro
     panel.add(innerPanel);
     return panel;
   }
-
-
 
   @Override
   public void openDirectory(LukeState state) {

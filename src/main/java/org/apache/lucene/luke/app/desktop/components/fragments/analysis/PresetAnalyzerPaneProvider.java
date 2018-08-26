@@ -3,8 +3,11 @@ package org.apache.lucene.luke.app.desktop.components.fragments.analysis;
 import com.google.inject.Provider;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.BorderFactory;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import java.awt.GridLayout;
 
 public class PresetAnalyzerPaneProvider implements Provider<JPanel> {
 

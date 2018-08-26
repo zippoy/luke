@@ -5,8 +5,24 @@ import com.google.inject.Provider;
 import org.apache.lucene.luke.app.desktop.util.ImageUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
+import javax.swing.JSpinner;
+import javax.swing.JTextArea;
+import java.awt.BorderLayout;
+import java.awt.Dialog;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
+
 
 public class OptimizeIndexDialogProvider implements Provider<JDialog> {
 

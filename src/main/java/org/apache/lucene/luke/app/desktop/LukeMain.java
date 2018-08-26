@@ -21,8 +21,8 @@ import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.name.Names;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
 
 public class LukeMain {
 

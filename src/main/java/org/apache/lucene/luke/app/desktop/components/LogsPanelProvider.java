@@ -3,8 +3,13 @@ package org.apache.lucene.luke.app.desktop.components;
 import com.google.inject.Provider;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.BorderFactory;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
 
 public class LogsPanelProvider implements Provider<JPanel> {
 

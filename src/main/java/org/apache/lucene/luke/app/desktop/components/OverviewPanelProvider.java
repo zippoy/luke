@@ -1,33 +1,132 @@
 package org.apache.lucene.luke.app.desktop.components;
 
+import com.google.inject.Inject;
 import com.google.inject.Provider;
+import org.apache.lucene.luke.app.IndexHandler;
 import org.apache.lucene.luke.app.IndexObserver;
 import org.apache.lucene.luke.app.LukeState;
+import org.apache.lucene.luke.app.desktop.listeners.OverviewPanelListeners;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
+import org.apache.lucene.luke.models.overview.Overview;
+import org.apache.lucene.luke.models.overview.OverviewFactory;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
+import javax.swing.JSplitPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
 
-public class OverviewPanelProvider implements IndexObserver, Provider<JPanel> {
+public class OverviewPanelProvider implements Provider<JPanel> {
 
   private static final int GRIDX_DESC = 0;
   private static final int GRIDX_VAL = 1;
   private static final double WEIGHTX_DESC = 0.1;
   private static final double WEIGHTX_VAL = 0.9;
 
+  private final OverviewFactory overviewFactory;
+
+  private final Components components;
+
+  private final Observer observer;
+
+  private final OverviewPanelListeners listeners;
+
+  public static class Components {
+
+    private JPanel panel;
+
+    private JLabel indexPathLbl;
+
+    private JLabel numFieldsLbl;
+
+    private JLabel numDocsLbl;
+
+    private JLabel numTermsLbl;
+
+    private JLabel delOptLbl;
+
+    private JLabel indexVerLbl;
+
+    private JLabel indexFmtLbl;
+
+    private JLabel dirImplLbl;
+
+    private JLabel commitPointLbl;
+
+    private JLabel commitUserDataLbl;
+
+  }
+
+  public class Observer implements IndexObserver {
+
+    @Override
+    public void openIndex(LukeState state) {
+      Overview overviewModel = overviewFactory.newInstance(state.getIndexReader(), state.getIndexPath());
+      listeners.setOverviewModel(overviewModel);
+
+      components.indexPathLbl.setText(overviewModel.getIndexPath());
+      components.numFieldsLbl.setText(Integer.toString(overviewModel.getNumFields()));
+      components.numDocsLbl.setText(Integer.toString(overviewModel.getNumDeletedDocs()));
+      components.numTermsLbl.setText(Long.toString(overviewModel.getNumTerms()));
+      String del = overviewModel.hasDeletions() ? String.format("Yes (%d)", overviewModel.getNumDeletedDocs()) : "No";
+      String opt = overviewModel.isOptimized().map(b -> b ? "Yes" : "No").orElse("?");
+      components.delOptLbl.setText(String.format("%s / %s", del, opt));
+      components.indexVerLbl.setText(overviewModel.getIndexVersion().map(v -> Long.toString(v)).orElse("?"));
+      components.indexFmtLbl.setText(overviewModel.getIndexFormat().orElse(""));
+      components.dirImplLbl.setText(overviewModel.getDirImpl().orElse(""));
+      components.commitPointLbl.setText(overviewModel.getCommitDescription().orElse("---"));
+      components.commitUserDataLbl.setText(overviewModel.getCommitUserData().orElse("---"));
+    }
+
+    @Override
+    public void closeIndex() {
+      components.indexPathLbl.setText("");
+      components.numFieldsLbl.setText("");
+      components.numDocsLbl.setText("");
+      components.numTermsLbl.setText("");
+      components.delOptLbl.setText("");
+      components.indexVerLbl.setText("");
+      components.indexFmtLbl.setText("");
+      components.dirImplLbl.setText("");
+      components.commitPointLbl.setText("");
+      components.commitUserDataLbl.setText("");
+    }
+  }
+
+  @Inject
+  public OverviewPanelProvider(OverviewFactory overviewFactory, IndexHandler indexHandler) {
+    this.overviewFactory = overviewFactory;
+    this.components = new Components();
+    this.observer = new Observer();
+    this.listeners = new OverviewPanelListeners();
+
+    indexHandler.addObserver(this.observer);
+  }
+
   @Override
   public JPanel get() {
-    JPanel panel = new JPanel(new GridLayout(1, 1));
-    panel.setBorder(BorderFactory.createLineBorder(Color.gray));
+    components.panel = new JPanel(new GridLayout(1, 1));
+    components.panel.setBorder(BorderFactory.createLineBorder(Color.gray));
 
     JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, createUpperPanel(), createLowerPanel());
     splitPane.setDividerLocation(0.4);
-    panel.add(splitPane);
-    return panel;
+    components.panel.add(splitPane);
+    return components.panel;
   }
 
   private JPanel createUpperPanel() {
@@ -45,7 +144,8 @@ public class OverviewPanelProvider implements IndexObserver, Provider<JPanel> {
 
     c.gridx = GRIDX_VAL;
     c.weightx = WEIGHTX_VAL;
-    panel.add(new JLabel("?"), c);
+    components.indexPathLbl = new JLabel("?");
+    panel.add(components.indexPathLbl, c);
 
     c.gridx = GRIDX_DESC;
     c.gridy += 1;
@@ -54,7 +154,8 @@ public class OverviewPanelProvider implements IndexObserver, Provider<JPanel> {
 
     c.gridx = GRIDX_VAL;
     c.weightx = WEIGHTX_VAL;
-    panel.add(new JLabel("?"), c);
+    components.numFieldsLbl = new JLabel("?");
+    panel.add(components.numFieldsLbl, c);
 
     c.gridx = GRIDX_DESC;
     c.gridy += 1;
@@ -63,7 +164,8 @@ public class OverviewPanelProvider implements IndexObserver, Provider<JPanel> {
 
     c.gridx = GRIDX_VAL;
     c.weightx = WEIGHTX_VAL;
-    panel.add(new JLabel("?"), c);
+    components.numDocsLbl = new JLabel("?");
+    panel.add(components.numDocsLbl, c);
 
     c.gridx = GRIDX_DESC;
     c.gridy += 1;
@@ -72,7 +174,8 @@ public class OverviewPanelProvider implements IndexObserver, Provider<JPanel> {
 
     c.gridx = GRIDX_VAL;
     c.weightx = WEIGHTX_VAL;
-    panel.add(new JLabel("?"), c);
+    components.numTermsLbl = new JLabel("?");
+    panel.add(components.numTermsLbl, c);
 
     c.gridx = GRIDX_DESC;
     c.gridy += 1;
@@ -81,7 +184,8 @@ public class OverviewPanelProvider implements IndexObserver, Provider<JPanel> {
 
     c.gridx = GRIDX_VAL;
     c.weightx = WEIGHTX_VAL;
-    panel.add(new JLabel("?"), c);
+    components.delOptLbl = new JLabel("?");
+    panel.add(components.delOptLbl, c);
 
     c.gridx = GRIDX_DESC;
     c.gridy += 1;
@@ -90,7 +194,8 @@ public class OverviewPanelProvider implements IndexObserver, Provider<JPanel> {
 
     c.gridx = GRIDX_VAL;
     c.weightx = WEIGHTX_VAL;
-    panel.add(new JLabel("?"), c);
+    components.indexVerLbl = new JLabel("?");
+    panel.add(components.indexVerLbl, c);
 
     c.gridx = GRIDX_DESC;
     c.gridy += 1;
@@ -99,7 +204,8 @@ public class OverviewPanelProvider implements IndexObserver, Provider<JPanel> {
 
     c.gridx = GRIDX_VAL;
     c.weightx = WEIGHTX_VAL;
-    panel.add(new JLabel("?"), c);
+    components.indexFmtLbl = new JLabel("?");
+    panel.add(components.indexFmtLbl, c);
 
     c.gridx = GRIDX_DESC;
     c.gridy += 1;
@@ -108,7 +214,8 @@ public class OverviewPanelProvider implements IndexObserver, Provider<JPanel> {
 
     c.gridx = GRIDX_VAL;
     c.weightx = WEIGHTX_VAL;
-    panel.add(new JLabel("?"), c);
+    components.dirImplLbl = new JLabel("?");
+    panel.add(components.dirImplLbl, c);
 
     c.gridx = GRIDX_DESC;
     c.gridy += 1;
@@ -117,7 +224,8 @@ public class OverviewPanelProvider implements IndexObserver, Provider<JPanel> {
 
     c.gridx = GRIDX_VAL;
     c.weightx = WEIGHTX_VAL;
-    panel.add(new JLabel("?"), c);
+    components.commitPointLbl = new JLabel("?");
+    panel.add(components.commitPointLbl, c);
 
     c.gridx = GRIDX_DESC;
     c.gridy += 1;
@@ -126,7 +234,8 @@ public class OverviewPanelProvider implements IndexObserver, Provider<JPanel> {
 
     c.gridx = GRIDX_VAL;
     c.weightx = WEIGHTX_VAL;
-    panel.add(new JLabel("?"), c);
+    components.commitUserDataLbl = new JLabel("?");
+    panel.add(components.commitUserDataLbl, c);
 
     return panel;
   }
@@ -203,13 +312,4 @@ public class OverviewPanelProvider implements IndexObserver, Provider<JPanel> {
     return panel;
   }
 
-  @Override
-  public void openIndex(LukeState state) {
-
-  }
-
-  @Override
-  public void closeIndex() {
-
-  }
 }

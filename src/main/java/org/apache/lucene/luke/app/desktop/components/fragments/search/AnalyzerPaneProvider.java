@@ -3,8 +3,17 @@ package org.apache.lucene.luke.app.desktop.components.fragments.search;
 import com.google.inject.Provider;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
+import javax.swing.JTextField;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
+
 
 public class AnalyzerPaneProvider implements Provider<JScrollPane> {
 

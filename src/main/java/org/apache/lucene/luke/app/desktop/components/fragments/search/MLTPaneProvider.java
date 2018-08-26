@@ -3,8 +3,18 @@ package org.apache.lucene.luke.app.desktop.components.fragments.search;
 import com.google.inject.Provider;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.JCheckBox;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
 
 public class MLTPaneProvider implements Provider<JScrollPane> {
 

@@ -25,7 +25,12 @@ import org.apache.lucene.luke.app.desktop.components.fragments.search.QueryParse
 import org.apache.lucene.luke.app.desktop.components.fragments.search.SimilarityPaneProvider;
 import org.apache.lucene.luke.app.desktop.components.fragments.search.SearchSortPaneProvider;
 
-import javax.swing.*;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JMenuBar;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+
 
 public class DesktopModule extends AbstractModule {
 
@@ -37,9 +42,12 @@ public class DesktopModule extends AbstractModule {
 
   @Override
   protected void configure() {
+    // luke core module
     install(new LukeModule());
 
+    // UI components and fragments
     bind(JMenuBar.class).toProvider(MenuBarProvider.class);
+
     bind(JPanel.class).annotatedWith(Names.named("overview")).toProvider(OverviewPanelProvider.class);
     bind(JPanel.class).annotatedWith(Names.named("documents")).toProvider(DocumentsPanelProvider.class);
     bind(JPanel.class).annotatedWith(Names.named("search")).toProvider(SearchPanelProvider.class);
