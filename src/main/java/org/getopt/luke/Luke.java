@@ -98,6 +98,8 @@ public class Luke extends Thinlet implements ClipboardOwner {
   private boolean slowAccess = false;
   private List<String> fn = null;
   private String[] idxFields = null;
+  private List<String> shownResultTableFields = new LinkedList<String>();
+  private List<String> hiddenResultTableFields = new LinkedList<String>();
   private FieldInfos infos = null;
   private IndexInfo idxInfo = null;
   private Map<String, FieldTermCount> termCounts;
@@ -1133,6 +1135,8 @@ public class Luke extends Thinlet implements ClipboardOwner {
       final Object defFld = find("defFld");
       final Object fCombo = find("fCombo");
       idxFields = fn.toArray(new String[fn.size()]);
+      shownResultTableFields = new LinkedList<String>(Arrays.asList(idxFields));
+      hiddenResultTableFields = new LinkedList<String>();
       setString(iFields, "text", String.valueOf(idxFields.length));
       final Object iTerms = find(pOver, "iTerms");
       if (!slowAccess) {
@@ -1246,26 +1250,31 @@ public class Luke extends Thinlet implements ClipboardOwner {
 
     setString(find("defFld"), "text", idxFields[0]);
     // Remove columns
-    Object header = get(find("sTable"), "header");
-    removeAll(header);
-    Object c = create("column");
-    setString(c, "text", "#");
-    setInteger(c, "width", 40);
-    add(header, c);
-    c = create("column");
-    setString(c, "text", "Score");
-    setInteger(c, "width", 50);
-    add(header, c);
-    c = create("column");
-    setString(c, "text", "Doc. Id");
-    setInteger(c, "width", 60);
-    add(header, c);
-    for (int j = 0; j < idxFields.length; j++) {
-      c = create("column");
-      setString(c, "text", idxFields[j]);
-      add(header, c);
-    }
+    Object sTable = find("sTable");
+    initResultTableHeader(sTable);
   }
+
+	private void initResultTableHeader(Object sTable) {
+		Object header = get(sTable, "header");
+	    removeAll(header);
+	    Object c = create("column");
+	    setString(c, "text", "#");
+	    setInteger(c, "width", 40);
+	    add(header, c);
+	    c = create("column");
+	    setString(c, "text", "Score");
+	    setInteger(c, "width", 50);
+	    add(header, c);
+	    c = create("column");
+	    setString(c, "text", "Doc. Id");
+	    setInteger(c, "width", 60);
+	    add(header, c);
+	    for (int j = 0; j < this.shownResultTableFields.size(); j++) {
+	      c = create("column");
+	      setString(c, "text", shownResultTableFields.get(j));
+	      add(header, c);
+	    }
+	}
 
     class ValueComparator implements Comparator<String> {
 
@@ -4791,18 +4800,18 @@ public class Luke extends Thinlet implements ClipboardOwner {
     Document doc = ir.document(docId);
     putProperty(row, "docid", new Integer(docId));
     StringBuffer vals = new StringBuffer();
-    for (int j = 0; j < idxFields.length; j++) {
+    for (int j = 0; j < this.shownResultTableFields.size(); j++) {
       cell = create("cell");
-      Decoder dec = decoders.get(idxFields[j]);
+      Decoder dec = decoders.get(shownResultTableFields.get(j));
       if (dec == null) dec = defDecoder;
-      IndexableField[] values = doc.getFields(idxFields[j]);
+      IndexableField[] values = doc.getFields(shownResultTableFields.get(j));
       vals.setLength(0);
       boolean decodeErr = false;
       if (values != null) for (int k = 0; k < values.length; k++) {
         if (k > 0) vals.append(' ');
         String v;
         try {
-          v = dec.decodeStored(idxFields[j], (Field)values[k]);
+          v = dec.decodeStored(shownResultTableFields.get(j), (Field)values[k]);
         } catch (Throwable e) {
           e.printStackTrace();
           v = values[k].stringValue();
@@ -4857,7 +4866,7 @@ public class Luke extends Thinlet implements ClipboardOwner {
       t.run();
     }
   }
-  
+	  
   public void clipExplain(Object explain) {
     Object eTree = find(explain, "eTree");
     StringBuilder sb = new StringBuilder();
@@ -4866,6 +4875,70 @@ public class Luke extends Thinlet implements ClipboardOwner {
     Toolkit.getDefaultToolkit().getSystemClipboard().setContents(sel, this);    
   }
 
+  
+  public void editColumns() {
+	  if (idxFields == null) return;
+	  
+      Object dialog = addComponent(null, "/xml/editcolumns.xml", null, null);
+      Object shownColumnsTable = find(dialog, "shownColumns");
+      Object hiddenColumnsTable = find(dialog, "hiddenColumns");
+
+      for (int i = 0; i < this.shownResultTableFields.size(); i++) {
+        Object row = create("row");
+        add(shownColumnsTable, row);
+        putProperty(row, "column", shownResultTableFields.get(i));
+        Object cell = create("cell");
+        setString(cell, "text", shownResultTableFields.get(i));
+        add(row, cell); 
+      }
+      
+      for (int i = 0; i < this.hiddenResultTableFields.size(); i++) {
+          Object row = create("row");
+          add(hiddenColumnsTable, row);
+          putProperty(row, "column", hiddenResultTableFields.get(i));
+          Object cell = create("cell");
+          setString(cell, "text", hiddenResultTableFields.get(i));
+          add(row, cell);
+      }
+      
+      add(dialog);
+  }
+  
+  public void moveResultColumn(Object from, Object to) {
+	  Object[] rows = this.getSelectedItems(from);
+	  
+	  if (rows.length == 0) return;
+      
+	  for (Object row : rows) {
+		  setBoolean(row, "selected", false);
+		  remove(row);
+		  add(to, row);		  
+	  }
+  }
+  
+  public void saveResultColumns(Object editColumnsDialog) {
+	  Object shownColumns = find(editColumnsDialog, "shownColumns");
+	  Object hiddenColumns = find(editColumnsDialog, "hiddenColumns");
+	 
+	  this.shownResultTableFields.clear();
+	  for (Object row : getItems(shownColumns)) {
+		  shownResultTableFields.add(this.getProperty(row, "column").toString());
+	  }
+	  
+	  this.hiddenResultTableFields.clear();
+	  for (Object row : getItems(hiddenColumns)) {
+		  hiddenResultTableFields.add(this.getProperty(row, "column").toString());
+	  }
+      Object sTable = find("sTable");
+      initResultTableHeader(sTable);
+      
+      if (getProperty(sTable, "hc") != null) {
+    	  _showSearchPage(sTable);
+      }
+      
+	  remove(editColumnsDialog);
+  }
+  
   private DecimalFormat df = new DecimalFormat("0.0000");
   private String xmlQueryParserFactoryClassName=CorePlusExtensionsParserFactory.class.getName();
 
