@@ -3863,6 +3863,9 @@ public class Thinlet extends Container implements Runnable, Serializable {
                             }
                             invoke(header, null, "action");
                         }
+                        if (id == MouseEvent.MOUSE_RELEASED ) {
+                        	System.out.print("AAA " + popuptrigger);
+                        }
                         repaint(component);
                     }
                 } else if (id == MouseEvent.MOUSE_EXITED) repaint(component);
@@ -7242,7 +7245,7 @@ public class Thinlet extends Container implements Runnable, Serializable {
                 // editing row/column
                 "column", "choice",
                     new Object[][] {
-                        { "integer", "width", null, new Integer(80) },
+                        { "integer", "width", null, new Integer(200) },
                         { "choice", "sort", null, new String[] { "none", "ascent", "descent" } },
                         { "boolean", "selected", null, Boolean.FALSE } },
                 "row", null,
