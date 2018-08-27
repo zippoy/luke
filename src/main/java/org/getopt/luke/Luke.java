@@ -98,8 +98,8 @@ public class Luke extends Thinlet implements ClipboardOwner {
   private boolean slowAccess = false;
   private List<String> fn = null;
   private String[] idxFields = null;
-  private List<String> shownResultTableFields = new LinkedList<String>();
-  private List<String> hiddenResultTableFields = new LinkedList<String>();
+  private List<String> shownResultTableFields = new ArrayList<String>();
+  private List<String> hiddenResultTableFields = new ArrayList<String>();
   private FieldInfos infos = null;
   private IndexInfo idxInfo = null;
   private Map<String, FieldTermCount> termCounts;
@@ -4875,7 +4875,6 @@ public class Luke extends Thinlet implements ClipboardOwner {
     Toolkit.getDefaultToolkit().getSystemClipboard().setContents(sel, this);    
   }
 
-  
   public void editColumns() {
 	  if (idxFields == null) return;
 	  
@@ -4937,6 +4936,42 @@ public class Luke extends Thinlet implements ClipboardOwner {
       }
       
 	  remove(editColumnsDialog);
+  }
+
+  public void reOrderRowsTop(Object table) {
+	  Object[] rows = this.getSelectedItems(table);
+      int j = 0;
+	  for (int i = 0; i < rows.length; i++) {
+		  remove(rows[i]);
+		  add(table, rows[i], j++);
+	  }
+  }
+  
+  public void reOrderRowsUp(Object table) {
+	  Object[] rows = this.getSelectedItems(table);
+	  for (int i = 0; i < rows.length; i++) {
+		  int rowIndex = this.getIndex(table, rows[i]);
+		  remove(rows[i]);
+		  add(table, rows[i], Math.max(rowIndex - 1, 0));
+	  }
+  }
+  
+  public void reOrderRowsDown(Object table) {
+	  Object[] rows = this.getSelectedItems(table);
+	  int tableSize = getCount(table);
+	  for (int i = rows.length - 1; i >= 0; i--) {
+		  int rowIndex = this.getIndex(table, rows[i]);
+		  remove(rows[i]);
+		  add(table, rows[i], Math.min(rowIndex + 1, tableSize - 1));
+	  }
+  }
+  
+  public void reOrderRowsBottom(Object table) {
+	  Object[] rows = this.getSelectedItems(table);
+	  for (int i = 0; i < rows.length; i++) {
+		  remove(rows[i]);
+		  add(table, rows[i], -1);
+	  }
   }
   
   private DecimalFormat df = new DecimalFormat("0.0000");
