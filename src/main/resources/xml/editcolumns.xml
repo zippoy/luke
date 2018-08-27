@@ -2,7 +2,13 @@
 <dialog text="Edit columns" name="editcolumns" icon="/img/luke.gif" modal="true" columns="1" top="8" left="8" 
         bottom="8" right="8" gap="15" resizable="false" close="remove(editcolumns)">
 	<label icon="/img/info.gif" text="Choose and reorder columns:"/>
-	<panel halign="right" gap="8" columns="3">
+	<panel halign="right" gap="8" columns="4">
+		<panel columns="1" valign="center" gap="8">
+			<button text="Top" action="reOrderRowsTop(shownColumns)"/>
+			<button text="Up" action="reOrderRowsUp(shownColumns)"/>
+			<button text="Down" action="reOrderRowsDown(shownColumns)"/>
+			<button text="Bottom" action="reOrderRowsBottom(shownColumns)"/>
+		</panel>
 		<panel columns="1" valign="fill" >
 			<table name="shownColumns" selection="multiple" width="150" height="250">
 				<header>
@@ -10,7 +16,7 @@
 		    	</header>
 			</table>
 		</panel>
-		<panel columns="1" valign="center">
+		<panel columns="1" valign="center" gap="8">
 			<button text="&gt;" action="moveResultColumn(shownColumns, hiddenColumns)"/>
 			<button text="&lt;" action="moveResultColumn(hiddenColumns, shownColumns)"/>
 		</panel>
