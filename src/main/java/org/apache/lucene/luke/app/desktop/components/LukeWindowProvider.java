@@ -3,9 +3,13 @@ package org.apache.lucene.luke.app.desktop.components;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.name.Named;
+import org.apache.lucene.luke.app.DirectoryHandler;
 import org.apache.lucene.luke.app.DirectoryObserver;
+import org.apache.lucene.luke.app.IndexHandler;
 import org.apache.lucene.luke.app.IndexObserver;
 import org.apache.lucene.luke.app.LukeState;
+import org.apache.lucene.luke.app.MessageHandler;
+import org.apache.lucene.luke.app.MessageObserver;
 import org.apache.lucene.luke.app.desktop.util.ImageUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 
@@ -20,42 +24,105 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 
 
-public class LukeWindowProvider implements IndexObserver, DirectoryObserver, Provider<JFrame> {
+public class LukeWindowProvider implements Provider<JFrame> {
+
+  private final Observer observer;
 
   private final JMenuBar menuBar;
 
-  private final JPanel overviewPanel;
+  private final JTabbedPane tabbedPane;
 
-  private final JPanel documentsPanel;
+  private final JLabel messageLbl = new JLabel();
 
-  private final JPanel searchPanel;
+  private final JLabel multiIcon = new JLabel();
 
-  private final JPanel analysisPanel;
+  private final JLabel readOnlyIcon = new JLabel();
 
-  private final JPanel commitsPanel;
+  private final JLabel noReaderIcon = new JLabel();
 
-  private final JPanel logsPanel;
+  public class Observer implements IndexObserver, DirectoryObserver, MessageObserver {
+
+    @Override
+    public void openDirectory(LukeState state) {
+      multiIcon.setVisible(false);
+      readOnlyIcon.setVisible(false);
+      noReaderIcon.setVisible(true);
+
+      showStatusMessage(MessageUtils.getLocalizedMessage("message.directory_opened"));
+    }
+
+    @Override
+    public void closeDirectory() {
+      multiIcon.setVisible(false);
+      readOnlyIcon.setVisible(false);
+      noReaderIcon.setVisible(false);
+
+      showStatusMessage(MessageUtils.getLocalizedMessage("message.directory_closed"));
+    }
+
+    @Override
+    public void openIndex(LukeState state) {
+      multiIcon.setVisible(!state.hasDirectoryReader());
+      readOnlyIcon.setVisible(state.readOnly());
+      noReaderIcon.setVisible(false);
+
+      if (state.readOnly()) {
+        showStatusMessage(MessageUtils.getLocalizedMessage("message.index_opened_ro"));
+      } else if (!state.hasDirectoryReader()) {
+        showStatusMessage(MessageUtils.getLocalizedMessage("message.index_opened_multi"));
+      } else {
+        showStatusMessage(MessageUtils.getLocalizedMessage("message.index_opened"));
+      }
+    }
+
+    @Override
+    public void closeIndex() {
+      multiIcon.setVisible(false);
+      readOnlyIcon.setVisible(false);
+      noReaderIcon.setVisible(false);
+
+
+
+      showStatusMessage(MessageUtils.getLocalizedMessage("message.index_closed"));
+    }
+
+    @Override
+    public void showStatusMessage(String message) {
+      messageLbl.setText(message);
+    }
+
+    @Override
+    public void showUnknownErrorMessage() {
+      messageLbl.setText(MessageUtils.getLocalizedMessage("message.error.unknown"));
+    }
+
+    @Override
+    public void clearStatusMessage() {
+      messageLbl.setText("");
+    }
+  }
 
   @Inject
   public LukeWindowProvider(JMenuBar menuBar,
-                            @Named("overview") JPanel overviewPanel,
-                            @Named("documents") JPanel documentsPanel,
-                            @Named("search") JPanel searchPanel,
-                            @Named("analysis") JPanel analysisPanel,
-                            @Named("commits") JPanel commitsPanel,
-                            @Named("logs") JPanel logsPanel) {
+                            @Named("main") JTabbedPane tabbedPane,
+                            DirectoryHandler directoryHandler,
+                            IndexHandler indexHandler,
+                            MessageHandler messageHandler) {
     this.menuBar = menuBar;
-    this.overviewPanel = overviewPanel;
-    this.documentsPanel = documentsPanel;
-    this.searchPanel = searchPanel;
-    this.analysisPanel = analysisPanel;
-    this.commitsPanel = commitsPanel;
-    this.logsPanel = logsPanel;
+    this.tabbedPane = tabbedPane;
+
+    this.observer = new Observer();
+    directoryHandler.addObserver(observer);
+    indexHandler.addObserver(observer);
+    messageHandler.addObserver(observer);
   }
 
+  @Override
   public JFrame get() {
     JFrame frame = new JFrame(MessageUtils.getLocalizedMessage("window.title"));
     frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -73,14 +140,10 @@ public class LukeWindowProvider implements IndexObserver, DirectoryObserver, Pro
   private JPanel createMainPanel() {
     JPanel panel = new JPanel(new GridLayout(1, 1));
 
-    JTabbedPane tabbedPane = new JTabbedPane();
-
-    tabbedPane.addTab("Overview", ImageUtils.createImageIcon("/img/icon_house_alt.png", 20, 20), overviewPanel);
-    tabbedPane.addTab("Documents", ImageUtils.createImageIcon("/img/icon_documents_alt.png", 20, 20), documentsPanel);
-    tabbedPane.addTab("Search", ImageUtils.createImageIcon("/img/icon_search.png", 20, 20), searchPanel);
-    tabbedPane.addTab("Analysis", ImageUtils.createImageIcon("/img/icon_pencil-edit_alt.png", 20, 20), analysisPanel);
-    tabbedPane.addTab("Commits", ImageUtils.createImageIcon("/img/icon_drive.png", 20, 20), commitsPanel);
-    tabbedPane.addTab("Logs", ImageUtils.createImageIcon("/img/icon_document.png", 20, 20), logsPanel);
+    tabbedPane.setEnabledAt(TabbedPaneProvider.Tab.OVERVIEW.index(), false);
+    tabbedPane.setEnabledAt(TabbedPaneProvider.Tab.DOCUMENTS.index(), false);
+    tabbedPane.setEnabledAt(TabbedPaneProvider.Tab.SEARCH.index(), false);
+    tabbedPane.setEnabledAt(TabbedPaneProvider.Tab.COMMITS.index(), false);
 
     panel.add(tabbedPane);
 
@@ -91,46 +154,47 @@ public class LukeWindowProvider implements IndexObserver, DirectoryObserver, Pro
     JPanel panel = new JPanel(new GridLayout(1, 1));
     panel.setBorder(BorderFactory.createEmptyBorder(0, 2, 2, 2));
 
-    JPanel innerPanel = new JPanel(new GridLayout(1, 2));
+    JPanel innerPanel = new JPanel(new GridBagLayout());
     innerPanel.setBorder(BorderFactory.createLineBorder(Color.gray));
+    GridBagConstraints c = new GridBagConstraints();
+    c.fill = GridBagConstraints.HORIZONTAL;
 
     JPanel msgPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-    JLabel message = new JLabel("status message");
-    msgPanel.add(message);
-    innerPanel.add(msgPanel);
+    msgPanel.add(messageLbl);
+
+    c.gridx = 0;
+    c.gridy = 0;
+    c.weightx = 0.8;
+    innerPanel.add(msgPanel, c);
 
     JPanel iconPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-    JLabel multiIcon = new JLabel(ImageUtils.createImageIcon("/img/icon_grid-2x2.png", "multi reader", 16, 16));
-    JLabel roIcon = new JLabel(ImageUtils.createImageIcon("/img/icon_lock.png", "read only", 16, 16));
-    JLabel noReaderIcon = new JLabel(ImageUtils.createImageIcon("/img/icon_cone.png", "no reader", 16, 16));
-    JLabel luceneIcon = new JLabel(ImageUtils.createImageIcon("/img/lucene.gif", "lucene", 16, 16));
-    iconPanel.add(multiIcon);
-    iconPanel.add(roIcon);
-    iconPanel.add(noReaderIcon);
-    iconPanel.add(luceneIcon);
-    innerPanel.add(iconPanel);
 
+    multiIcon.setIcon(ImageUtils.createImageIcon("/img/icon_grid-2x2.png", "multi reader", 16, 16));
+    multiIcon.setToolTipText(MessageUtils.getLocalizedMessage("tooltip.multi_reader"));
+    multiIcon.setVisible(false);
+    iconPanel.add(multiIcon);
+
+
+    readOnlyIcon.setIcon(ImageUtils.createImageIcon("/img/icon_lock.png", "read only", 16, 16));
+    readOnlyIcon.setToolTipText(MessageUtils.getLocalizedMessage("tooltip.read_only"));
+    readOnlyIcon.setVisible(false);
+    iconPanel.add(readOnlyIcon);
+
+    noReaderIcon.setIcon(ImageUtils.createImageIcon("/img/icon_cone.png", "no reader", 16, 16));
+    noReaderIcon.setToolTipText(MessageUtils.getLocalizedMessage("tooltip.no_reader"));
+    noReaderIcon.setVisible(false);
+    iconPanel.add(noReaderIcon);
+
+    JLabel luceneIcon = new JLabel(ImageUtils.createImageIcon("/img/lucene.gif", "lucene", 16, 16));
+    iconPanel.add(luceneIcon);
+
+    c.gridx = 1;
+    c.gridy = 0;
+    c.weightx = 0.2;
+    innerPanel.add(iconPanel);
     panel.add(innerPanel);
+
     return panel;
   }
 
-  @Override
-  public void openDirectory(LukeState state) {
-
-  }
-
-  @Override
-  public void closeDirectory() {
-
-  }
-
-  @Override
-  public void openIndex(LukeState state) {
-
-  }
-
-  @Override
-  public void closeIndex() {
-
-  }
 }

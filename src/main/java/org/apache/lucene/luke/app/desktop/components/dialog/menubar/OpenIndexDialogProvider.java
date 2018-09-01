@@ -41,84 +41,90 @@ public class OpenIndexDialogProvider implements Provider<JDialog> {
 
   private final JFrame owner;
 
-  private final Preferences preferences;
+  private final Preferences prefs;
 
-  private final Components components;
+  private final Controller controller;
 
   private final OpenDialogListeners listeners;
 
-  public static class Components {
+  private final JDialog dialog;
 
-    private JDialog dialog;
+  private final JComboBox<String> idxPathCombo = new JComboBox<>();
 
-    private JComboBox<String> idxPathCB;
+  private final JButton browseBtn = new JButton();
 
-    private JButton browseBtn;
+  private final JCheckBox readOnlyCB = new JCheckBox();
 
-    private JCheckBox readOnlyCB;
+  private final JComboBox<String> dirImplCombo = new JComboBox<>();
 
-    private JComboBox<String> dirImplCB;
+  private final JCheckBox noReaderCB = new JCheckBox();
 
-    private JCheckBox noReaderCB;
+  private final JCheckBox useCompoundCB = new JCheckBox();
 
-    private JCheckBox useCompoundCB;
+  private final JRadioButton keepLastCommitRB = new JRadioButton();
 
-    private JRadioButton keepLastCommitRB;
+  private final JRadioButton keepAllCommitsRB = new JRadioButton();
 
-    private JRadioButton keepAllCommitsRB;
+  public class Controller {
 
     public JDialog getDialog() {
       return dialog;
     }
 
-    public JComboBox<String> getIdxPathCB() {
-      return idxPathCB;
+    public void addIndexPath(String path) {
+      idxPathCombo.insertItemAt(path, 0);
+      idxPathCombo.setSelectedIndex(0);
     }
 
-    public JButton getBrowseBtn() {
-      return browseBtn;
+    public String getSelectedIndexPath() {
+      return (String) idxPathCombo.getSelectedItem();
     }
 
-    public JCheckBox getReadOnlyCB() {
-      return readOnlyCB;
+    public String getSelectedDirImpl() {
+      return (String) dirImplCombo.getSelectedItem();
     }
 
-    public JComboBox<String> getDirImplCB() {
-      return dirImplCB;
+    public boolean isNoReader() {
+      return noReaderCB.isSelected();
     }
 
-    public JCheckBox getNoReaderCB() {
-      return noReaderCB;
+    public boolean isReadOnly() {
+      return readOnlyCB.isSelected();
     }
 
-    public JCheckBox getUseCompoundCB() {
-      return useCompoundCB;
+    public boolean useCompound() {
+      return useCompoundCB.isSelected();
     }
 
-    public JRadioButton getKeepLastCommitRB() {
-      return keepLastCommitRB;
+    public boolean keepAllCommits() {
+      return keepAllCommitsRB.isSelected();
     }
 
-    public JRadioButton getKeepAllCommitsRB() {
-      return keepAllCommitsRB;
+    public void setWriterConfigEnabled(boolean enable) {
+      useCompoundCB.setEnabled(enable);
+      keepLastCommitRB.setEnabled(enable);
+      keepAllCommitsRB.setEnabled(enable);
     }
+
+    private Controller() {}
+
   }
 
   @Inject
-  public OpenIndexDialogProvider(JFrame owner, DirectoryHandler directoryHandler, IndexHandler indexHandler, Preferences preferences) {
+  public OpenIndexDialogProvider(JFrame owner, DirectoryHandler directoryHandler, IndexHandler indexHandler, Preferences prefs) {
     this.owner = owner;
-    this.components = new Components();
-    this.listeners = new OpenDialogListeners(components, directoryHandler, indexHandler);
-    this.preferences = preferences;
+    this.dialog = new JDialog(owner, MessageUtils.getLocalizedMessage("openindex.dialog.title"), Dialog.ModalityType.APPLICATION_MODAL);
+    this.controller = new Controller();
+    this.listeners = new OpenDialogListeners(controller, directoryHandler, indexHandler, prefs);
+    this.prefs = prefs;
   }
 
   @Override
   public JDialog get() {
-    components.dialog = new JDialog(owner, MessageUtils.getLocalizedMessage("openindex.dialog.title"), Dialog.ModalityType.APPLICATION_MODAL);
-    components.dialog.add(content());
-    components.dialog.setSize(new Dimension(600, 420));
-    components.dialog.setLocationRelativeTo(owner);
-    return components.dialog;
+    dialog.add(content());
+    dialog.setSize(new Dimension(600, 420));
+    dialog.setLocationRelativeTo(owner);
+    return dialog;
   }
 
   private JPanel content() {
@@ -141,21 +147,25 @@ public class OpenIndexDialogProvider implements Provider<JDialog> {
     JPanel idxPath = new JPanel(new FlowLayout(FlowLayout.LEADING));
     idxPath.add(new JLabel(MessageUtils.getLocalizedMessage("openindex.label.index_path")));
 
-    String[] history = new String[preferences.getHistory().size()];
-    components.idxPathCB = new JComboBox<>(preferences.getHistory().toArray(history));
-    components.idxPathCB.setPreferredSize(new Dimension(400, 35));
-    idxPath.add(components.idxPathCB);
+    for (String path : prefs.getHistory()) {
+      idxPathCombo.addItem(path);
+    }
+    idxPathCombo.setPreferredSize(new Dimension(400, 35));
+    idxPath.add(idxPathCombo);
 
-    components.browseBtn = new JButton(MessageUtils.getLocalizedMessage("button.browse"), ImageUtils.createImageIcon("/img/icon_folder-open_alt.png", 20, 20));
-    components.browseBtn.setPreferredSize(new Dimension(80, 35));
-    components.browseBtn.addActionListener(listeners.getBrowseBtnListener());
-    idxPath.add(components.browseBtn);
+    browseBtn.setText(MessageUtils.getLocalizedMessage("button.browse"));
+    browseBtn.setIcon(ImageUtils.createImageIcon("/img/icon_folder-open_alt.png", 20, 20));
+    browseBtn.setPreferredSize(new Dimension(80, 35));
+    browseBtn.addActionListener(listeners.getBrowseBtnListener());
+    idxPath.add(browseBtn);
 
     panel.add(idxPath);
 
     JPanel readOnly = new JPanel(new FlowLayout(FlowLayout.LEADING));
-    components.readOnlyCB = new JCheckBox(MessageUtils.getLocalizedMessage("openindex.checkbox.readonly"));
-    readOnly.add(components.readOnlyCB);
+    readOnlyCB.setText(MessageUtils.getLocalizedMessage("openindex.checkbox.readonly"));
+    readOnlyCB.setSelected(prefs.isReadOnly());
+    readOnlyCB.addActionListener(listeners.getReadOnlyCBListener());
+    readOnly.add(readOnlyCB);
     JLabel roIconLB = new JLabel(ImageUtils.createImageIcon("/img/icon_lock.png", 12, 12));
     readOnly.add(roIconLB);
     panel.add(readOnly);
@@ -172,14 +182,18 @@ public class OpenIndexDialogProvider implements Provider<JDialog> {
 
     JPanel dirImpl = new JPanel(new FlowLayout(FlowLayout.LEADING));
     dirImpl.add(new JLabel(MessageUtils.getLocalizedMessage("openindex.label.dir_impl")));
-    components.dirImplCB = new JComboBox<>(supportedDirImpls());
-    components.dirImplCB.setPreferredSize(new Dimension(350, 30));
-    dirImpl.add(components.dirImplCB);
+    for (String clazzName : supportedDirImpls()) {
+      dirImplCombo.addItem(clazzName);
+    }
+    dirImplCombo.setPreferredSize(new Dimension(350, 30));
+    dirImplCombo.setSelectedItem(prefs.getDirImpl());
+    dirImpl.add(dirImplCombo);
     panel.add(dirImpl);
 
     JPanel noReader = new JPanel(new FlowLayout(FlowLayout.LEADING));
-    components.noReaderCB = new JCheckBox(MessageUtils.getLocalizedMessage("openindex.checkbox.no_reader"));
-    noReader.add(components.noReaderCB);
+    noReaderCB.setText(MessageUtils.getLocalizedMessage("openindex.checkbox.no_reader"));
+    noReaderCB.setSelected(prefs.isNoReader());
+    noReader.add(noReaderCB);
     JLabel noReaderIcon = new JLabel(ImageUtils.createImageIcon("/img/icon_cone.png", 12, 12));
     noReader.add(noReaderIcon);
     panel.add(noReader);
@@ -190,22 +204,23 @@ public class OpenIndexDialogProvider implements Provider<JDialog> {
 
     JPanel compound = new JPanel(new FlowLayout(FlowLayout.LEADING));
     compound.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
-    components.useCompoundCB = new JCheckBox(MessageUtils.getLocalizedMessage("openindex.checkbox.use_compound"));
-    compound.add(components.useCompoundCB);
+    useCompoundCB.setText(MessageUtils.getLocalizedMessage("openindex.checkbox.use_compound"));
+    useCompoundCB.setSelected(prefs.isUseCompound());
+    compound.add(useCompoundCB);
     panel.add(compound);
 
     JPanel keepCommits = new JPanel(new FlowLayout(FlowLayout.LEADING));
     keepCommits.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
-    components.keepLastCommitRB = new JRadioButton(MessageUtils.getLocalizedMessage("openindex.radio.keep_only_last_commit"));
-    components.keepLastCommitRB.setSelected(true);
-    keepCommits.add(components.keepLastCommitRB);
-    components.keepAllCommitsRB = new JRadioButton(MessageUtils.getLocalizedMessage("openindex.radio.keep_all_commits"));
-    components.keepAllCommitsRB.setSelected(false);
-    keepCommits.add(components.keepAllCommitsRB);
+    keepLastCommitRB.setText(MessageUtils.getLocalizedMessage("openindex.radio.keep_only_last_commit"));
+    keepLastCommitRB.setSelected(!prefs.isKeepAllCommits());
+    keepCommits.add(keepLastCommitRB);
+    keepAllCommitsRB.setText(MessageUtils.getLocalizedMessage("openindex.radio.keep_all_commits"));
+    keepAllCommitsRB.setSelected(prefs.isKeepAllCommits());
+    keepCommits.add(keepAllCommitsRB);
 
     ButtonGroup group = new ButtonGroup();
-    group.add(components.keepLastCommitRB);
-    group.add(components.keepAllCommitsRB);
+    group.add(keepLastCommitRB);
+    group.add(keepAllCommitsRB);
 
     panel.add(keepCommits);
 

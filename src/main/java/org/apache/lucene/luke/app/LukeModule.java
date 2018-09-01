@@ -22,6 +22,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import org.apache.lucene.luke.app.desktop.Preferences;
 import org.apache.lucene.luke.app.desktop.PreferencesImpl;
+import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 import org.apache.lucene.luke.models.analysis.AnalysisFactory;
 import org.apache.lucene.luke.models.commits.CommitsFactory;
 import org.apache.lucene.luke.models.documents.DocumentsFactory;
@@ -42,6 +43,7 @@ public class LukeModule extends AbstractModule {
 
     bind(DirectoryHandler.class).toInstance(new DirectoryHandler());
     bind(IndexHandler.class).toInstance(new IndexHandler());
+    bind(MessageHandler.class).toInstance(new MessageHandler());
 
     bind(Preferences.class).to(PreferencesImpl.class);
   }

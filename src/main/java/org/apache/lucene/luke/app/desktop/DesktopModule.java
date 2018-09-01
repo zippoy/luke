@@ -3,6 +3,9 @@ package org.apache.lucene.luke.app.desktop;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.Provides;
+import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 import org.apache.lucene.luke.app.LukeModule;
 import org.apache.lucene.luke.app.desktop.components.AnalysisPanelProvider;
@@ -13,6 +16,8 @@ import org.apache.lucene.luke.app.desktop.components.LukeWindowProvider;
 import org.apache.lucene.luke.app.desktop.components.MenuBarProvider;
 import org.apache.lucene.luke.app.desktop.components.OverviewPanelProvider;
 import org.apache.lucene.luke.app.desktop.components.SearchPanelProvider;
+import org.apache.lucene.luke.app.desktop.components.TabSwitcher;
+import org.apache.lucene.luke.app.desktop.components.TabbedPaneProvider;
 import org.apache.lucene.luke.app.desktop.components.dialog.menubar.CheckIndexDialogProvider;
 import org.apache.lucene.luke.app.desktop.components.dialog.menubar.OpenIndexDialogProvider;
 import org.apache.lucene.luke.app.desktop.components.dialog.menubar.OptimizeIndexDialogProvider;
@@ -30,6 +35,7 @@ import javax.swing.JFrame;
 import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
 
 
 public class DesktopModule extends AbstractModule {
@@ -46,6 +52,7 @@ public class DesktopModule extends AbstractModule {
     install(new LukeModule());
 
     // UI components and fragments
+    bind(TabSwitcher.class).toInstance(new TabSwitcher());
     bind(JMenuBar.class).toProvider(MenuBarProvider.class);
 
     bind(JPanel.class).annotatedWith(Names.named("overview")).toProvider(OverviewPanelProvider.class);
@@ -54,6 +61,7 @@ public class DesktopModule extends AbstractModule {
     bind(JPanel.class).annotatedWith(Names.named("analysis")).toProvider(AnalysisPanelProvider.class);
     bind(JPanel.class).annotatedWith(Names.named("commits")).toProvider(CommitsPanelProvider.class);
     bind(JPanel.class).annotatedWith(Names.named("logs")).toProvider(LogsPanelProvider.class);
+    bind(JTabbedPane.class).annotatedWith(Names.named("main")).toProvider(TabbedPaneProvider.class);
 
     bind(JScrollPane.class).annotatedWith(Names.named("search_qparser")).toProvider(QueryParserPaneProvider.class);
     bind(JScrollPane.class).annotatedWith(Names.named("search_analyzer")).toProvider(AnalyzerPaneProvider.class);

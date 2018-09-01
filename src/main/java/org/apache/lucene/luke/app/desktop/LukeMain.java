@@ -20,14 +20,23 @@ package org.apache.lucene.luke.app.desktop;
 import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.name.Names;
+import org.apache.lucene.luke.app.MessageHandler;
 
 import javax.swing.JDialog;
 import javax.swing.JFrame;
+
+import static org.apache.lucene.luke.app.desktop.util.ExceptionHandler.handle;
 
 public class LukeMain {
 
   private static void createAndShowGUI() {
     Injector injector = DesktopModule.getIngector();
+
+    MessageHandler messageHandler = injector.getInstance(MessageHandler.class);
+    Thread.setDefaultUncaughtExceptionHandler((thread, cause) ->
+        handle(cause, messageHandler)
+    );
+
     JFrame frame = injector.getInstance(JFrame.class);
 
     frame.setLocation(200, 100);
