@@ -12,12 +12,10 @@ import org.apache.lucene.luke.app.desktop.util.ImageUtils;
 
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TabbedPaneProvider implements Provider<JTabbedPane> {
-
-  private final Controller controller;
-
-  private final Observer observer;
 
   private final JTabbedPane tabbedPane = new JTabbedPane();
 
@@ -33,11 +31,11 @@ public class TabbedPaneProvider implements Provider<JTabbedPane> {
 
   private final JPanel logsPanel;
 
-  public class Controller {
+  public class TabSwitcherImpl implements TabSwitcherProxy.TabSwitcher {
     public void switchTab(Tab tab) {
       tabbedPane.setSelectedIndex(tab.index());
-      //tabbedPane.setVisible(false);
-      //tabbedPane.setVisible(true);
+      tabbedPane.setVisible(false);
+      tabbedPane.setVisible(true);
     }
   }
 
@@ -73,8 +71,6 @@ public class TabbedPaneProvider implements Provider<JTabbedPane> {
     }
   }
 
-  private final TabSwitcher tabSwitcher;
-
   @Inject
   public TabbedPaneProvider(@Named("overview") JPanel overviewPanel,
                             @Named("documents") JPanel documentsPanel,
@@ -84,7 +80,7 @@ public class TabbedPaneProvider implements Provider<JTabbedPane> {
                             @Named("logs") JPanel logsPanel,
                             IndexHandler indexHandler,
                             DirectoryHandler directoryHandler,
-                            TabSwitcher tabSwitcher) {
+                            TabSwitcherProxy tabSwitcher) {
     this.overviewPanel = overviewPanel;
     this.documentsPanel = documentsPanel;
     this.searchPanel = searchPanel;
@@ -92,11 +88,9 @@ public class TabbedPaneProvider implements Provider<JTabbedPane> {
     this.commitsPanel = commitsPanel;
     this.logsPanel = logsPanel;
 
-    this.controller = new Controller();
-    this.tabSwitcher = tabSwitcher;
-    this.tabSwitcher.setController(controller);
+    tabSwitcher.set(new TabSwitcherImpl());
 
-    this.observer = new Observer();
+    Observer observer = new Observer();
     indexHandler.addObserver(observer);
     directoryHandler.addObserver(observer);
   }
@@ -110,7 +104,6 @@ public class TabbedPaneProvider implements Provider<JTabbedPane> {
     tabbedPane.addTab("Commits", ImageUtils.createImageIcon("/img/icon_drive.png", 20, 20), commitsPanel);
     tabbedPane.addTab("Logs", ImageUtils.createImageIcon("/img/icon_document.png", 20, 20), logsPanel);
 
-    tabSwitcher.setController(controller);
     return tabbedPane;
   }
 
@@ -127,5 +120,29 @@ public class TabbedPaneProvider implements Provider<JTabbedPane> {
       return tabIdx;
     }
   }
+
+  public static class TabSwitcherProxy {
+
+    private final List<TabSwitcher> switcherHolder = new ArrayList<>();
+
+    private void set(TabSwitcher switcher) {
+      if (switcherHolder.size() == 0) {
+        switcherHolder.add(switcher);
+      }
+    }
+
+    public void switchTab(TabbedPaneProvider.Tab tab) {
+      if (switcherHolder.get(0) == null) {
+        throw new IllegalStateException();
+      }
+      switcherHolder.get(0).switchTab(tab);
+    }
+
+    public interface TabSwitcher {
+      void switchTab(TabbedPaneProvider.Tab tab);
+    }
+
+  }
+
 
 }

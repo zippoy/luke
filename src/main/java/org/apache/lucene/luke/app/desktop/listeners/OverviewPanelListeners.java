@@ -1,7 +1,6 @@
 package org.apache.lucene.luke.app.desktop.listeners;
 
 import org.apache.lucene.luke.app.desktop.components.OverviewPanelProvider;
-import org.apache.lucene.luke.app.desktop.components.TabSwitcher;
 import org.apache.lucene.luke.app.desktop.components.TabbedPaneProvider;
 import org.apache.lucene.luke.app.desktop.listeners.adapter.MouseListenerAdapter;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
@@ -20,11 +19,11 @@ public class OverviewPanelListeners {
 
   private final OverviewPanelProvider.Controller controller;
 
-  private final TabSwitcher tabSwitcher;
+  private final TabbedPaneProvider.TabSwitcherProxy tabSwitcher;
 
   private Overview overviewModel;
 
-  public OverviewPanelListeners(OverviewPanelProvider.Controller controller, TabSwitcher tabSwitcher) {
+  public OverviewPanelListeners(OverviewPanelProvider.Controller controller, TabbedPaneProvider.TabSwitcherProxy tabSwitcher) {
     this.controller = controller;
     this.tabSwitcher = tabSwitcher;
   }

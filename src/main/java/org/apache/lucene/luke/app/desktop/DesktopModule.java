@@ -3,9 +3,6 @@ package org.apache.lucene.luke.app.desktop;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.Provides;
-import com.google.inject.Singleton;
-import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 import org.apache.lucene.luke.app.LukeModule;
 import org.apache.lucene.luke.app.desktop.components.AnalysisPanelProvider;
@@ -16,7 +13,6 @@ import org.apache.lucene.luke.app.desktop.components.LukeWindowProvider;
 import org.apache.lucene.luke.app.desktop.components.MenuBarProvider;
 import org.apache.lucene.luke.app.desktop.components.OverviewPanelProvider;
 import org.apache.lucene.luke.app.desktop.components.SearchPanelProvider;
-import org.apache.lucene.luke.app.desktop.components.TabSwitcher;
 import org.apache.lucene.luke.app.desktop.components.TabbedPaneProvider;
 import org.apache.lucene.luke.app.desktop.components.dialog.menubar.CheckIndexDialogProvider;
 import org.apache.lucene.luke.app.desktop.components.dialog.menubar.OpenIndexDialogProvider;
@@ -52,7 +48,7 @@ public class DesktopModule extends AbstractModule {
     install(new LukeModule());
 
     // UI components and fragments
-    bind(TabSwitcher.class).toInstance(new TabSwitcher());
+    bind(TabbedPaneProvider.TabSwitcherProxy.class).toInstance(new TabbedPaneProvider.TabSwitcherProxy());
     bind(MessageBroker.class).toInstance(new MessageBroker());
     bind(JMenuBar.class).toProvider(MenuBarProvider.class);
 

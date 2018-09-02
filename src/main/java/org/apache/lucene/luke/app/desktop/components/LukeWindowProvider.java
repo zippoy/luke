@@ -30,8 +30,6 @@ import java.awt.GridLayout;
 
 public class LukeWindowProvider implements Provider<JFrame> {
 
-  //private final MessageBroker.MessageReceiver messageReceiver = new MessageReceiverImpl();
-
   private final MessageBroker messageBroker;
 
   private final JMenuBar menuBar;
