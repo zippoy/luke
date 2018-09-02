@@ -16,9 +16,9 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 
-public class OpenDialogListeners {
+public class OpenIndexDialogListeners {
 
-  private static final Logger logger = LoggerFactory.getLogger(OpenDialogListeners.class);
+  private static final Logger logger = LoggerFactory.getLogger(OpenIndexDialogListeners.class);
 
   private final OpenIndexDialogProvider.Controller controller;
 
@@ -28,9 +28,9 @@ public class OpenDialogListeners {
 
   private final Preferences prefs;
 
-  public OpenDialogListeners(OpenIndexDialogProvider.Controller controller,
-                             DirectoryHandler directoryHandler, IndexHandler indexHandler,
-                             Preferences preferences) {
+  public OpenIndexDialogListeners(OpenIndexDialogProvider.Controller controller,
+                                  DirectoryHandler directoryHandler, IndexHandler indexHandler,
+                                  Preferences preferences) {
     this.controller = controller;
     this.directoryHandler = directoryHandler;
     this.indexHandler = indexHandler;

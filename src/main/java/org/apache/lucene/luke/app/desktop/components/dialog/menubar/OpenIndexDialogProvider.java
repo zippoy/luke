@@ -1,11 +1,15 @@
 package org.apache.lucene.luke.app.desktop.components.dialog.menubar;
 
 import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Key;
 import com.google.inject.Provider;
+import com.google.inject.name.Names;
 import org.apache.lucene.luke.app.DirectoryHandler;
 import org.apache.lucene.luke.app.IndexHandler;
+import org.apache.lucene.luke.app.desktop.DesktopModule;
 import org.apache.lucene.luke.app.desktop.Preferences;
-import org.apache.lucene.luke.app.desktop.listeners.dialog.menubar.OpenDialogListeners;
+import org.apache.lucene.luke.app.desktop.listeners.dialog.menubar.OpenIndexDialogListeners;
 import org.apache.lucene.luke.app.desktop.util.ImageUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 import org.apache.lucene.store.FSDirectory;
@@ -45,7 +49,7 @@ public class OpenIndexDialogProvider implements Provider<JDialog> {
 
   private final Controller controller;
 
-  private final OpenDialogListeners listeners;
+  private final OpenIndexDialogListeners listeners;
 
   private final JDialog dialog;
 
@@ -115,7 +119,7 @@ public class OpenIndexDialogProvider implements Provider<JDialog> {
     this.owner = owner;
     this.dialog = new JDialog(owner, MessageUtils.getLocalizedMessage("openindex.dialog.title"), Dialog.ModalityType.APPLICATION_MODAL);
     this.controller = new Controller();
-    this.listeners = new OpenDialogListeners(controller, directoryHandler, indexHandler, prefs);
+    this.listeners = new OpenIndexDialogListeners(controller, directoryHandler, indexHandler, prefs);
     this.prefs = prefs;
   }
 
@@ -258,6 +262,12 @@ public class OpenIndexDialogProvider implements Provider<JDialog> {
     panel.add(cancelBtn);
 
     return panel;
+  }
+
+  public static void showOpenIndexDialog() {
+    Injector injector = DesktopModule.getIngector();
+    JDialog dialog = injector.getInstance(Key.get(JDialog.class, Names.named("menubar_openindex")));
+    dialog.setVisible(true);
   }
 
 }
