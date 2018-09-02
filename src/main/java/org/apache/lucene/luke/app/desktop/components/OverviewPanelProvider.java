@@ -5,7 +5,7 @@ import com.google.inject.Provider;
 import org.apache.lucene.luke.app.IndexHandler;
 import org.apache.lucene.luke.app.IndexObserver;
 import org.apache.lucene.luke.app.LukeState;
-import org.apache.lucene.luke.app.MessageHandler;
+import org.apache.lucene.luke.app.desktop.MessageBroker;
 import org.apache.lucene.luke.app.desktop.components.util.StyleConstants;
 import org.apache.lucene.luke.app.desktop.components.util.TableUtil;
 import org.apache.lucene.luke.app.desktop.listeners.OverviewPanelListeners;
@@ -56,7 +56,7 @@ public class OverviewPanelProvider implements Provider<JPanel> {
 
   private final OverviewPanelListeners listeners;
 
-  private final MessageHandler messageHandler;
+  private final MessageBroker messageBroker;
 
   private final JPanel panel = new JPanel();
 
@@ -120,7 +120,7 @@ public class OverviewPanelProvider implements Provider<JPanel> {
       topTermsTable.setModel(new TopTermsTableModel(termStats, numTerms));
       topTermsTable.getColumnModel().getColumn(0).setMaxWidth(50);
       topTermsTable.getColumnModel().getColumn(1).setMaxWidth(80);
-      messageHandler.clear();
+      messageBroker.clearStatusMessage();
     }
 
     public String getSelectedTerm() {
@@ -193,9 +193,9 @@ public class OverviewPanelProvider implements Provider<JPanel> {
   }
 
   @Inject
-  public OverviewPanelProvider(OverviewFactory overviewFactory, MessageHandler messageHandler, IndexHandler indexHandler, TabSwitcher tabSwitcher) {
+  public OverviewPanelProvider(OverviewFactory overviewFactory, MessageBroker messageBroker, IndexHandler indexHandler, TabSwitcher tabSwitcher) {
     this.overviewFactory = overviewFactory;
-    this.messageHandler = messageHandler;
+    this.messageBroker = messageBroker;
     this.controller = new Controller();
     this.observer = new Observer();
     this.listeners = new OverviewPanelListeners(controller, tabSwitcher);

@@ -43,7 +43,6 @@ public class LukeModule extends AbstractModule {
 
     bind(DirectoryHandler.class).toInstance(new DirectoryHandler());
     bind(IndexHandler.class).toInstance(new IndexHandler());
-    bind(MessageHandler.class).toInstance(new MessageHandler());
 
     bind(Preferences.class).to(PreferencesImpl.class);
   }

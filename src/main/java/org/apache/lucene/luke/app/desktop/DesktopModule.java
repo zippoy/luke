@@ -53,6 +53,7 @@ public class DesktopModule extends AbstractModule {
 
     // UI components and fragments
     bind(TabSwitcher.class).toInstance(new TabSwitcher());
+    bind(MessageBroker.class).toInstance(new MessageBroker());
     bind(JMenuBar.class).toProvider(MenuBarProvider.class);
 
     bind(JPanel.class).annotatedWith(Names.named("overview")).toProvider(OverviewPanelProvider.class);

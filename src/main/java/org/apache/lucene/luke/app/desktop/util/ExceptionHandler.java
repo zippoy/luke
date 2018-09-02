@@ -17,7 +17,7 @@
 
 package org.apache.lucene.luke.app.desktop.util;
 
-import org.apache.lucene.luke.app.MessageHandler;
+import org.apache.lucene.luke.app.desktop.MessageBroker;
 import org.apache.lucene.luke.models.LukeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,18 +65,18 @@ public class ExceptionHandler {
     }
   }
 
-  public static void handle(Throwable t, MessageHandler messageHandler) {
+  public static void handle(Throwable t, MessageBroker messageBroker) {
     if (t instanceof ExceptionWrapper) {
       Throwable cause = unwrap((ExceptionWrapper) t);
       if (cause instanceof LukeException) {
-        messageHandler.showMessage(cause.getMessage());
+        messageBroker.showStatusMessage(cause.getMessage());
       } else {
         logger.error(cause.getMessage(), cause);
-        messageHandler.showError();
+        messageBroker.showUnknownErrorMessage();
       }
     } else {
       logger.error(t.getMessage(), t);
-      messageHandler.showError();
+      messageBroker.showUnknownErrorMessage();
     }
   }
 

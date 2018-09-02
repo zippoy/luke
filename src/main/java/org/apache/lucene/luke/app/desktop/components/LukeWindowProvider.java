@@ -8,8 +8,7 @@ import org.apache.lucene.luke.app.DirectoryObserver;
 import org.apache.lucene.luke.app.IndexHandler;
 import org.apache.lucene.luke.app.IndexObserver;
 import org.apache.lucene.luke.app.LukeState;
-import org.apache.lucene.luke.app.MessageHandler;
-import org.apache.lucene.luke.app.MessageObserver;
+import org.apache.lucene.luke.app.desktop.MessageBroker;
 import org.apache.lucene.luke.app.desktop.util.ImageUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 
@@ -31,7 +30,9 @@ import java.awt.GridLayout;
 
 public class LukeWindowProvider implements Provider<JFrame> {
 
-  private final Observer observer;
+  //private final MessageBroker.MessageReceiver messageReceiver = new MessageReceiverImpl();
+
+  private final MessageBroker messageBroker;
 
   private final JMenuBar menuBar;
 
@@ -45,7 +46,7 @@ public class LukeWindowProvider implements Provider<JFrame> {
 
   private final JLabel noReaderIcon = new JLabel();
 
-  public class Observer implements IndexObserver, DirectoryObserver, MessageObserver {
+  public class Observer implements IndexObserver, DirectoryObserver {
 
     @Override
     public void openDirectory(LukeState state) {
@@ -53,7 +54,7 @@ public class LukeWindowProvider implements Provider<JFrame> {
       readOnlyIcon.setVisible(false);
       noReaderIcon.setVisible(true);
 
-      showStatusMessage(MessageUtils.getLocalizedMessage("message.directory_opened"));
+      messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("message.directory_opened"));
     }
 
     @Override
@@ -62,7 +63,7 @@ public class LukeWindowProvider implements Provider<JFrame> {
       readOnlyIcon.setVisible(false);
       noReaderIcon.setVisible(false);
 
-      showStatusMessage(MessageUtils.getLocalizedMessage("message.directory_closed"));
+      messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("message.directory_closed"));
     }
 
     @Override
@@ -72,11 +73,11 @@ public class LukeWindowProvider implements Provider<JFrame> {
       noReaderIcon.setVisible(false);
 
       if (state.readOnly()) {
-        showStatusMessage(MessageUtils.getLocalizedMessage("message.index_opened_ro"));
+        messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("message.index_opened_ro"));
       } else if (!state.hasDirectoryReader()) {
-        showStatusMessage(MessageUtils.getLocalizedMessage("message.index_opened_multi"));
+        messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("message.index_opened_multi"));
       } else {
-        showStatusMessage(MessageUtils.getLocalizedMessage("message.index_opened"));
+        messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("message.index_opened"));
       }
     }
 
@@ -86,10 +87,12 @@ public class LukeWindowProvider implements Provider<JFrame> {
       readOnlyIcon.setVisible(false);
       noReaderIcon.setVisible(false);
 
-
-
-      showStatusMessage(MessageUtils.getLocalizedMessage("message.index_closed"));
+      messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("message.index_closed"));
     }
+
+  }
+
+  public class MessageReceiverImpl implements MessageBroker.MessageReceiver {
 
     @Override
     public void showStatusMessage(String message) {
@@ -112,14 +115,16 @@ public class LukeWindowProvider implements Provider<JFrame> {
                             @Named("main") JTabbedPane tabbedPane,
                             DirectoryHandler directoryHandler,
                             IndexHandler indexHandler,
-                            MessageHandler messageHandler) {
+                            MessageBroker messageBroker) {
     this.menuBar = menuBar;
     this.tabbedPane = tabbedPane;
+    this.messageBroker = messageBroker;
 
-    this.observer = new Observer();
+    Observer observer = new Observer();
     directoryHandler.addObserver(observer);
     indexHandler.addObserver(observer);
-    messageHandler.addObserver(observer);
+
+    messageBroker.registerReceiver(new MessageReceiverImpl());
   }
 
   @Override
