@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<dialog text="Edit columns" name="editcolumns" icon="/img/luke.gif" modal="true" columns="1" top="8" left="8" 
+        bottom="8" right="8" gap="15" resizable="false" close="remove(editcolumns)">
+	<label icon="/img/info.gif" text="Choose and reorder columns:"/>
+	<panel halign="right" gap="8" columns="4">
+		<panel columns="1" valign="center" gap="8">
+			<button text="Top" action="reOrderRowsTop(shownColumns)"/>
+			<button text="Up" action="reOrderRowsUp(shownColumns)"/>
+			<button text="Down" action="reOrderRowsDown(shownColumns)"/>
+			<button text="Bottom" action="reOrderRowsBottom(shownColumns)"/>
+		</panel>
+		<panel columns="1" valign="fill" >
+			<table name="shownColumns" selection="multiple" width="150" height="250">
+				<header>
+			      <column text="Shown columns" width="80"/>
+		    	</header>
+			</table>
+		</panel>
+		<panel columns="1" valign="center" gap="8">
+			<button text="&gt;" action="moveResultColumn(shownColumns, hiddenColumns)"/>
+			<button text="&lt;" action="moveResultColumn(hiddenColumns, shownColumns)"/>
+		</panel>
+		<panel columns="1" valign="fill">
+		    <table name="hiddenColumns" selection="multiple" width="150" height="250">
+		   		<header>
+			    	<column text="Hidden columns" width="80"/>
+		    	</header>
+		    </table>
+	    </panel>
+	</panel>
+	<panel weightx="1" halign="center" gap="8" top="3" right="3" bottom="2">
+		<button text="OK" action="saveResultColumns(editcolumns)"/>
+		<button text="Cancel" action="remove(editcolumns)"/>
+	</panel>
+</dialog>
