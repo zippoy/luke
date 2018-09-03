@@ -36,9 +36,10 @@ public class OverviewPanelListeners {
     return new MouseListenerAdapter() {
       @Override
       public void mouseClicked(MouseEvent e) {
-        String field = controller.getCurrentTermCountsField();
-        controller.setSelectedField(field);
-        controller.enableShowTopTermBtn();
+        controller.getCurrentTermCountsField().ifPresent(field -> {
+          controller.setSelectedField(field);
+          controller.enableShowTopTermBtn();
+        });
       }
     };
   }

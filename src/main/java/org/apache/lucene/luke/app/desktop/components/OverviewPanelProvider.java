@@ -40,6 +40,7 @@ import java.awt.GridLayout;
 import java.awt.Insets;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class OverviewPanelProvider implements Provider<JPanel> {
 
@@ -88,12 +89,15 @@ public class OverviewPanelProvider implements Provider<JPanel> {
 
   public class Controller {
 
-    public String getCurrentTermCountsField() {
+    public Optional<String> getCurrentTermCountsField() {
       int row = termCountsTable.getSelectedRow();
       if (row < 0) {
-        return "";
+        return Optional.empty();
       }
-      return (String)termCountsTable.getModel().getValueAt(row, 0);
+      if (row >= termCountsTable.getRowCount()) {
+        return Optional.empty();
+      }
+      return Optional.of((String)termCountsTable.getModel().getValueAt(row, 0));
     }
 
     public String getSelectedField() {
@@ -157,8 +161,8 @@ public class OverviewPanelProvider implements Provider<JPanel> {
       long numTerms = overviewModel.getNumTerms();
       termCountsTable.setModel(new TermCountsTableModel(numTerms, termCounts));
       termCountsTable.setRowSorter(new TableRowSorter<>(termCountsTable.getModel()));
-      termCountsTable.getColumnModel().getColumn(0).setPreferredWidth(120);
-      termCountsTable.getColumnModel().getColumn(1).setPreferredWidth(100);
+      termCountsTable.getColumnModel().getColumn(0).setMaxWidth(120);
+      termCountsTable.getColumnModel().getColumn(1).setMaxWidth(100);
       DefaultTableCellRenderer rightRenderer = new DefaultTableCellRenderer();
       rightRenderer.setHorizontalAlignment(JLabel.RIGHT);
       termCountsTable.getColumnModel().getColumn(2).setCellRenderer(rightRenderer);
@@ -183,6 +187,14 @@ public class OverviewPanelProvider implements Provider<JPanel> {
       dirImplLbl.setText("");
       commitPointLbl.setText("");
       commitUserDataLbl.setText("");
+
+      selectedField.setText("");
+      showTopTermsBtn.setEnabled(false);
+      numTopTermsSpnr.setEnabled(false);
+
+      termCountsTable.setRowSorter(null);
+      termCountsTable.setModel(new TermCountsTableModel());
+      topTermsTable.setModel(new TopTermsTableModel());
     }
 
     private Observer() {}
@@ -391,7 +403,7 @@ public class OverviewPanelProvider implements Provider<JPanel> {
     label.setBorder(BorderFactory.createEmptyBorder(0, 0, 5, 0));
     termsPanel.add(label, BorderLayout.PAGE_START);
 
-    TableUtil.setupTable(topTermsTable, ListSelectionModel.SINGLE_SELECTION, new TopTermsTableModel(), null);
+    TableUtil.setupTable(topTermsTable, ListSelectionModel.SINGLE_SELECTION, new TopTermsTableModel(), listeners.getTermCountsTableListener());
     JScrollPane scrollPane = new JScrollPane(topTermsTable);
     termsPanel.add(scrollPane, BorderLayout.CENTER);
 

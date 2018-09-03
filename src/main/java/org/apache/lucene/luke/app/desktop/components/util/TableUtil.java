@@ -7,7 +7,7 @@ import java.awt.event.MouseListener;
 
 public class TableUtil {
 
-  public static void setupTable(JTable table, int selectionModel, TableModel model, MouseListener listener) {
+  public static void setupTable(JTable table, int selectionModel, TableModel model, MouseListener mouseListener) {
     table.setFillsViewportHeight(true);
     table.setFont(StyleConstants.TABLE_FONT_DEFAULT);
     table.setRowHeight(StyleConstants.TABLE_ROW_HEIGHT_DEFAULT);
@@ -20,8 +20,8 @@ public class TableUtil {
     if (model != null) {
       table.setModel(model);
     }
-    if (listener != null) {
-      table.addMouseListener(listener);
+    if (mouseListener != null) {
+      table.addMouseListener(mouseListener);
     }
   }
 

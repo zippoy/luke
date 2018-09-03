@@ -57,6 +57,13 @@ public class OpenIndexDialogListeners {
   public ActionListener getOkBtnListener() {
     return (ActionEvent e) -> {
       try {
+        if (directoryHandler.directoryOpened()) {
+          directoryHandler.close();
+        }
+        if (indexHandler.indexOpened()) {
+          indexHandler.close();
+        }
+
         String selectedPath = controller.getSelectedIndexPath();
         String dirImplClazz = controller.getSelectedDirImpl();
         if (selectedPath == null || selectedPath.length() == 0) {
