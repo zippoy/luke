@@ -8,6 +8,7 @@ import org.apache.lucene.luke.app.DirectoryObserver;
 import org.apache.lucene.luke.app.IndexHandler;
 import org.apache.lucene.luke.app.IndexObserver;
 import org.apache.lucene.luke.app.LukeState;
+import org.apache.lucene.luke.app.desktop.MessageBroker;
 import org.apache.lucene.luke.app.desktop.util.ImageUtils;
 
 import javax.swing.JPanel;
@@ -16,6 +17,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TabbedPaneProvider implements Provider<JTabbedPane> {
+
+  private final MessageBroker messageBroker;
 
   private final JTabbedPane tabbedPane = new JTabbedPane();
 
@@ -36,6 +39,7 @@ public class TabbedPaneProvider implements Provider<JTabbedPane> {
       tabbedPane.setSelectedIndex(tab.index());
       tabbedPane.setVisible(false);
       tabbedPane.setVisible(true);
+      messageBroker.clearStatusMessage();
     }
   }
 
@@ -80,13 +84,16 @@ public class TabbedPaneProvider implements Provider<JTabbedPane> {
                             @Named("logs") JPanel logsPanel,
                             IndexHandler indexHandler,
                             DirectoryHandler directoryHandler,
-                            TabSwitcherProxy tabSwitcher) {
+                            TabSwitcherProxy tabSwitcher,
+                            MessageBroker messageBroker) {
     this.overviewPanel = overviewPanel;
     this.documentsPanel = documentsPanel;
     this.searchPanel = searchPanel;
     this.analysisPanel = analysisPanel;
     this.commitsPanel = commitsPanel;
     this.logsPanel = logsPanel;
+
+    this.messageBroker = messageBroker;
 
     tabSwitcher.set(new TabSwitcherImpl());
 

@@ -419,6 +419,10 @@ public class OverviewPanelProvider implements Provider<JPanel> {
 
 class TermCountsTableModel extends AbstractTableModel {
 
+  private final String[] colNames = new String[]{"Name", "Term Count", "%"};
+
+  private final Object[][] data;
+
   TermCountsTableModel() {
     data = new Object[0][colNames.length];
   }
@@ -432,10 +436,6 @@ class TermCountsTableModel extends AbstractTableModel {
       data[i++] = new Object[]{ term, count, String.format("%.2f %%", count / numTerms * 100) };
     }
   }
-
-  private final String[] colNames = new String[]{"Name", "Term Count", "%"};
-
-  private final Object[][] data;
 
   @Override
   public int getRowCount() {
@@ -474,6 +474,11 @@ class TermCountsTableModel extends AbstractTableModel {
 
 class TopTermsTableModel extends AbstractTableModel {
 
+  private final String[] colNames = new String[]{"Rank", "Freq", "Text"};
+
+  private final Object[][] data;
+
+
   TopTermsTableModel() {
     data = new Object[0][colNames.length];
   }
@@ -488,10 +493,6 @@ class TopTermsTableModel extends AbstractTableModel {
       data[i] = new Object[]{ rank, freq, termText };
     }
   }
-
-  private final String[] colNames = new String[]{"Rank", "Freq", "Text"};
-
-  private final Object[][] data;
 
   @Override
   public int getRowCount() {
@@ -508,6 +509,7 @@ class TopTermsTableModel extends AbstractTableModel {
     return colNames[colIndex];
   }
 
+  @Override
   public Class<?> getColumnClass(int colIndex) {
     switch (colIndex) {
       case 0:
