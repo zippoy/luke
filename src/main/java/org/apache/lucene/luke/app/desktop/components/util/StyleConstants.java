@@ -8,6 +8,8 @@ public class StyleConstants {
 
   public static Font TABLE_FONT_DEFAULT = new Font("Arial", Font.PLAIN, 15);
 
+  public static Font FONT_MONOSPACE_LARGE = new Font("monospace", Font.PLAIN, 15);
+
   public static int TABLE_ROW_HEIGHT_DEFAULT = 18;
 
   public static int TABLE_COLUMN_MARGIN_DEFAULT = 10;

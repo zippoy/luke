@@ -373,14 +373,16 @@ public class OverviewPanelProvider implements Provider<JPanel> {
     innerPanel1.add(new JLabel(MessageUtils.getLocalizedMessage("overview.label.selected_field")));
     innerPanel.add(innerPanel1);
 
-    selectedField.setColumns(15);
+    selectedField.setColumns(10);
+    selectedField.setFont(StyleConstants.FONT_MONOSPACE_LARGE);
     selectedField.setEditable(false);
+    selectedField.setBackground(Color.white);
     JPanel innerPanel2 = new JPanel(new FlowLayout(FlowLayout.LEADING));
     innerPanel2.add(selectedField);
     innerPanel.add(innerPanel2);
 
     showTopTermsBtn.setText(MessageUtils.getLocalizedMessage("overview.button.show_terms"));
-    showTopTermsBtn.setPreferredSize(new Dimension(150, 40));
+    showTopTermsBtn.setPreferredSize(new Dimension(170, 40));
     showTopTermsBtn.setFont(StyleConstants.BUTTON_FONT_LARGE);
     showTopTermsBtn.addActionListener(listeners.getShowTopTermsBtnListener());
     showTopTermsBtn.setEnabled(false);
@@ -408,7 +410,7 @@ public class OverviewPanelProvider implements Provider<JPanel> {
     termsPanel.add(scrollPane, BorderLayout.CENTER);
 
     JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, selectedPanel, termsPanel);
-    splitPane.setDividerLocation(160);
+    splitPane.setDividerLocation(180);
     splitPane.setBorder(BorderFactory.createEmptyBorder());
     panel.add(splitPane);
 

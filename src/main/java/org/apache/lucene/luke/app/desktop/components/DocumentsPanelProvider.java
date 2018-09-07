@@ -9,7 +9,9 @@ import org.apache.lucene.luke.app.IndexHandler;
 import org.apache.lucene.luke.app.IndexObserver;
 import org.apache.lucene.luke.app.LukeState;
 import org.apache.lucene.luke.app.desktop.MessageBroker;
+import org.apache.lucene.luke.app.desktop.components.util.StyleConstants;
 import org.apache.lucene.luke.app.desktop.components.util.TableUtil;
+import org.apache.lucene.luke.app.desktop.listeners.DocumentsPanelListeners;
 import org.apache.lucene.luke.app.desktop.util.ImageUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 import org.apache.lucene.luke.models.documents.DocumentField;
@@ -19,6 +21,7 @@ import org.apache.lucene.luke.models.documents.TermPosting;
 import org.apache.lucene.luke.util.BytesRefUtils;
 
 import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -31,8 +34,6 @@ import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.table.AbstractTableModel;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -42,12 +43,9 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
-import java.util.stream.Collectors;
 
 
 public class DocumentsPanelProvider implements Provider<JPanel> {
@@ -56,8 +54,9 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
 
   private final MessageBroker messageBroker;
 
-  //private final DocumentsPanelListeners listeners;
-  private final Listeners listeners;
+  private final DocumentsPanelListeners listeners;
+
+  private final Controller controller = new Controller();
 
   private final JComboBox<String> fieldsCB = new JComboBox<>();
 
@@ -91,171 +90,13 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
 
   public class Controller {
 
-    public String getFieldName() {
-      return (String)fieldsCB.getSelectedItem();
-    }
-
-    public void clearPosTable() {
-      posTable.setModel(new PosTableModel());
-    }
-
-    public void setTermText(String termText) {
-      termTF.setText(termText);
-      selectedTermTF.setText(termText);
-    }
-
-    public String getTermText() {
-      return selectedTermTF.getToolTipText();
-    }
-
-    public void clearTermDocsNum() {
-      termDocsNumLbl.setText("");
-    }
-
-    public void setTermDocsNum(String num) {
-      termDocsNumLbl.setText(String.format("in %s docs", num));
-    }
-
-    public void setNextTermBtnEnabled(boolean enabled) {
-      nextTermBtn.setEnabled(enabled);
-    }
-
-    public void setTermTFEditable(boolean editable) {
-      termTF.setEditable(editable);
-    }
-
-    public void setFirstTermDocBtnEnabled(boolean enabled) {
-      firstTermDocBtn.setEnabled(enabled);
-    }
-
-    public void setNextTermDocBtnEnabled(boolean enabled) {
-      nextTermDocBtn.setEnabled(enabled);
-    }
-  }
-
-  class Listeners {
-
     private Documents documentsModel;
 
-    void setListeners(Documents documentsModel) {
+    private void setDocumentsModel(Documents documentsModel) {
       this.documentsModel = documentsModel;
     }
 
-    ActionListener getFieldsCBListener() {
-      return (ActionEvent e) -> showFirstTerm();
-    }
-
-    ActionListener getFirstTermBtnListener() {
-      return (ActionEvent e) -> showFirstTerm();
-    }
-
-    ActionListener getNextTermBtnListener() {
-      return (ActionEvent e) -> {
-        termDocIdxTF.setText("");
-        clearPosTable();
-
-        String nextTermText = documentsModel.nextTerm().map(Term::text).orElse("");
-        termTF.setText(nextTermText);
-        selectedTermTF.setText(nextTermText);
-        if (selectedTermTF.getText().length() > 0) {
-          String num = documentsModel.getDocFreq().map(String::valueOf).orElse("?");
-          termDocsNumLbl.setText(String.format("in %s docs", num));
-
-          termTF.setEditable(true);
-          firstTermDocBtn.setEnabled(true);
-        } else {
-          nextTermBtn.setEnabled(false);
-          termTF.setEditable(false);
-          firstTermDocBtn.setEnabled(false);
-        }
-        nextTermDocBtn.setEnabled(false);
-
-        messageBroker.clearStatusMessage();
-      };
-    }
-
-    ActionListener getTermTFListener() {
-      return (ActionEvent e) -> {
-        termDocIdxTF.setText("");
-        clearPosTable();
-
-        String termText = termTF.getText();
-
-        String nextTermText = documentsModel.seekTerm(termText).map(Term::text).orElse("");
-        termTF.setText(nextTermText);
-        selectedTermTF.setText(nextTermText);
-        if (selectedTermTF.getText().length() > 0) {
-          String num = documentsModel.getDocFreq().map(String::valueOf).orElse("?");
-          termDocsNumLbl.setText(String.format("in %s docs", num));
-
-          termTF.setEditable(true);
-          firstTermDocBtn.setEnabled(true);
-        } else {
-          nextTermBtn.setEnabled(false);
-          termTF.setEditable(false);
-          firstTermDocBtn.setEnabled(false);
-        }
-        nextTermDocBtn.setEnabled(false);
-
-        messageBroker.clearStatusMessage();
-      };
-    }
-
-    ActionListener getFirstTermDocBtnListener() {
-      return (ActionEvent e) -> {
-        int doc = documentsModel.firstTermDoc().orElse(-1);
-        if (doc < 0) {
-          nextTermDocBtn.setEnabled(false);
-          messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("documents.termdocs.message.not_available"));
-          return;
-        }
-        termDocIdxTF.setText(String.valueOf(1));
-        docNumSpnr.setValue(doc);
-        showDoc(doc);
-
-        List<TermPosting> postings = documentsModel.getTermPositions();
-        posTable.setModel(new PosTableModel(postings));
-        posTable.getColumnModel().getColumn(0).setPreferredWidth(80);
-        posTable.getColumnModel().getColumn(1).setPreferredWidth(120);
-        posTable.getColumnModel().getColumn(2).setPreferredWidth(170);
-
-        nextTermDocBtn.setEnabled(true);
-        messageBroker.clearStatusMessage();
-      };
-    }
-
-    ActionListener getNextTermDocBtnListener() {
-      return (ActionEvent e) -> {
-        int doc = documentsModel.nextTermDoc().orElse(-1);
-        if (doc < 0) {
-          nextTermDocBtn.setEnabled(false);
-          messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("documents.termdocs.message.not_available"));
-          return;
-        }
-        int curIdx = Integer.parseInt(termDocIdxTF.getText());
-        termDocIdxTF.setText(String.valueOf(curIdx + 1));
-        docNumSpnr.setValue(doc);
-        showDoc(doc);
-
-        List<TermPosting> postings = documentsModel.getTermPositions();
-        posTable.setModel(new PosTableModel(postings));
-        posTable.getColumnModel().getColumn(0).setPreferredWidth(80);
-        posTable.getColumnModel().getColumn(1).setPreferredWidth(120);
-        posTable.getColumnModel().getColumn(2).setPreferredWidth(170);
-
-        nextTermDocBtn.setDefaultCapable(true);
-        messageBroker.clearStatusMessage();
-      };
-    }
-
-    ChangeListener getDocNumSpnrListener() {
-      return (ChangeEvent e) -> {
-        int docid = (Integer)docNumSpnr.getValue();
-        showDoc(docid);
-      };
-    }
-
-    private void showFirstTerm() {
+    public void showFirstTerm() {
       String fieldName = (String)fieldsCB.getSelectedItem();
       if (fieldName == null || fieldName.length() == 0) {
         messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("documents.field.message.not_selected"));
@@ -283,24 +124,126 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
       nextTermDocBtn.setEnabled(false);
     }
 
-    private void showDoc(int docid) {
+    public void showNextTerm() {
+      termDocIdxTF.setText("");
+      clearPosTable();
 
-      List<DocumentField> doc = documentsModel.getDocumentFields(docid);
-      documentTable.setModel(new DocumentTableModel(doc));
-      documentTable.getColumnModel().getColumn(0).setPreferredWidth(50);
-      documentTable.getColumnModel().getColumn(1).setPreferredWidth(180);
-      documentTable.getColumnModel().getColumn(2).setPreferredWidth(50);
+      String nextTermText = documentsModel.nextTerm().map(Term::text).orElse("");
+      termTF.setText(nextTermText);
+      selectedTermTF.setText(nextTermText);
+      if (selectedTermTF.getText().length() > 0) {
+        String num = documentsModel.getDocFreq().map(String::valueOf).orElse("?");
+        termDocsNumLbl.setText(String.format("in %s docs", num));
+
+        termTF.setEditable(true);
+        firstTermDocBtn.setEnabled(true);
+      } else {
+        nextTermBtn.setEnabled(false);
+        termTF.setEditable(false);
+        firstTermDocBtn.setEnabled(false);
+      }
+      nextTermDocBtn.setEnabled(false);
 
       messageBroker.clearStatusMessage();
+    }
+
+    public void seekNextTerm() {
+      termDocIdxTF.setText("");
+      clearPosTable();
+
+      String termText = termTF.getText();
+
+      String nextTermText = documentsModel.seekTerm(termText).map(Term::text).orElse("");
+      termTF.setText(nextTermText);
+      selectedTermTF.setText(nextTermText);
+      if (selectedTermTF.getText().length() > 0) {
+        String num = documentsModel.getDocFreq().map(String::valueOf).orElse("?");
+        termDocsNumLbl.setText(String.format("in %s docs", num));
+
+        termTF.setEditable(true);
+        firstTermDocBtn.setEnabled(true);
+      } else {
+        nextTermBtn.setEnabled(false);
+        termTF.setEditable(false);
+        firstTermDocBtn.setEnabled(false);
+      }
+      nextTermDocBtn.setEnabled(false);
+
+      messageBroker.clearStatusMessage();
+    }
+
+    public void showFirstTermDoc() {
+      int doc = documentsModel.firstTermDoc().orElse(-1);
+      if (doc < 0) {
+        nextTermDocBtn.setEnabled(false);
+        messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("documents.termdocs.message.not_available"));
+        return;
+      }
+      termDocIdxTF.setText(String.valueOf(1));
+      docNumSpnr.setValue(doc);
+      showDoc(doc);
+
+      List<TermPosting> postings = documentsModel.getTermPositions();
+      posTable.setModel(new PosTableModel(postings));
+      posTable.getColumnModel().getColumn(0).setPreferredWidth(80);
+      posTable.getColumnModel().getColumn(1).setPreferredWidth(120);
+      posTable.getColumnModel().getColumn(2).setPreferredWidth(170);
+
+      nextTermDocBtn.setEnabled(true);
+      messageBroker.clearStatusMessage();
+    }
+
+    public void showNextTermDoc() {
+      int doc = documentsModel.nextTermDoc().orElse(-1);
+      if (doc < 0) {
+        nextTermDocBtn.setEnabled(false);
+        messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("documents.termdocs.message.not_available"));
+        return;
+      }
+      int curIdx = Integer.parseInt(termDocIdxTF.getText());
+      termDocIdxTF.setText(String.valueOf(curIdx + 1));
+      docNumSpnr.setValue(doc);
+      showDoc(doc);
+
+      List<TermPosting> postings = documentsModel.getTermPositions();
+      posTable.setModel(new PosTableModel(postings));
+
+      nextTermDocBtn.setDefaultCapable(true);
+      messageBroker.clearStatusMessage();
+    }
+
+    private void showDoc(int docid) {
+      List<DocumentField> doc = documentsModel.getDocumentFields(docid);
+      documentTable.setModel(new DocumentTableModel(doc));
+      documentTable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
+      documentTable.getColumnModel().getColumn(0).setPreferredWidth(150);
+      documentTable.getColumnModel().getColumn(1).setMinWidth(200);
+      documentTable.getColumnModel().getColumn(1).setMaxWidth(200);
+      documentTable.getColumnModel().getColumn(2).setMinWidth(80);
+      documentTable.getColumnModel().getColumn(2).setMaxWidth(80);
+      documentTable.getColumnModel().getColumn(3).setPreferredWidth(500);
+
+      messageBroker.clearStatusMessage();
+    }
+
+    public void showCurrentDoc() {
+      int docid = (Integer)docNumSpnr.getValue();
+      showDoc(docid);
     }
 
     private void clearPosTable() {
       posTable.setModel(new PosTableModel());
       posTable.getColumnModel().getColumn(0).setMinWidth(80);
+      posTable.getColumnModel().getColumn(0).setMaxWidth(80);
       posTable.getColumnModel().getColumn(1).setMinWidth(120);
-      posTable.getColumnModel().getColumn(2).setMinWidth(170);
+      posTable.getColumnModel().getColumn(1).setMaxWidth(120);
     }
 
+    private void clearDocumentTable() {
+      documentTable.setModel(new DocumentTableModel());
+    }
+
+    private Controller() {}
   }
 
   public class Observer implements IndexObserver {
@@ -308,7 +251,7 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
     @Override
     public void openIndex(LukeState state) {
       Documents documentsModel = documentsFactory.newInstance(state.getIndexReader());
-      listeners.setListeners(documentsModel);
+      controller.setDocumentsModel(documentsModel);
 
       addDocBtn.setEnabled(!state.readOnly() && state.hasDirectoryReader());
 
@@ -318,12 +261,12 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
         int max = Math.max(maxDoc - 1, 0);
         SpinnerModel spinnerModel = new SpinnerNumberModel(0, 0, max, 1);
         docNumSpnr.setModel(spinnerModel);
+        controller.showDoc(0);
       } else {
         docNumSpnr.setEnabled(false);
       }
 
       documentsModel.getFieldNames().stream().sorted().forEach(fieldsCB::addItem);
-
     }
 
     @Override
@@ -335,6 +278,9 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
       selectedTermTF.setText("");
       termDocsNumLbl.setText("");
       termDocIdxTF.setText("");
+
+      controller.clearPosTable();
+      controller.clearDocumentTable();
     }
   }
 
@@ -342,8 +288,7 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
   public DocumentsPanelProvider(DocumentsFactory documentsFactory, MessageBroker messageBroker, IndexHandler indexHandler, TabbedPaneProvider.TabSwitcherProxy tabSwitcher) {
     this.documentsFactory = documentsFactory;
     this.messageBroker = messageBroker;
-    //this.listeners = new DocumentsPanelListeners(new Controller(), tabSwitcher);
-    this.listeners = new Listeners();
+    this.listeners = new DocumentsPanelListeners(controller, tabSwitcher);
 
     indexHandler.addObserver(new Observer());
   }
@@ -381,77 +326,89 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
   }
 
   private JPanel browseTermsPanel() {
-    JPanel panel = new JPanel(new GridBagLayout());
+    JPanel panel = new JPanel(new BorderLayout());
     panel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
-    GridBagConstraints c = new GridBagConstraints();
-    c.fill = GridBagConstraints.HORIZONTAL;
 
+    JPanel top = new JPanel(new FlowLayout(FlowLayout.LEADING));
     JLabel label = new JLabel(MessageUtils.getLocalizedMessage("documents.label.browse_terms"));
-    c.gridx = 0;
-    c.gridy = 0;
-    c.insets = new Insets(3, 3, 3, 3);
-    c.weightx = 0.0;
-    c.gridwidth = 2;
-    panel.add(label, c);
+    top.add(label);
+
+    panel.add(top, BorderLayout.PAGE_START);
+
+    JPanel center = new JPanel(new GridBagLayout());
+    GridBagConstraints c = new GridBagConstraints();
+    c.fill = GridBagConstraints.BOTH;
 
     fieldsCB.addActionListener(listeners.getFieldsCBListener());
     c.gridx = 0;
-    c.gridy = 1;
-    c.insets = new Insets(3, 3, 3, 3);
+    c.gridy = 0;
+    c.insets = new Insets(5, 5, 5, 5);
     c.weightx = 0.0;
-    c.gridwidth = 1;
-    panel.add(fieldsCB, c);
+    c.gridwidth = 2;
+    center.add(fieldsCB, c);
 
     firstTermBtn.setText(MessageUtils.getLocalizedMessage("documents.button.first_term"));
     firstTermBtn.setIcon(ImageUtils.createImageIcon("/img/arrow_carrot-2left.png", 20, 20));
+    firstTermBtn.setMaximumSize(new Dimension(80, 30));
     firstTermBtn.addActionListener(listeners.getFirstTermBtnListener());
     c.gridx = 0;
-    c.gridy = 2;
-    c.insets = new Insets(3, 3, 3, 3);
-    c.weightx = 0.3;
-    panel.add(firstTermBtn, c);
+    c.gridy = 1;
+    c.insets = new Insets(5, 5, 5, 5);
+    c.weightx = 0.2;
+    c.gridwidth = 1;
+    center.add(firstTermBtn, c);
 
-    termTF.setColumns(15);
+    termTF.setColumns(20);
+    termTF.setMinimumSize(new Dimension(50, 25));
+    termTF.setFont(StyleConstants.FONT_MONOSPACE_LARGE);
     termTF.addActionListener(listeners.getTermTFListener());
     c.gridx = 1;
-    c.gridy = 2;
-    c.insets = new Insets(3, 3,3, 3);
-    c.weightx = 0.3;
-    panel.add(termTF, c);
+    c.gridy = 1;
+    c.insets = new Insets(5, 5,5, 5);
+    c.weightx = 0.5;
+    c.gridwidth = 1;
+    center.add(termTF, c);
 
     nextTermBtn.setText(MessageUtils.getLocalizedMessage("documents.button.next"));
     nextTermBtn.addActionListener(listeners.getNextTermBtnListener());
     c.gridx = 2;
-    c.gridy = 2;
-    c.insets = new Insets(3, 3, 3, 3);
-    c.weightx = 0.2;
-    panel.add(nextTermBtn, c);
+    c.gridy = 1;
+    c.insets = new Insets(5, 5, 5, 5);
+    c.weightx = 0.1;
+    c.gridwidth = 1;
+    center.add(nextTermBtn, c);
+
+    panel.add(center, BorderLayout.CENTER);
 
     return panel;
   }
 
   private JPanel browseDocsByTermPanel() {
-    JPanel panel = new JPanel(new GridBagLayout());
+    JPanel panel = new JPanel(new BorderLayout());
     panel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+
+    JPanel center = new JPanel(new GridBagLayout());
     GridBagConstraints c = new GridBagConstraints();
-    c.fill = GridBagConstraints.HORIZONTAL;
+    c.fill = GridBagConstraints.BOTH;
 
     JLabel label = new JLabel(MessageUtils.getLocalizedMessage("documents.label.browse_doc_by_term"));
     c.gridx = 0;
     c.gridy = 0;
     c.weightx = 0.0;
     c.gridwidth = 2;
-    c.insets = new Insets(3, 3, 3, 3);
-    panel.add(label, c);
+    c.insets = new Insets(5, 5, 5, 5);
+    center.add(label, c);
 
     selectedTermTF.setColumns(20);
+    selectedTermTF.setFont(StyleConstants.FONT_MONOSPACE_LARGE);
     selectedTermTF.setEditable(false);
+    selectedTermTF.setBackground(Color.white);
     c.gridx = 0;
     c.gridy = 1;
     c.weightx = 0.0;
     c.gridwidth = 2;
-    c.insets = new Insets(3, 3, 3, 3);
-    panel.add(selectedTermTF, c);
+    c.insets = new Insets(5, 5, 5, 5);
+    center.add(selectedTermTF, c);
 
     firstTermDocBtn.setText(MessageUtils.getLocalizedMessage("documents.button.first_termdoc"));
     firstTermDocBtn.setIcon(ImageUtils.createImageIcon("/img/arrow_carrot-2left.png", 20, 20));
@@ -460,15 +417,17 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
     c.gridy = 2;
     c.weightx = 0.0;
     c.gridwidth = 1;
-    c.insets = new Insets(3, 3, 3, 1);
-    panel.add(firstTermDocBtn, c);
+    c.insets = new Insets(5, 3, 5, 5);
+    center.add(firstTermDocBtn, c);
 
+    termDocIdxTF.setEditable(false);
+    termDocIdxTF.setBackground(Color.white);
     c.gridx = 1;
     c.gridy = 2;
     c.weightx = 0.5;
     c.gridwidth = 1;
-    c.insets = new Insets(3, 1, 3, 1);
-    panel.add(termDocIdxTF, c);
+    c.insets = new Insets(5, 5, 5, 5);
+    center.add(termDocIdxTF, c);
 
     nextTermDocBtn.setText(MessageUtils.getLocalizedMessage("documents.button.next"));
     nextTermDocBtn.addActionListener(listeners.getNextTermDocBtnListener());
@@ -476,28 +435,28 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
     c.gridy = 2;
     c.weightx = 0.2;
     c.gridwidth = 1;
-    c.insets = new Insets(3, 1, 3, 3);
-    panel.add(nextTermDocBtn, c);
+    c.insets = new Insets(5, 5, 5, 5);
+    center.add(nextTermDocBtn, c);
 
     termDocsNumLbl.setText("in ? docs");
     c.gridx = 3;
     c.gridy = 2;
     c.weightx = 0.3;
     c.gridwidth = 1;
-    c.insets = new Insets(3, 3, 3, 3);
-    panel.add(termDocsNumLbl, c);
+    c.insets = new Insets(5, 5, 5, 5);
+    center.add(termDocsNumLbl, c);
 
     TableUtil.setupTable(posTable, ListSelectionModel.SINGLE_SELECTION, new PosTableModel(), null);
-    posTable.getColumnModel().getColumn(0).setMinWidth(80);
-    posTable.getColumnModel().getColumn(1).setMinWidth(120);
-    posTable.getColumnModel().getColumn(2).setMinWidth(170);
+    controller.clearPosTable();
     JScrollPane scrollPane = new JScrollPane(posTable);
     scrollPane.setMinimumSize(new Dimension(100, 100));
     c.gridx = 0;
     c.gridy = 3;
     c.gridwidth = 4;
-    c.insets = new Insets(3, 3, 3, 3);
-    panel.add(scrollPane, c);
+    c.insets = new Insets(5, 5, 5, 5);
+    center.add(scrollPane, c);
+
+    panel.add(center, BorderLayout.CENTER);
 
     return panel;
   }
@@ -506,29 +465,50 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
     JPanel panel = new JPanel(new BorderLayout());
     panel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
 
-    JPanel browseDocsBar = new JPanel(new FlowLayout(FlowLayout.LEADING, 10, 2));
+    JPanel browseDocsPanel = new JPanel();
+    browseDocsPanel.setLayout(new BoxLayout(browseDocsPanel, BoxLayout.PAGE_AXIS));
+    browseDocsPanel.add(createBrowseDocsBar());
+
+    JPanel browseDocsNote = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    browseDocsNote.add(new JLabel(MessageUtils.getLocalizedMessage("documents.label.doc_table_note")));
+    browseDocsPanel.add(browseDocsNote);
+
+    panel.add(browseDocsPanel, BorderLayout.PAGE_START);
+
+    TableUtil.setupTable(documentTable, ListSelectionModel.SINGLE_SELECTION, new DocumentTableModel(), null);
+    JScrollPane scrollPane = new JScrollPane(documentTable);
+    panel.add(scrollPane, BorderLayout.CENTER);
+
+    return panel;
+  }
+
+  private JPanel createBrowseDocsBar() {
+    JPanel panel = new JPanel(new GridLayout(1, 2));
+    panel.setBorder(BorderFactory.createEmptyBorder(5, 0, 0, 5));
+
+    JPanel left = new JPanel(new FlowLayout(FlowLayout.LEADING, 10, 2));
     JLabel label = new JLabel(
         MessageUtils.getLocalizedMessage("documents.label.doc_num"),
         ImageUtils.createImageIcon("/img/icon_document_alt.png", 20, 20),
         JLabel.LEFT);
-    browseDocsBar.add(label);
-    docNumSpnr.setPreferredSize(new Dimension(100, 30));
+    left.add(label);
+    docNumSpnr.setPreferredSize(new Dimension(100, 25));
     docNumSpnr.addChangeListener(listeners.getDocNumSpnrListener());
-    browseDocsBar.add(docNumSpnr);
+    left.add(docNumSpnr);
     maxDocsLbl.setText("in ? docs");
-    browseDocsBar.add(maxDocsLbl);
-    mltSearchBtn.setText(MessageUtils.getLocalizedMessage("documents.hyperlink.mlt"));
-    browseDocsBar.add(mltSearchBtn);
+    left.add(maxDocsLbl);
+    panel.add(left);
+
+    JPanel right = new JPanel(new FlowLayout(FlowLayout.TRAILING, 10, 2));
+    mltSearchBtn.setText(MessageUtils.getLocalizedMessage("documents.button.mlt"));
+    mltSearchBtn.setIcon(ImageUtils.createImageIcon("/img/icon_heart_alt.png", 20, 20));
+    mltSearchBtn.addActionListener(listeners.getMltSearchBtnListener());
+    right.add(mltSearchBtn);
     addDocBtn.setText(MessageUtils.getLocalizedMessage("documents.button.add"));
     addDocBtn.setIcon(ImageUtils.createImageIcon("/img/icon_plus-box.png", 20, 20));
-    browseDocsBar.add(addDocBtn);
-
-    panel.add(browseDocsBar, BorderLayout.PAGE_START);
-
-    TableUtil.setupTable(documentTable, ListSelectionModel.SINGLE_SELECTION, new DocumentTableModel(), null);
-    documentTable.setFillsViewportHeight(true);
-    JScrollPane scrollPane = new JScrollPane(documentTable);
-    panel.add(scrollPane, BorderLayout.CENTER);
+    addDocBtn.addActionListener(listeners.getAddDocBtn());
+    right.add(addDocBtn);
+    panel.add(right);
 
     return panel;
   }
