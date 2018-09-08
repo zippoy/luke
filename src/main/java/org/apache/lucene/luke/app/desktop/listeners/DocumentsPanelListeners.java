@@ -2,7 +2,6 @@ package org.apache.lucene.luke.app.desktop.listeners;
 
 import org.apache.lucene.luke.app.desktop.components.DocumentsPanelProvider;
 import org.apache.lucene.luke.app.desktop.components.TabbedPaneProvider;
-import org.apache.lucene.luke.app.desktop.listeners.adapter.MouseListenerAdapter;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 
 import javax.swing.JMenuItem;
@@ -11,6 +10,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
@@ -68,7 +68,7 @@ public class DocumentsPanelListeners {
   }
 
   public MouseListener getDocumentTableListener() {
-    return new MouseListenerAdapter() {
+    return new MouseAdapter() {
       @Override
       public void mousePressed(MouseEvent e) {
         showPopupIfNeeded(e);

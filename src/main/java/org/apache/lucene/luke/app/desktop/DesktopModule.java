@@ -14,6 +14,7 @@ import org.apache.lucene.luke.app.desktop.components.MenuBarProvider;
 import org.apache.lucene.luke.app.desktop.components.OverviewPanelProvider;
 import org.apache.lucene.luke.app.desktop.components.SearchPanelProvider;
 import org.apache.lucene.luke.app.desktop.components.TabbedPaneProvider;
+import org.apache.lucene.luke.app.desktop.components.dialog.HelpDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.documents.DocValuesDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.documents.StoredValueDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.documents.TermVectorDialogFactory;
@@ -83,6 +84,7 @@ public class DesktopModule extends AbstractModule {
     bind(TermVectorDialogFactory.class).toInstance(new TermVectorDialogFactory());
     bind(DocValuesDialogFactory.class).toInstance(new DocValuesDialogFactory());
     bind(StoredValueDialogFactory.class).toInstance(new StoredValueDialogFactory());
+    bind(HelpDialogFactory.class).toInstance(new HelpDialogFactory());
   }
 
   private DesktopModule() {}

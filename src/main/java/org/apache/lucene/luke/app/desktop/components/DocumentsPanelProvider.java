@@ -9,6 +9,7 @@ import org.apache.lucene.luke.app.IndexHandler;
 import org.apache.lucene.luke.app.IndexObserver;
 import org.apache.lucene.luke.app.LukeState;
 import org.apache.lucene.luke.app.desktop.MessageBroker;
+import org.apache.lucene.luke.app.desktop.components.dialog.HelpDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.documents.DocValuesDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.documents.StoredValueDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.documents.TermVectorDialogFactory;
@@ -16,6 +17,7 @@ import org.apache.lucene.luke.app.desktop.components.util.DialogOpener;
 import org.apache.lucene.luke.app.desktop.components.util.StyleConstants;
 import org.apache.lucene.luke.app.desktop.components.util.TableUtil;
 import org.apache.lucene.luke.app.desktop.listeners.DocumentsPanelListeners;
+import org.apache.lucene.luke.app.desktop.components.util.HelpHeaderRenderer;
 import org.apache.lucene.luke.app.desktop.util.ImageUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 import org.apache.lucene.luke.models.documents.DocValues;
@@ -30,7 +32,9 @@ import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
@@ -41,6 +45,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableCellRenderer;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -76,6 +81,8 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
   private final DocValuesDialogFactory dvDialogFactory;
 
   private final StoredValueDialogFactory valueDialogFactory;
+
+  private final HelpDialogFactory helpDialogFactory;
 
   private final JComboBox<String> fieldsCB = new JComboBox<>();
 
@@ -243,7 +250,29 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
       documentTable.getColumnModel().getColumn(DocumentTableModel.Column.NORM.getIndex()).setMaxWidth(80);
       documentTable.getColumnModel().getColumn(DocumentTableModel.Column.VALUE.getIndex()).setPreferredWidth(500);
 
+      TableCellRenderer renderer = new HelpHeaderRenderer(
+          "About Flags", "Format: IdfpoNPSB#txxVDtxxxxTx/x",
+          createFlagsHelpDialog(),
+          helpDialogFactory);
+      documentTable.getColumnModel().getColumn(DocumentTableModel.Column.FLAGS.getIndex()).setHeaderRenderer(renderer);
+
       messageBroker.clearStatusMessage();
+    }
+
+    private JComponent createFlagsHelpDialog() {
+      String[] values = new String[]{
+          "I - index options(docs, frequencies, positions, offsets)",
+          "N - norms",
+          "P - payloads",
+          "S - stored",
+          "B - binary stored values",
+          "#txx - numeric stored values(type, precision)",
+          "V - term vectors",
+          "Dtxxxxx - doc values(type)",
+          "Tx/x - point values(num bytes/dimension)"
+      };
+      JList<String> list = new JList<>(values);
+      return list;
     }
 
     public void showCurrentDoc() {
@@ -385,13 +414,15 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
                                 DocumentsTabProxy documentsTabProxy,
                                 TermVectorDialogFactory tvDialogFactory,
                                 DocValuesDialogFactory dvDialogFactory,
-                                StoredValueDialogFactory valueDialogFactory) {
+                                StoredValueDialogFactory valueDialogFactory,
+                                HelpDialogFactory helpDialogFactory) {
     this.documentsFactory = documentsFactory;
     this.messageBroker = messageBroker;
     this.listeners = new DocumentsPanelListeners(controller, tabSwitcher);
     this.tvDialogFactory = tvDialogFactory;
     this.dvDialogFactory = dvDialogFactory;
     this.valueDialogFactory = valueDialogFactory;
+    this.helpDialogFactory = helpDialogFactory;
 
     indexHandler.addObserver(new Observer());
     documentsTabProxy.set(new DocumentsTabImpl());
@@ -579,6 +610,10 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
     panel.add(browseDocsPanel, BorderLayout.PAGE_START);
 
     TableUtil.setupTable(documentTable, ListSelectionModel.SINGLE_SELECTION, new DocumentTableModel(), listeners.getDocumentTableListener());
+    JPanel flagsHeader = new JPanel(new FlowLayout(FlowLayout.CENTER));
+    flagsHeader.add(new JLabel("Flags"));
+    flagsHeader.add(new JLabel("Help"));
+    documentTable.getColumnModel().getColumn(DocumentTableModel.Column.FLAGS.getIndex()).setHeaderValue(flagsHeader);
     JScrollPane scrollPane = new JScrollPane(documentTable);
     panel.add(scrollPane, BorderLayout.CENTER);
 
