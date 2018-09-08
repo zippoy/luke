@@ -138,7 +138,7 @@ public class LukeWindowProvider implements Provider<JFrame> {
     frame.add(createMainPanel(), BorderLayout.CENTER);
     frame.add(createMessagePanel(), BorderLayout.PAGE_END);
 
-    frame.setPreferredSize(new Dimension(1000, 680));
+    frame.setPreferredSize(new Dimension(900, 680));
     frame.pack();
 
     return frame;

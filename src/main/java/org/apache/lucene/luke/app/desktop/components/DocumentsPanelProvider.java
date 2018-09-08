@@ -9,15 +9,21 @@ import org.apache.lucene.luke.app.IndexHandler;
 import org.apache.lucene.luke.app.IndexObserver;
 import org.apache.lucene.luke.app.LukeState;
 import org.apache.lucene.luke.app.desktop.MessageBroker;
+import org.apache.lucene.luke.app.desktop.components.dialog.documents.DocValuesDialogFactory;
+import org.apache.lucene.luke.app.desktop.components.dialog.documents.StoredValueDialogFactory;
+import org.apache.lucene.luke.app.desktop.components.dialog.documents.TermVectorDialogFactory;
+import org.apache.lucene.luke.app.desktop.components.util.DialogOpener;
 import org.apache.lucene.luke.app.desktop.components.util.StyleConstants;
 import org.apache.lucene.luke.app.desktop.components.util.TableUtil;
 import org.apache.lucene.luke.app.desktop.listeners.DocumentsPanelListeners;
 import org.apache.lucene.luke.app.desktop.util.ImageUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
+import org.apache.lucene.luke.models.documents.DocValues;
 import org.apache.lucene.luke.models.documents.DocumentField;
 import org.apache.lucene.luke.models.documents.Documents;
 import org.apache.lucene.luke.models.documents.DocumentsFactory;
 import org.apache.lucene.luke.models.documents.TermPosting;
+import org.apache.lucene.luke.models.documents.TermVectorEntry;
 import org.apache.lucene.luke.util.BytesRefUtils;
 
 import javax.swing.BorderFactory;
@@ -43,10 +49,15 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
-
+import java.util.Objects;
+import java.util.Optional;
+import java.util.TreeMap;
 
 public class DocumentsPanelProvider implements Provider<JPanel> {
 
@@ -57,6 +68,12 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
   private final DocumentsPanelListeners listeners;
 
   private final Controller controller = new Controller();
+
+  private final TermVectorDialogFactory tvDialogFactory;
+
+  private final DocValuesDialogFactory dvDialogFactory;
+
+  private final StoredValueDialogFactory valueDialogFactory;
 
   private final JComboBox<String> fieldsCB = new JComboBox<>();
 
@@ -185,9 +202,9 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
 
       List<TermPosting> postings = documentsModel.getTermPositions();
       posTable.setModel(new PosTableModel(postings));
-      posTable.getColumnModel().getColumn(0).setPreferredWidth(80);
-      posTable.getColumnModel().getColumn(1).setPreferredWidth(120);
-      posTable.getColumnModel().getColumn(2).setPreferredWidth(170);
+      posTable.getColumnModel().getColumn(PosTableModel.Column.POSITION.getIndex()).setPreferredWidth(80);
+      posTable.getColumnModel().getColumn(PosTableModel.Column.OFFSETS.getIndex()).setPreferredWidth(120);
+      posTable.getColumnModel().getColumn(PosTableModel.Column.PAYLOAD.getIndex()).setPreferredWidth(170);
 
       nextTermDocBtn.setEnabled(true);
       messageBroker.clearStatusMessage();
@@ -216,12 +233,13 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
       List<DocumentField> doc = documentsModel.getDocumentFields(docid);
       documentTable.setModel(new DocumentTableModel(doc));
       documentTable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
-      documentTable.getColumnModel().getColumn(0).setPreferredWidth(150);
-      documentTable.getColumnModel().getColumn(1).setMinWidth(200);
-      documentTable.getColumnModel().getColumn(1).setMaxWidth(200);
-      documentTable.getColumnModel().getColumn(2).setMinWidth(80);
-      documentTable.getColumnModel().getColumn(2).setMaxWidth(80);
-      documentTable.getColumnModel().getColumn(3).setPreferredWidth(500);
+      documentTable.setFont(StyleConstants.FONT_MONOSPACE_LARGE);
+      documentTable.getColumnModel().getColumn(DocumentTableModel.Column.FIELD.getIndex()).setPreferredWidth(150);
+      documentTable.getColumnModel().getColumn(DocumentTableModel.Column.FLAGS.getIndex()).setMinWidth(220);
+      documentTable.getColumnModel().getColumn(DocumentTableModel.Column.FLAGS.getIndex()).setMaxWidth(220);
+      documentTable.getColumnModel().getColumn(DocumentTableModel.Column.NORM.getIndex()).setMinWidth(80);
+      documentTable.getColumnModel().getColumn(DocumentTableModel.Column.NORM.getIndex()).setMaxWidth(80);
+      documentTable.getColumnModel().getColumn(DocumentTableModel.Column.VALUE.getIndex()).setPreferredWidth(500);
 
       messageBroker.clearStatusMessage();
     }
@@ -231,12 +249,73 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
       showDoc(docid);
     }
 
+    public void showTermVectorDialog() {
+      int docid = (Integer)docNumSpnr.getValue();
+      String field = (String)documentTable.getModel().getValueAt(documentTable.getSelectedRow(), DocumentTableModel.Column.FIELD.getIndex());
+      List<TermVectorEntry> tvEntries = documentsModel.getTermVectors(docid, field);
+      if (tvEntries.isEmpty()) {
+        messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("documents.termvector.message.not_available", field, docid));
+        return;
+      }
+
+      new DialogOpener<>(tvDialogFactory).open(
+          "Term Vector", 400, 300,
+          (factory) -> {
+            factory.setField(field);
+            factory.setTvEntries(tvEntries);
+          });
+    }
+
+    public void showDocValuesDialog() {
+      int docid = (Integer)docNumSpnr.getValue();
+      String field = (String)documentTable.getModel().getValueAt(documentTable.getSelectedRow(), DocumentTableModel.Column.FIELD.getIndex());
+      Optional<DocValues> docValues = documentsModel.getDocValues(docid, field);
+      if (docValues.isPresent()) {
+        new DialogOpener<>(dvDialogFactory).open(
+            "Doc Values", 400, 300,
+            (factory) -> {
+              factory.setField(field);
+              factory.setDocValues(docValues.get());
+            });
+        messageBroker.clearStatusMessage();
+      } else {
+        messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("documents.docvalues.message.not_available", field, docid));
+      }
+    }
+
+    public void showStoredValueDialog() {
+      int docid = (Integer)docNumSpnr.getValue();
+      String field = (String)documentTable.getModel().getValueAt(documentTable.getSelectedRow(), DocumentTableModel.Column.FIELD.getIndex());
+      String value = (String) documentTable.getModel().getValueAt(documentTable.getSelectedRow(), DocumentTableModel.Column.VALUE.getIndex());
+      if (Objects.isNull(value)) {
+        messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("documents.stored.message.not_availabe", field, docid));
+        return;
+      }
+      new DialogOpener<>(valueDialogFactory).open(
+          "Stored Value", 400, 300,
+          (factory) -> {
+            factory.setField(field);
+            factory.setValue(value);
+          });
+      messageBroker.clearStatusMessage();
+    }
+
+    public void copyStoredValue() {
+      int docid = (Integer)docNumSpnr.getValue();
+      String field = (String)documentTable.getModel().getValueAt(documentTable.getSelectedRow(), DocumentTableModel.Column.FIELD.getIndex());
+      String value = (String) documentTable.getModel().getValueAt(documentTable.getSelectedRow(), DocumentTableModel.Column.VALUE.getIndex());
+      if (Objects.isNull(value)) {
+        messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("documents.stored.message.not_availabe", field, docid));
+        return;
+      }
+      Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+      StringSelection selection = new StringSelection(value);
+      clipboard.setContents(selection, null);
+      messageBroker.clearStatusMessage();
+    }
+
     private void clearPosTable() {
-      posTable.setModel(new PosTableModel());
-      posTable.getColumnModel().getColumn(0).setMinWidth(80);
-      posTable.getColumnModel().getColumn(0).setMaxWidth(80);
-      posTable.getColumnModel().getColumn(1).setMinWidth(120);
-      posTable.getColumnModel().getColumn(1).setMaxWidth(120);
+      TableUtil.setupTable(posTable, ListSelectionModel.SINGLE_SELECTION, new PosTableModel(), null, 80, 120);
     }
 
     private void clearDocumentTable() {
@@ -261,6 +340,7 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
         int max = Math.max(maxDoc - 1, 0);
         SpinnerModel spinnerModel = new SpinnerNumberModel(0, 0, max, 1);
         docNumSpnr.setModel(spinnerModel);
+        docNumSpnr.setEnabled(true);
         controller.showDoc(0);
       } else {
         docNumSpnr.setEnabled(false);
@@ -285,10 +365,19 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
   }
 
   @Inject
-  public DocumentsPanelProvider(DocumentsFactory documentsFactory, MessageBroker messageBroker, IndexHandler indexHandler, TabbedPaneProvider.TabSwitcherProxy tabSwitcher) {
+  public DocumentsPanelProvider(DocumentsFactory documentsFactory,
+                                MessageBroker messageBroker,
+                                IndexHandler indexHandler,
+                                TabbedPaneProvider.TabSwitcherProxy tabSwitcher,
+                                TermVectorDialogFactory tvDialogFactory,
+                                DocValuesDialogFactory dvDialogFactory,
+                                StoredValueDialogFactory valueDialogFactory) {
     this.documentsFactory = documentsFactory;
     this.messageBroker = messageBroker;
     this.listeners = new DocumentsPanelListeners(controller, tabSwitcher);
+    this.tvDialogFactory = tvDialogFactory;
+    this.dvDialogFactory = dvDialogFactory;
+    this.valueDialogFactory = valueDialogFactory;
 
     indexHandler.addObserver(new Observer());
   }
@@ -446,8 +535,7 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
     c.insets = new Insets(5, 5, 5, 5);
     center.add(termDocsNumLbl, c);
 
-    TableUtil.setupTable(posTable, ListSelectionModel.SINGLE_SELECTION, new PosTableModel(), null);
-    controller.clearPosTable();
+    TableUtil.setupTable(posTable, ListSelectionModel.SINGLE_SELECTION, new PosTableModel(), null, 80, 120);
     JScrollPane scrollPane = new JScrollPane(posTable);
     scrollPane.setMinimumSize(new Dimension(100, 100));
     c.gridx = 0;
@@ -475,7 +563,7 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
 
     panel.add(browseDocsPanel, BorderLayout.PAGE_START);
 
-    TableUtil.setupTable(documentTable, ListSelectionModel.SINGLE_SELECTION, new DocumentTableModel(), null);
+    TableUtil.setupTable(documentTable, ListSelectionModel.SINGLE_SELECTION, new DocumentTableModel(), listeners.getDocumentTableListener());
     JScrollPane scrollPane = new JScrollPane(documentTable);
     panel.add(scrollPane, BorderLayout.CENTER);
 
@@ -517,7 +605,41 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
 
 class PosTableModel extends AbstractTableModel {
 
-  private final String[] colNames = new String[]{"Position", "Offsets", "Payload"};
+  enum Column implements TableColumnInfo {
+
+    POSITION("Position", 0, Integer.class),
+    OFFSETS("Offsets", 1, String.class),
+    PAYLOAD("Payload", 2, String.class);
+
+    private String colName;
+    private int index;
+    private Class<?> type;
+
+    Column(String colName, int index, Class<?> type) {
+      this.colName = colName;
+      this.index = index;
+      this.type = type;
+    }
+
+    @Override
+    public String getColName() {
+      return colName;
+    }
+
+    @Override
+    public int getIndex() {
+      return index;
+    }
+
+    @Override
+    public Class<?> getType() {
+      return type;
+    }
+  }
+
+  private static final TreeMap<Integer, Column> columnMap = TableUtil.columnMap(Column.values());
+
+  private final String[] colNames = TableUtil.columnNames(Column.values());
 
   private final Object[][] data;
 
@@ -557,20 +679,18 @@ class PosTableModel extends AbstractTableModel {
 
   @Override
   public String getColumnName(int colIndex) {
-    return colNames[colIndex];
+    if (columnMap.containsKey(colIndex)) {
+      return columnMap.get(colIndex).colName;
+    }
+    return "";
   }
 
+  @Override
   public Class<?> getColumnClass(int colIndex) {
-    switch (colIndex) {
-      case 0:
-        return Integer.class;
-      case 1:
-        return String.class;
-      case 2:
-        return String.class;
-      default:
-        return Object.class;
+    if (columnMap.containsKey(colIndex)) {
+      return columnMap.get(colIndex).type;
     }
+    return Object.class;
   }
 
   @Override
@@ -581,7 +701,41 @@ class PosTableModel extends AbstractTableModel {
 
 class DocumentTableModel extends AbstractTableModel {
 
-  private final String[] colNames = new String[]{"Field", "Flags", "Norm", "Value"};
+  enum Column implements TableColumnInfo {
+    FIELD("Field", 0, String.class),
+    FLAGS("Flags", 1, String.class),
+    NORM("Norm", 2, Long.class),
+    VALUE("Value", 3, String.class);
+
+    private String colName;
+    private int index;
+    private Class<?> type;
+
+    Column(String colName, int index, Class<?> type) {
+      this.colName = colName;
+      this.index = index;
+      this.type = type;
+    }
+
+    @Override
+    public String getColName() {
+      return colName;
+    }
+
+    @Override
+    public int getIndex() {
+      return index;
+    }
+
+    @Override
+    public Class<?> getType() {
+      return type;
+    }
+  }
+
+  private static final TreeMap<Integer, Column> columnMap = TableUtil.columnMap(Column.values());
+
+  private final String[] colNames = TableUtil.columnNames(Column.values());
 
   private final Object[][] data;
 
@@ -621,22 +775,17 @@ class DocumentTableModel extends AbstractTableModel {
 
   @Override
   public String getColumnName(int colIndex) {
-    return colNames[colIndex];
+    if (columnMap.containsKey(colIndex)) {
+      return columnMap.get(colIndex).colName;
+    }
+    return "";
   }
 
   public Class<?> getColumnClass(int colIndex) {
-    switch (colIndex) {
-      case 0:
-        return String.class;
-      case 1:
-        return String.class;
-      case 2:
-        return Long.class;
-      case 3:
-        return String.class;
-      default:
-        return Object.class;
+    if (columnMap.containsKey(colIndex)) {
+      return columnMap.get(colIndex).type;
     }
+    return Object.class;
   }
 
   @Override

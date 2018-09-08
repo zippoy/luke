@@ -14,6 +14,9 @@ import org.apache.lucene.luke.app.desktop.components.MenuBarProvider;
 import org.apache.lucene.luke.app.desktop.components.OverviewPanelProvider;
 import org.apache.lucene.luke.app.desktop.components.SearchPanelProvider;
 import org.apache.lucene.luke.app.desktop.components.TabbedPaneProvider;
+import org.apache.lucene.luke.app.desktop.components.dialog.documents.DocValuesDialogFactory;
+import org.apache.lucene.luke.app.desktop.components.dialog.documents.StoredValueDialogFactory;
+import org.apache.lucene.luke.app.desktop.components.dialog.documents.TermVectorDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.menubar.CheckIndexDialogProvider;
 import org.apache.lucene.luke.app.desktop.components.dialog.menubar.OpenIndexDialogProvider;
 import org.apache.lucene.luke.app.desktop.components.dialog.menubar.OptimizeIndexDialogProvider;
@@ -75,6 +78,10 @@ public class DesktopModule extends AbstractModule {
     bind(JDialog.class).annotatedWith(Names.named("menubar_openindex")).toProvider(OpenIndexDialogProvider.class);
     bind(JDialog.class).annotatedWith(Names.named("menubar_optimize")).toProvider(OptimizeIndexDialogProvider.class);
     bind(JDialog.class).annotatedWith(Names.named("menubar_checkidx")).toProvider(CheckIndexDialogProvider.class);
+
+    bind(TermVectorDialogFactory.class).toInstance(new TermVectorDialogFactory());
+    bind(DocValuesDialogFactory.class).toInstance(new DocValuesDialogFactory());
+    bind(StoredValueDialogFactory.class).toInstance(new StoredValueDialogFactory());
   }
 
   private DesktopModule() {}

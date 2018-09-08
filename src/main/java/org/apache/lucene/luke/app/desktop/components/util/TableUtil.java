@@ -1,15 +1,25 @@
 package org.apache.lucene.luke.app.desktop.components.util;
 
+import org.apache.lucene.luke.app.desktop.components.TableColumnInfo;
+
 import javax.swing.JTable;
 import javax.swing.table.TableModel;
 import java.awt.Color;
 import java.awt.event.MouseListener;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.function.Function;
+import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
 
 public class TableUtil {
 
-  public static void setupTable(JTable table, int selectionModel, TableModel model, MouseListener mouseListener) {
+  public static void setupTable(JTable table, int selectionModel, TableModel model, MouseListener mouseListener,
+                                int... colWidth) {
     table.setFillsViewportHeight(true);
-    table.setFont(StyleConstants.TABLE_FONT_DEFAULT);
+    table.setFont(StyleConstants.FONT_MONOSPACE_LARGE);
     table.setRowHeight(StyleConstants.TABLE_ROW_HEIGHT_DEFAULT);
     table.setShowHorizontalLines(true);
     table.setShowVerticalLines(false);
@@ -23,6 +33,18 @@ public class TableUtil {
     if (mouseListener != null) {
       table.addMouseListener(mouseListener);
     }
+    for (int i = 0; i < colWidth.length; i++) {
+      table.getColumnModel().getColumn(i).setMinWidth(colWidth[i]);
+      table.getColumnModel().getColumn(i).setMaxWidth(colWidth[i]);
+    }
+  }
+
+  public static <T extends TableColumnInfo> String[] columnNames(T[] columns) {
+    return columnMap(columns).entrySet().stream().map(e -> e.getValue().getColName()).toArray(String[]::new);
+  }
+
+  public static <T extends TableColumnInfo> TreeMap<Integer, T> columnMap(T[] columns) {
+    return Arrays.stream(columns).collect(Collectors.toMap(T::getIndex, UnaryOperator.identity(), (e1, e2) -> e1, TreeMap::new));
   }
 
   private TableUtil() {}

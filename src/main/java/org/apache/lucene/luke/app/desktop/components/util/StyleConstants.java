@@ -6,7 +6,7 @@ public class StyleConstants {
 
   public static Font BUTTON_FONT_LARGE = new Font("SanSerif", Font.PLAIN, 15);
 
-  public static Font TABLE_FONT_DEFAULT = new Font("Arial", Font.PLAIN, 15);
+  public static Font TABLE_FONT_DEFAULT = new Font("monospace", Font.PLAIN, 15);
 
   public static Font FONT_MONOSPACE_LARGE = new Font("monospace", Font.PLAIN, 15);
 
