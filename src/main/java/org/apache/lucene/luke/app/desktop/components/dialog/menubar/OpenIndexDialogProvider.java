@@ -154,12 +154,12 @@ public class OpenIndexDialogProvider implements Provider<JDialog> {
     for (String path : prefs.getHistory()) {
       idxPathCombo.addItem(path);
     }
-    idxPathCombo.setPreferredSize(new Dimension(400, 35));
+    idxPathCombo.setPreferredSize(new Dimension(360, 35));
     idxPath.add(idxPathCombo);
 
     browseBtn.setText(MessageUtils.getLocalizedMessage("button.browse"));
     browseBtn.setIcon(ImageUtils.createImageIcon("/img/icon_folder-open_alt.png", 20, 20));
-    browseBtn.setPreferredSize(new Dimension(80, 35));
+    browseBtn.setPreferredSize(new Dimension(120, 35));
     browseBtn.addActionListener(listeners.getBrowseBtnListener());
     idxPath.add(browseBtn);
 
