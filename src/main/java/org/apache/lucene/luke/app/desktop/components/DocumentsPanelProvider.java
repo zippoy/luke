@@ -56,6 +56,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.TreeMap;
@@ -590,7 +591,7 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
 
     JPanel left = new JPanel(new FlowLayout(FlowLayout.LEADING, 10, 2));
     JLabel label = new JLabel(
-        MessageUtils.getLocalizedMessage("documents.label.doc_num"),
+        MessageUtils.getLocalizedMessage("documents.label.browse_doc_by_idx"),
         ImageUtils.createImageIcon("/img/icon_document_alt.png", 20, 20),
         JLabel.LEFT);
     left.add(label);
@@ -673,7 +674,7 @@ class PosTableModel extends AbstractTableModel {
     }
   }
 
-  private static final TreeMap<Integer, Column> columnMap = TableUtil.columnMap(Column.values());
+  private static final Map<Integer, Column> columnMap = TableUtil.columnMap(Column.values());
 
   private final String[] colNames = TableUtil.columnNames(Column.values());
 

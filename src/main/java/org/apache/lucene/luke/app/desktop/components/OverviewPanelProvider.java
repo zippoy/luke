@@ -118,8 +118,8 @@ public class OverviewPanelProvider implements Provider<JPanel> {
 
     public void updateTopTerms(List<TermStats> termStats, int numTerms) {
       topTermsTable.setModel(new TopTermsTableModel(termStats, numTerms));
-      topTermsTable.getColumnModel().getColumn(0).setMaxWidth(50);
-      topTermsTable.getColumnModel().getColumn(1).setMaxWidth(80);
+      topTermsTable.getColumnModel().getColumn(TopTermsTableModel.Column.RANK.getIndex()).setMaxWidth(50);
+      topTermsTable.getColumnModel().getColumn(TopTermsTableModel.Column.FREQ.getIndex()).setMaxWidth(80);
       messageBroker.clearStatusMessage();
     }
 
@@ -128,7 +128,7 @@ public class OverviewPanelProvider implements Provider<JPanel> {
       if (row < 0) {
         throw new IllegalStateException("Term is not selected.");
       }
-      return (String)topTermsTable.getModel().getValueAt(row, 2);
+      return (String)topTermsTable.getModel().getValueAt(row, TopTermsTableModel.Column.TEXT.getIndex());
     }
 
     private Controller() {}
@@ -161,16 +161,16 @@ public class OverviewPanelProvider implements Provider<JPanel> {
       long numTerms = overviewModel.getNumTerms();
       termCountsTable.setModel(new TermCountsTableModel(numTerms, termCounts));
       termCountsTable.setRowSorter(new TableRowSorter<>(termCountsTable.getModel()));
-      termCountsTable.getColumnModel().getColumn(0).setMaxWidth(120);
-      termCountsTable.getColumnModel().getColumn(1).setMaxWidth(100);
+      termCountsTable.getColumnModel().getColumn(TermCountsTableModel.Column.NAME.getIndex()).setMaxWidth(120);
+      termCountsTable.getColumnModel().getColumn(TermCountsTableModel.Column.TERM_COUNT.getIndex()).setMaxWidth(100);
       DefaultTableCellRenderer rightRenderer = new DefaultTableCellRenderer();
       rightRenderer.setHorizontalAlignment(JLabel.RIGHT);
-      termCountsTable.getColumnModel().getColumn(2).setCellRenderer(rightRenderer);
+      termCountsTable.getColumnModel().getColumn(TermCountsTableModel.Column.RATIO.getIndex()).setCellRenderer(rightRenderer);
 
       // top terms table
       topTermsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-      topTermsTable.getColumnModel().getColumn(0).setMaxWidth(50);
-      topTermsTable.getColumnModel().getColumn(1).setMaxWidth(80);
+      topTermsTable.getColumnModel().getColumn(TopTermsTableModel.Column.RANK.getIndex()).setMaxWidth(50);
+      topTermsTable.getColumnModel().getColumn(TopTermsTableModel.Column.FREQ.getIndex()).setMaxWidth(80);
       topTermsTable.getColumnModel().setColumnMargin(StyleConstants.TABLE_COLUMN_MARGIN_DEFAULT);
       topTermsTable.addMouseListener(listeners.getTopTermsTableListener());
     }
@@ -426,7 +426,41 @@ public class OverviewPanelProvider implements Provider<JPanel> {
 
 class TermCountsTableModel extends AbstractTableModel {
 
-  private final String[] colNames = new String[]{"Name", "Term Count", "%"};
+  enum Column implements TableColumnInfo {
+
+    NAME("Name", 0, String.class),
+    TERM_COUNT("Term count", 1, Long.class),
+    RATIO("%", 2, String.class);
+
+    private String colName;
+    private int index;
+    private Class<?> type;
+
+    Column(String colName, int index, Class<?> type) {
+      this.colName = colName;
+      this.index = index;
+      this.type = type;
+    }
+
+    @Override
+    public String getColName() {
+      return colName;
+    }
+
+    @Override
+    public int getIndex() {
+      return index;
+    }
+
+    @Override
+    public Class<?> getType() {
+      return type;
+    }
+  }
+
+  private static final Map<Integer, Column> columnMap = TableUtil.columnMap(Column.values());
+
+  private final String[] colNames = TableUtil.columnNames(Column.values());
 
   private final Object[][] data;
 
@@ -456,20 +490,17 @@ class TermCountsTableModel extends AbstractTableModel {
 
   @Override
   public String getColumnName(int colIndex) {
-    return colNames[colIndex];
+    if (columnMap.containsKey(colIndex)) {
+      return columnMap.get(colIndex).colName;
+    }
+    return "";
   }
 
   public Class<?> getColumnClass(int colIndex) {
-    switch (colIndex) {
-      case 0:
-        return String.class;
-      case 1:
-        return Long.class;
-      case 2:
-        return String.class;
-      default:
-        return Object.class;
+    if (columnMap.containsKey(colIndex)) {
+      return columnMap.get(colIndex).type;
     }
+    return Object.class;
   }
 
   @Override
@@ -481,7 +512,40 @@ class TermCountsTableModel extends AbstractTableModel {
 
 class TopTermsTableModel extends AbstractTableModel {
 
-  private final String[] colNames = new String[]{"Rank", "Freq", "Text"};
+  enum Column implements TableColumnInfo {
+    RANK("Rank", 0, Integer.class),
+    FREQ("Freq", 1, Integer.class),
+    TEXT("Text", 2, String.class);
+
+    private String colName;
+    private int index;
+    private Class<?> type;
+
+    Column(String colName, int index, Class<?> type) {
+      this.colName = colName;
+      this.index = index;
+      this.type = type;
+    }
+
+    @Override
+    public String getColName() {
+      return colName;
+    }
+
+    @Override
+    public int getIndex() {
+      return index;
+    }
+
+    @Override
+    public Class<?> getType() {
+      return type;
+    }
+  }
+
+  private static final Map<Integer, Column> columnMap = TableUtil.columnMap(Column.values());
+
+  private final String[] colNames = TableUtil.columnNames(Column.values());
 
   private final Object[][] data;
 
@@ -513,21 +577,18 @@ class TopTermsTableModel extends AbstractTableModel {
 
   @Override
   public String getColumnName(int colIndex) {
-    return colNames[colIndex];
+    if (columnMap.containsKey(colIndex)) {
+      return columnMap.get(colIndex).colName;
+    }
+    return "";
   }
 
   @Override
   public Class<?> getColumnClass(int colIndex) {
-    switch (colIndex) {
-      case 0:
-        return Integer.class;
-      case 1:
-        return Integer.class;
-      case 2:
-        return String.class;
-      default:
-        return Object.class;
+    if (columnMap.containsKey(colIndex)) {
+      return columnMap.get(colIndex).type;
     }
+    return Object.class;
   }
 
   @Override
