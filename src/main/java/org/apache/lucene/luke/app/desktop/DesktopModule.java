@@ -52,6 +52,7 @@ public class DesktopModule extends AbstractModule {
 
     // UI components and fragments
     bind(TabbedPaneProvider.TabSwitcherProxy.class).toInstance(new TabbedPaneProvider.TabSwitcherProxy());
+    bind(DocumentsPanelProvider.DocumentsTabProxy.class).toInstance(new DocumentsPanelProvider.DocumentsTabProxy());
     bind(MessageBroker.class).toInstance(new MessageBroker());
     bind(JMenuBar.class).toProvider(MenuBarProvider.class);
 

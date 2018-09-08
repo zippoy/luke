@@ -133,7 +133,7 @@ public class TabbedPaneProvider implements Provider<JTabbedPane> {
     private final List<TabSwitcher> switcherHolder = new ArrayList<>();
 
     private void set(TabSwitcher switcher) {
-      if (switcherHolder.size() == 0) {
+      if (switcherHolder.isEmpty()) {
         switcherHolder.add(switcher);
       }
     }

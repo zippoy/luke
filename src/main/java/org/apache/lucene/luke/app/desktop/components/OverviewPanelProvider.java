@@ -201,10 +201,15 @@ public class OverviewPanelProvider implements Provider<JPanel> {
   }
 
   @Inject
-  public OverviewPanelProvider(OverviewFactory overviewFactory, MessageBroker messageBroker, IndexHandler indexHandler, TabbedPaneProvider.TabSwitcherProxy tabSwitcher) {
+  public OverviewPanelProvider(
+      OverviewFactory overviewFactory,
+      MessageBroker messageBroker,
+      IndexHandler indexHandler,
+      DocumentsPanelProvider.DocumentsTabProxy documentsTabProxy,
+      TabbedPaneProvider.TabSwitcherProxy tabSwitcher) {
     this.overviewFactory = overviewFactory;
     this.messageBroker = messageBroker;
-    this.listeners = new OverviewPanelListeners(new Controller(), tabSwitcher);
+    this.listeners = new OverviewPanelListeners(new Controller(), documentsTabProxy, tabSwitcher);
 
     indexHandler.addObserver(new Observer());
   }

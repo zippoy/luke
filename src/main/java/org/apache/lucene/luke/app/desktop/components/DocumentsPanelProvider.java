@@ -54,6 +54,7 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -364,11 +365,23 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
     }
   }
 
+  public class DocumentsTabImpl implements DocumentsTabProxy.DocumentsTab {
+
+    @Override
+    public void browseTerm(String field, String term) {
+      fieldsCB.setSelectedItem(field);
+      termTF.setText(term);
+      controller.seekNextTerm();
+    }
+
+  }
+
   @Inject
   public DocumentsPanelProvider(DocumentsFactory documentsFactory,
                                 MessageBroker messageBroker,
                                 IndexHandler indexHandler,
                                 TabbedPaneProvider.TabSwitcherProxy tabSwitcher,
+                                DocumentsTabProxy documentsTabProxy,
                                 TermVectorDialogFactory tvDialogFactory,
                                 DocValuesDialogFactory dvDialogFactory,
                                 StoredValueDialogFactory valueDialogFactory) {
@@ -380,6 +393,7 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
     this.valueDialogFactory = valueDialogFactory;
 
     indexHandler.addObserver(new Observer());
+    documentsTabProxy.set(new DocumentsTabImpl());
   }
 
   @Override
@@ -599,6 +613,28 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
     panel.add(right);
 
     return panel;
+  }
+
+  public static class DocumentsTabProxy {
+
+    private final List<DocumentsTab> holder = new ArrayList<>();
+
+    private void set(DocumentsTab docTab) {
+      if (holder.isEmpty()) {
+        holder.add(docTab);
+      }
+    }
+
+    public void browseTerm(String field, String term){
+      if (holder.isEmpty() || holder.get(0) == null) {
+        throw new IllegalStateException();
+      }
+      holder.get(0).browseTerm(field, term);
+    }
+
+    public interface DocumentsTab {
+      void browseTerm(String field, String term);
+    }
   }
 
 }

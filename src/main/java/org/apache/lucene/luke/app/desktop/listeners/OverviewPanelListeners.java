@@ -1,5 +1,6 @@
 package org.apache.lucene.luke.app.desktop.listeners;
 
+import org.apache.lucene.luke.app.desktop.components.DocumentsPanelProvider;
 import org.apache.lucene.luke.app.desktop.components.OverviewPanelProvider;
 import org.apache.lucene.luke.app.desktop.components.TabbedPaneProvider;
 import org.apache.lucene.luke.app.desktop.listeners.adapter.MouseListenerAdapter;
@@ -21,10 +22,16 @@ public class OverviewPanelListeners {
 
   private final TabbedPaneProvider.TabSwitcherProxy tabSwitcher;
 
+  private final DocumentsPanelProvider.DocumentsTabProxy documentsTabProxy;
+
   private Overview overviewModel;
 
-  public OverviewPanelListeners(OverviewPanelProvider.Controller controller, TabbedPaneProvider.TabSwitcherProxy tabSwitcher) {
+  public OverviewPanelListeners(
+      OverviewPanelProvider.Controller controller,
+      DocumentsPanelProvider.DocumentsTabProxy documentsTabProxy,
+      TabbedPaneProvider.TabSwitcherProxy tabSwitcher) {
     this.controller = controller;
+    this.documentsTabProxy = documentsTabProxy;
     this.tabSwitcher = tabSwitcher;
   }
 
@@ -91,8 +98,7 @@ public class OverviewPanelListeners {
     return (ActionEvent e) -> {
       String field = controller.getSelectedField();
       String term = controller.getSelectedTerm();
-      // TODO
-      System.out.println(String.format("Browse term %s in %s", term, field));
+      documentsTabProxy.browseTerm(field, term);
       tabSwitcher.switchTab(TabbedPaneProvider.Tab.DOCUMENTS);
     };
   }
