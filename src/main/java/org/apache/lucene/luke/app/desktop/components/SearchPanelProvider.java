@@ -56,7 +56,7 @@ public class SearchPanelProvider implements IndexObserver, Provider<JPanel> {
 
   private JSplitPane createUpperPanel() {
     JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, createQuerySettingsPane(), createQueryPane());
-    splitPane.setDividerLocation(550);
+    splitPane.setDividerLocation(570);
     return splitPane;
   }
 
