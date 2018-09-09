@@ -14,6 +14,10 @@ public class AddDocumentDialogListeners {
     this.controller = controller;
   }
 
+  public ActionListener getOptionsLblListener() {
+    return (ActionEvent e) -> controller.showIndexOptionsDialog();
+  }
+
   public ActionListener getAddBtnListener() {
     return (ActionEvent e) -> {
       // TODO

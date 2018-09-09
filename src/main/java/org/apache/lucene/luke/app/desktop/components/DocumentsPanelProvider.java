@@ -12,6 +12,7 @@ import org.apache.lucene.luke.app.desktop.MessageBroker;
 import org.apache.lucene.luke.app.desktop.components.dialog.HelpDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.documents.AddDocumentDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.documents.DocValuesDialogFactory;
+import org.apache.lucene.luke.app.desktop.components.dialog.documents.IndexOptionsDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.documents.StoredValueDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.documents.TermVectorDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.util.DialogOpener;
@@ -77,6 +78,8 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
   private final Controller controller = new Controller();
 
   private final AddDocumentDialogFactory addDocDialogFactory;
+
+  private final IndexOptionsDialogFactory indexOptionsDialogFactory;
 
   private final TermVectorDialogFactory tvDialogFactory;
 
@@ -242,7 +245,10 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
 
     public void showAddDocumentDialog() {
       new DialogOpener<>(addDocDialogFactory).open("Add document", 600, 500,
-          (factory) -> {});
+          (factory) -> {
+            factory.setIndexOptionsDialogFactory(indexOptionsDialogFactory);
+            factory.setHelpDialogFactory(helpDialogFactory);
+          });
     }
 
     private void showDoc(int docid) {
@@ -251,8 +257,8 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
       documentTable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
       documentTable.setFont(StyleConstants.FONT_MONOSPACE_LARGE);
       documentTable.getColumnModel().getColumn(DocumentTableModel.Column.FIELD.getIndex()).setPreferredWidth(150);
-      documentTable.getColumnModel().getColumn(DocumentTableModel.Column.FLAGS.getIndex()).setMinWidth(220);
-      documentTable.getColumnModel().getColumn(DocumentTableModel.Column.FLAGS.getIndex()).setMaxWidth(220);
+      documentTable.getColumnModel().getColumn(DocumentTableModel.Column.FLAGS.getIndex()).setMinWidth(240);
+      documentTable.getColumnModel().getColumn(DocumentTableModel.Column.FLAGS.getIndex()).setMaxWidth(240);
       documentTable.getColumnModel().getColumn(DocumentTableModel.Column.NORM.getIndex()).setMinWidth(80);
       documentTable.getColumnModel().getColumn(DocumentTableModel.Column.NORM.getIndex()).setMaxWidth(80);
       documentTable.getColumnModel().getColumn(DocumentTableModel.Column.VALUE.getIndex()).setPreferredWidth(500);
@@ -279,7 +285,7 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
           "Tx/x - point values(num bytes/dimension)"
       };
       JList<String> list = new JList<>(values);
-      return list;
+      return new JScrollPane(list);
     }
 
     public void showCurrentDoc() {
@@ -420,6 +426,7 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
                                 TabbedPaneProvider.TabSwitcherProxy tabSwitcher,
                                 DocumentsTabProxy documentsTabProxy,
                                 AddDocumentDialogFactory addDocDialogFactory,
+                                IndexOptionsDialogFactory indexOptionsDialogFactory,
                                 TermVectorDialogFactory tvDialogFactory,
                                 DocValuesDialogFactory dvDialogFactory,
                                 StoredValueDialogFactory valueDialogFactory,
@@ -428,6 +435,7 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
     this.messageBroker = messageBroker;
     this.listeners = new DocumentsPanelListeners(controller, tabSwitcher);
     this.addDocDialogFactory = addDocDialogFactory;
+    this.indexOptionsDialogFactory = indexOptionsDialogFactory;
     this.tvDialogFactory = tvDialogFactory;
     this.dvDialogFactory = dvDialogFactory;
     this.valueDialogFactory = valueDialogFactory;

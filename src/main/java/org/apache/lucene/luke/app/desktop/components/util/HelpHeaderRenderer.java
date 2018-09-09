@@ -50,7 +50,7 @@ public class HelpHeaderRenderer implements TableCellRenderer {
       this.table = table;
       final JTableHeader header = table.getTableHeader();
       if (header != null) {
-        panel.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 0));
+        panel.setLayout(new FlowLayout(FlowLayout.LEADING));
         panel.setBorder(UIManager.getBorder("TableHeader.cellBorder"));
         panel.add(new JLabel(value.toString()));
 

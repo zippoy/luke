@@ -15,6 +15,8 @@ import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 
 public class HelpDialogFactory implements DialogOpener.DialogFactory {
 
@@ -49,8 +51,10 @@ public class HelpDialogFactory implements DialogOpener.DialogFactory {
     header.add(new JLabel(desc));
     panel.add(header, BorderLayout.PAGE_START);
 
-    JScrollPane scrollPane = new JScrollPane(helpContent);
-    panel.add(scrollPane, BorderLayout.CENTER);
+    JPanel center = new JPanel(new GridLayout(1, 1));
+    center.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+    center.add(helpContent);
+    panel.add(center, BorderLayout.CENTER);
 
     JPanel footer = new JPanel(new FlowLayout(FlowLayout.TRAILING));
     JButton closeBtn = new JButton(MessageUtils.getLocalizedMessage("button.close"));
