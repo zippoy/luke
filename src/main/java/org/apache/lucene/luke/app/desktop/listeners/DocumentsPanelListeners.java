@@ -56,15 +56,12 @@ public class DocumentsPanelListeners {
     };
   }
 
-  public ActionListener getAddDocBtn() {
-    return (ActionEvent e) -> {
-      // TODO
-      System.out.println("show add doc dialog");
-    };
-  }
-
   public ChangeListener getDocNumSpnrListener() {
     return (ChangeEvent e) -> controller.showCurrentDoc();
+  }
+
+  public ActionListener getAddDocBtnListener() {
+    return (ActionEvent e) -> controller.showAddDocumentDialog();
   }
 
   public MouseListener getDocumentTableListener() {

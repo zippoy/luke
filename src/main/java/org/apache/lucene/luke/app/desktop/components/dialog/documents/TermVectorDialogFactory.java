@@ -39,7 +39,7 @@ public class TermVectorDialogFactory implements DialogOpener.DialogFactory {
       throw new IllegalStateException("field name and/or term vector is not set.");
     }
 
-    dialog = new JDialog(owner, "Term Vector", Dialog.ModalityType.APPLICATION_MODAL);
+    dialog = new JDialog(owner, title, Dialog.ModalityType.APPLICATION_MODAL);
     dialog.add(content());
     dialog.setSize(new Dimension(width, height));
     dialog.setLocationRelativeTo(owner);

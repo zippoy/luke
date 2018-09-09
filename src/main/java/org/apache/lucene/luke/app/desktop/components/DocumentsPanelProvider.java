@@ -10,6 +10,7 @@ import org.apache.lucene.luke.app.IndexObserver;
 import org.apache.lucene.luke.app.LukeState;
 import org.apache.lucene.luke.app.desktop.MessageBroker;
 import org.apache.lucene.luke.app.desktop.components.dialog.HelpDialogFactory;
+import org.apache.lucene.luke.app.desktop.components.dialog.documents.AddDocumentDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.documents.DocValuesDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.documents.StoredValueDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.documents.TermVectorDialogFactory;
@@ -64,7 +65,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.TreeMap;
 
 public class DocumentsPanelProvider implements Provider<JPanel> {
 
@@ -75,6 +75,8 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
   private final DocumentsPanelListeners listeners;
 
   private final Controller controller = new Controller();
+
+  private final AddDocumentDialogFactory addDocDialogFactory;
 
   private final TermVectorDialogFactory tvDialogFactory;
 
@@ -236,6 +238,11 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
 
       nextTermDocBtn.setDefaultCapable(true);
       messageBroker.clearStatusMessage();
+    }
+
+    public void showAddDocumentDialog() {
+      new DialogOpener<>(addDocDialogFactory).open("Add document", 600, 500,
+          (factory) -> {});
     }
 
     private void showDoc(int docid) {
@@ -412,6 +419,7 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
                                 IndexHandler indexHandler,
                                 TabbedPaneProvider.TabSwitcherProxy tabSwitcher,
                                 DocumentsTabProxy documentsTabProxy,
+                                AddDocumentDialogFactory addDocDialogFactory,
                                 TermVectorDialogFactory tvDialogFactory,
                                 DocValuesDialogFactory dvDialogFactory,
                                 StoredValueDialogFactory valueDialogFactory,
@@ -419,6 +427,7 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
     this.documentsFactory = documentsFactory;
     this.messageBroker = messageBroker;
     this.listeners = new DocumentsPanelListeners(controller, tabSwitcher);
+    this.addDocDialogFactory = addDocDialogFactory;
     this.tvDialogFactory = tvDialogFactory;
     this.dvDialogFactory = dvDialogFactory;
     this.valueDialogFactory = valueDialogFactory;
@@ -644,7 +653,7 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
     right.add(mltSearchBtn);
     addDocBtn.setText(MessageUtils.getLocalizedMessage("documents.button.add"));
     addDocBtn.setIcon(ImageUtils.createImageIcon("/img/icon_plus-box.png", 20, 20));
-    addDocBtn.addActionListener(listeners.getAddDocBtn());
+    addDocBtn.addActionListener(listeners.getAddDocBtnListener());
     right.add(addDocBtn);
     panel.add(right);
 
@@ -805,7 +814,7 @@ class DocumentTableModel extends AbstractTableModel {
     }
   }
 
-  private static final TreeMap<Integer, Column> columnMap = TableUtil.columnMap(Column.values());
+  private static final Map<Integer, Column> columnMap = TableUtil.columnMap(Column.values());
 
   private final String[] colNames = TableUtil.columnNames(Column.values());
 
@@ -853,6 +862,7 @@ class DocumentTableModel extends AbstractTableModel {
     return "";
   }
 
+  @Override
   public Class<?> getColumnClass(int colIndex) {
     if (columnMap.containsKey(colIndex)) {
       return columnMap.get(colIndex).type;

@@ -3,14 +3,12 @@ package org.apache.lucene.luke.app.desktop.components.util;
 import org.apache.lucene.luke.app.desktop.components.TableColumnInfo;
 
 import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import java.awt.Color;
 import java.awt.event.MouseListener;
 import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Map;
 import java.util.TreeMap;
-import java.util.function.Function;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
@@ -29,6 +27,8 @@ public class TableUtil {
     table.setSelectionMode(selectionModel);
     if (model != null) {
       table.setModel(model);
+    } else {
+      table.setModel(new DefaultTableModel());
     }
     if (mouseListener != null) {
       table.addMouseListener(mouseListener);
