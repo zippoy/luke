@@ -17,27 +17,16 @@
 
 package org.apache.lucene.luke.app.desktop;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.Scopes;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
-import org.apache.lucene.luke.app.DirectoryHandler;
-import org.apache.lucene.luke.app.IndexHandler;
 import org.apache.lucene.luke.app.LukeModule;
 import org.apache.lucene.luke.app.controllers.LukeController;
 import org.apache.lucene.luke.app.util.MessageUtils;
-import org.apache.lucene.luke.models.analysis.AnalysisFactory;
-import org.apache.lucene.luke.models.commits.CommitsFactory;
-import org.apache.lucene.luke.models.documents.DocumentsFactory;
-import org.apache.lucene.luke.models.overview.OverviewFactory;
-import org.apache.lucene.luke.models.search.SearchFactory;
-import org.apache.lucene.luke.models.tools.IndexToolsFactory;
 
 import static org.apache.lucene.luke.app.util.ExceptionHandler.handle;
 
@@ -55,7 +44,7 @@ public class LukeMain extends Application {
 
     FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/luke.fxml"),
         MessageUtils.getBundle());
-    Injector injector = LukeModule.getIngector();
+    Injector injector = LukeModule.getInjector();
     loader.setControllerFactory(injector::getInstance);
 
     Parent root = loader.load();
