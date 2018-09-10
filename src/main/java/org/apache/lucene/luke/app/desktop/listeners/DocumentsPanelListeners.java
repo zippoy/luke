@@ -71,11 +71,6 @@ public class DocumentsPanelListeners {
         showPopupIfNeeded(e);
       }
 
-      @Override
-      public void mouseReleased(MouseEvent e) {
-        showPopupIfNeeded(e);
-      }
-
       private void showPopupIfNeeded(MouseEvent e) {
         if (e.isPopupTrigger()) {
           createDocumentTablePopup().show(e.getComponent(), e.getX(), e.getY());

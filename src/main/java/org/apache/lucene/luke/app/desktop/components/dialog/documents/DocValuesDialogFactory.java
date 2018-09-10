@@ -111,12 +111,24 @@ public class DocValuesDialogFactory implements DialogOpener.DialogFactory {
     return dialog;
   }
 
-  public void setField(String field) {
+  public void setValue(String field, DocValues docValues) {
     this.field = field;
-  }
-
-  public void setDocValues(DocValues docValues) {
     this.docValues = docValues;
+
+    DefaultListModel<String> values = new DefaultListModel<>();
+    if (docValues.getValues().size() > 0) {
+      decodersCB.setEnabled(false);
+      docValues.getValues().stream()
+          .map(BytesRefUtils::decode)
+          .forEach(values::addElement);
+    } else if (docValues.getNumericValues().size() > 0) {
+      decodersCB.setEnabled(true);
+      docValues.getNumericValues().stream()
+          .map(String::valueOf)
+          .forEach(values::addElement);
+    }
+
+    valueList.setModel(values);
   }
 
   private JPanel content() {

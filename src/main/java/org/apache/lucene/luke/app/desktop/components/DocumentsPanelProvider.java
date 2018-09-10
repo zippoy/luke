@@ -319,8 +319,7 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
         new DialogOpener<>(dvDialogFactory).open(
             "Doc Values", 400, 300,
             (factory) -> {
-              factory.setField(field);
-              factory.setDocValues(docValues.get());
+              factory.setValue(field, docValues.get());
             });
         messageBroker.clearStatusMessage();
       } else {
