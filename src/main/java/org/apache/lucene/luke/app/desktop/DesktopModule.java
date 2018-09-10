@@ -3,7 +3,10 @@ package org.apache.lucene.luke.app.desktop;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.Provides;
+import com.google.inject.Singleton;
 import com.google.inject.name.Names;
+import org.apache.lucene.luke.app.IndexHandler;
 import org.apache.lucene.luke.app.LukeModule;
 import org.apache.lucene.luke.app.desktop.components.AnalysisPanelProvider;
 import org.apache.lucene.luke.app.desktop.components.CommitsPanelProvider;
@@ -31,6 +34,9 @@ import org.apache.lucene.luke.app.desktop.components.fragments.search.MLTPanePro
 import org.apache.lucene.luke.app.desktop.components.fragments.search.QueryParserPaneProvider;
 import org.apache.lucene.luke.app.desktop.components.fragments.search.SimilarityPaneProvider;
 import org.apache.lucene.luke.app.desktop.components.fragments.search.SearchSortPaneProvider;
+import org.apache.lucene.luke.app.desktop.listeners.dialog.documents.AddDocumentDialogListeners;
+import org.apache.lucene.luke.models.tools.IndexTools;
+import org.apache.lucene.luke.models.tools.IndexToolsFactory;
 
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -83,13 +89,20 @@ public class DesktopModule extends AbstractModule {
     bind(JDialog.class).annotatedWith(Names.named("menubar_optimize")).toProvider(OptimizeIndexDialogProvider.class);
     bind(JDialog.class).annotatedWith(Names.named("menubar_checkidx")).toProvider(CheckIndexDialogProvider.class);
 
-    bind(AddDocumentDialogFactory.class).toInstance(new AddDocumentDialogFactory());
     bind(IndexOptionsDialogFactory.class).toInstance(new IndexOptionsDialogFactory());
-
     bind(TermVectorDialogFactory.class).toInstance(new TermVectorDialogFactory());
     bind(DocValuesDialogFactory.class).toInstance(new DocValuesDialogFactory());
     bind(StoredValueDialogFactory.class).toInstance(new StoredValueDialogFactory());
     bind(HelpDialogFactory.class).toInstance(new HelpDialogFactory());
+  }
+
+  @Provides
+  @Singleton
+  public AddDocumentDialogFactory provideAddDocumentDialogFactory(
+      IndexOptionsDialogFactory indexOptionsDialogFactory, HelpDialogFactory helpDialogFactory,
+      IndexHandler indexHandler, IndexToolsFactory toolsFactory,
+      TabbedPaneProvider.TabSwitcherProxy tabSwitcherProxy, DocumentsPanelProvider.DocumentsTabProxy documentsTab) {
+    return new AddDocumentDialogFactory(indexOptionsDialogFactory, helpDialogFactory, indexHandler, toolsFactory, tabSwitcherProxy, documentsTab);
   }
 
   private DesktopModule() {}

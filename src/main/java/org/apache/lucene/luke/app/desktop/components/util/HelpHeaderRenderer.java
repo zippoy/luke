@@ -60,12 +60,7 @@ public class HelpHeaderRenderer implements TableCellRenderer {
             ImageUtils.createImageIcon("/img/icon_question_alt2.png", 12, 12),
             JLabel.LEFT);
         helpLabel.setIconTextGap(5);
-        helpLabel.setForeground(Color.decode("#0099ff"));
-        Font font = helpLabel.getFont();
-        Map<TextAttribute, Object> attributes = (Map<TextAttribute, Object>) font.getAttributes();
-        attributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
-        helpLabel.setFont(font.deriveFont(attributes));
-        panel.add(helpLabel);
+        panel.add(FontUtil.toLinkText(helpLabel));
 
         // add mouse listener to JTableHeader object.
         // see: https://stackoverflow.com/questions/7137786/how-can-i-put-a-control-in-the-jtableheader-of-a-jtable

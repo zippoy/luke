@@ -1,8 +1,13 @@
 package org.apache.lucene.luke.app.desktop.components.dialog.documents;
 
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.FieldType;
+import org.apache.lucene.document.StringField;
 import org.apache.lucene.index.DocValuesType;
 import org.apache.lucene.index.IndexOptions;
+import org.apache.lucene.index.IndexableFieldType;
 import org.apache.lucene.luke.app.desktop.components.util.DialogOpener;
+import org.apache.lucene.luke.app.desktop.dto.documents.NewField;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 
 import javax.swing.BorderFactory;
@@ -23,7 +28,97 @@ import java.util.Arrays;
 
 public class IndexOptionsDialogFactory implements DialogOpener.DialogFactory {
 
+  private final JCheckBox storedCB = new JCheckBox();
+
+  private final JCheckBox tokenizedCB = new JCheckBox();
+
+  private final JCheckBox omitNormsCB = new JCheckBox();
+
+  private final JComboBox<String> idxOptCombo = new JComboBox<>(availableIndexOptions());
+
+  private final JCheckBox storeTVCB = new JCheckBox();
+
+  private final JCheckBox storeTVPosCB = new JCheckBox();
+
+  private final JCheckBox storeTVOffCB = new JCheckBox();
+
+  private final JCheckBox storeTVPayCB = new JCheckBox();
+
+  private final JComboBox<String> dvTypeCombo = new JComboBox<>(availableDocValuesType());
+
+  private final JTextField dimCountTF = new JTextField();
+
+  private final JTextField dimNumBytesTF = new JTextField();
+
   private JDialog dialog;
+
+  private NewField nf;
+
+  public void setNewField(NewField nf) {
+    this.nf = nf;
+
+    storedCB.setSelected(nf.isStored());
+
+    IndexableFieldType fieldType = nf.getFieldType();
+    tokenizedCB.setSelected(fieldType.tokenized());
+    omitNormsCB.setSelected(fieldType.omitNorms());
+    idxOptCombo.setSelectedItem(fieldType.indexOptions().name());
+    storeTVCB.setSelected(fieldType.storeTermVectors());
+    storeTVPosCB.setSelected(fieldType.storeTermVectorPositions());
+    storeTVOffCB.setSelected(fieldType.storeTermVectorOffsets());
+    storeTVPayCB.setSelected(fieldType.storeTermVectorPayloads());
+    dvTypeCombo.setSelectedItem(fieldType.docValuesType().name());
+    dimCountTF.setText(String.valueOf(fieldType.pointDimensionCount()));
+    dimNumBytesTF.setText(String.valueOf(fieldType.pointNumBytes()));
+
+    if (nf.getType().equals(org.apache.lucene.document.TextField.class) ||
+        nf.getType().equals(StringField.class) ||
+        nf.getType().equals(Field.class)) {
+      storedCB.setEnabled(true);
+    } else {
+      storedCB.setEnabled(false);
+    }
+
+    if (nf.getType().equals(Field.class)) {
+      tokenizedCB.setEnabled(true);
+      omitNormsCB.setEnabled(true);
+      idxOptCombo.setEnabled(true);
+      storeTVCB.setEnabled(true);
+      storeTVPosCB.setEnabled(true);
+      storeTVOffCB.setEnabled(true);
+      storeTVPosCB.setEnabled(true);
+    } else {
+      tokenizedCB.setEnabled(false);
+      omitNormsCB.setEnabled(false);
+      idxOptCombo.setEnabled(false);
+      storeTVCB.setEnabled(false);
+      storeTVPosCB.setEnabled(false);
+      storeTVOffCB.setEnabled(false);
+      storeTVPayCB.setEnabled(false);
+    }
+
+    // TODO
+    dvTypeCombo.setEnabled(false);
+    dimCountTF.setEnabled(false);
+    dimNumBytesTF.setEnabled(false);
+  }
+
+  private void saveOptions() {
+    nf.setStored(storedCB.isSelected());
+    if (nf.getType().equals(Field.class)) {
+      FieldType ftype = (FieldType) nf.getFieldType();
+      ftype.setStored(storedCB.isSelected());
+      ftype.setTokenized(tokenizedCB.isSelected());
+      ftype.setOmitNorms(omitNormsCB.isSelected());
+      ftype.setIndexOptions(IndexOptions.valueOf((String)idxOptCombo.getSelectedItem()));
+      ftype.setStoreTermVectors(storeTVCB.isSelected());
+      ftype.setStoreTermVectorPositions(storeTVPosCB.isSelected());
+      ftype.setStoreTermVectorOffsets(storeTVOffCB.isSelected());
+      ftype.setStoreTermVectorPayloads(storeTVPayCB.isSelected());
+    }
+    dialog.dispose();
+  }
+
 
   @Override
   public JDialog create(JFrame owner, String title, int width, int height) {
@@ -56,19 +151,17 @@ public class IndexOptionsDialogFactory implements DialogOpener.DialogFactory {
     panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
 
     JPanel inner1 = new JPanel(new FlowLayout(FlowLayout.LEADING, 10, 5));
-    JCheckBox storedCB = new JCheckBox(MessageUtils.getLocalizedMessage("idx_options.checkbox.stored"));
+    storedCB.setText(MessageUtils.getLocalizedMessage("idx_options.checkbox.stored"));
     inner1.add(storedCB);
-    JCheckBox tokenizedCB = new JCheckBox(MessageUtils.getLocalizedMessage("idx_options.checkbox.tokenized"));
+    tokenizedCB.setText(MessageUtils.getLocalizedMessage("idx_options.checkbox.tokenized"));
     inner1.add(tokenizedCB);
-    JCheckBox omitNormsCB = new JCheckBox(MessageUtils.getLocalizedMessage("idx_options.checkbox.omit_norm"));
+    omitNormsCB.setText(MessageUtils.getLocalizedMessage("idx_options.checkbox.omit_norm"));
     inner1.add(omitNormsCB);
     panel.add(inner1);
 
     JPanel inner2 = new JPanel(new FlowLayout(FlowLayout.LEADING, 10, 1));
     JLabel idxOptLbl = new JLabel(MessageUtils.getLocalizedMessage("idx_options.label.index_options"));
     inner2.add(idxOptLbl);
-    String[] idxOptList = Arrays.stream(IndexOptions.values()).map(IndexOptions::name).toArray(String[]::new);
-    JComboBox<String> idxOptCombo = new JComboBox<>(idxOptList);
     idxOptCombo.setPreferredSize(new Dimension(300, idxOptCombo.getPreferredSize().height));
     inner2.add(idxOptCombo);
     panel.add(inner2);
@@ -81,17 +174,17 @@ public class IndexOptionsDialogFactory implements DialogOpener.DialogFactory {
     panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
 
     JPanel inner1 = new JPanel(new FlowLayout(FlowLayout.LEADING, 10, 2));
-    JCheckBox storeTVCB = new JCheckBox(MessageUtils.getLocalizedMessage("idx_options.checkbox.store_tv"));
+    storeTVCB.setText(MessageUtils.getLocalizedMessage("idx_options.checkbox.store_tv"));
     inner1.add(storeTVCB);
     panel.add(inner1);
 
     JPanel inner2 = new JPanel(new FlowLayout(FlowLayout.LEADING, 10, 2));
     inner2.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
-    JCheckBox storeTVPosCB = new JCheckBox(MessageUtils.getLocalizedMessage("idx_options.checkbox.store_tv_pos"));
+    storeTVPosCB.setText(MessageUtils.getLocalizedMessage("idx_options.checkbox.store_tv_pos"));
     inner2.add(storeTVPosCB);
-    JCheckBox storeTVOffCB = new JCheckBox(MessageUtils.getLocalizedMessage("idx_options.checkbox.store_tv_off"));
+    storeTVOffCB.setText(MessageUtils.getLocalizedMessage("idx_options.checkbox.store_tv_off"));
     inner2.add(storeTVOffCB);
-    JCheckBox storeTVPayCB = new JCheckBox(MessageUtils.getLocalizedMessage("idx_options.checkbox.store_tv_pay"));
+    storeTVPayCB.setText(MessageUtils.getLocalizedMessage("idx_options.checkbox.store_tv_pay"));
     inner2.add(storeTVPayCB);
     panel.add(inner2);
 
@@ -102,8 +195,6 @@ public class IndexOptionsDialogFactory implements DialogOpener.DialogFactory {
     JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEADING, 10, 2));
     JLabel dvTypeLbl = new JLabel(MessageUtils.getLocalizedMessage("idx_options.label.dv_type"));
     panel.add(dvTypeLbl);
-    String[] dvTypeList = Arrays.stream(DocValuesType.values()).map(DocValuesType::name).toArray(String[]::new);
-    JComboBox<String> dvTypeCombo = new JComboBox<>(dvTypeList);
     panel.add(dvTypeCombo);
     return panel;
   }
@@ -119,10 +210,10 @@ public class IndexOptionsDialogFactory implements DialogOpener.DialogFactory {
     JPanel inner2 = new JPanel(new FlowLayout(FlowLayout.LEADING, 10, 2));
     inner2.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
     inner2.add(new JLabel(MessageUtils.getLocalizedMessage("idx_options.label.point_dc")));
-    JTextField dimCountTF = new JTextField(4);
+    dimCountTF.setColumns(4);
     inner2.add(dimCountTF);
     inner2.add(new JLabel(MessageUtils.getLocalizedMessage("idx_options.label.point_nb")));
-    JTextField dimNumBytesTF = new JTextField(4);
+    dimNumBytesTF.setColumns(4);
     inner2.add(dimNumBytesTF);
     panel.add(inner2);
 
@@ -132,6 +223,7 @@ public class IndexOptionsDialogFactory implements DialogOpener.DialogFactory {
   private JPanel footer() {
     JPanel panel = new JPanel(new FlowLayout(FlowLayout.TRAILING));
     JButton okBtn = new JButton(MessageUtils.getLocalizedMessage("button.ok"));
+    okBtn.addActionListener(e -> saveOptions());
     panel.add(okBtn);
     JButton cancelBtn = new JButton(MessageUtils.getLocalizedMessage("button.cancel"));
     cancelBtn.addActionListener(e -> dialog.dispose());
@@ -139,4 +231,13 @@ public class IndexOptionsDialogFactory implements DialogOpener.DialogFactory {
 
     return panel;
   }
+
+  private static String[] availableIndexOptions() {
+    return Arrays.stream(IndexOptions.values()).map(IndexOptions::name).toArray(String[]::new);
+  }
+
+  private static String[] availableDocValuesType() {
+    return Arrays.stream(DocValuesType.values()).map(DocValuesType::name).toArray(String[]::new);
+  }
+
 }

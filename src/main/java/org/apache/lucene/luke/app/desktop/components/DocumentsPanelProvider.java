@@ -12,7 +12,6 @@ import org.apache.lucene.luke.app.desktop.MessageBroker;
 import org.apache.lucene.luke.app.desktop.components.dialog.HelpDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.documents.AddDocumentDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.documents.DocValuesDialogFactory;
-import org.apache.lucene.luke.app.desktop.components.dialog.documents.IndexOptionsDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.documents.StoredValueDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.documents.TermVectorDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.util.DialogOpener;
@@ -78,8 +77,6 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
   private final Controller controller = new Controller();
 
   private final AddDocumentDialogFactory addDocDialogFactory;
-
-  private final IndexOptionsDialogFactory indexOptionsDialogFactory;
 
   private final TermVectorDialogFactory tvDialogFactory;
 
@@ -246,9 +243,13 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
     public void showAddDocumentDialog() {
       new DialogOpener<>(addDocDialogFactory).open("Add document", 600, 500,
           (factory) -> {
-            factory.setIndexOptionsDialogFactory(indexOptionsDialogFactory);
-            factory.setHelpDialogFactory(helpDialogFactory);
           });
+    }
+
+    public void showLatestDoc() {
+      int docid = documentsModel.getMaxDoc() - 1;
+      showDoc(docid);
+      docNumSpnr.setValue(docid);
     }
 
     private void showDoc(int docid) {
@@ -330,7 +331,7 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
     public void showStoredValueDialog() {
       int docid = (Integer)docNumSpnr.getValue();
       String field = (String)documentTable.getModel().getValueAt(documentTable.getSelectedRow(), DocumentTableModel.Column.FIELD.getIndex());
-      String value = (String) documentTable.getModel().getValueAt(documentTable.getSelectedRow(), DocumentTableModel.Column.VALUE.getIndex());
+      String value = (String)documentTable.getModel().getValueAt(documentTable.getSelectedRow(), DocumentTableModel.Column.VALUE.getIndex());
       if (Objects.isNull(value)) {
         messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("documents.stored.message.not_availabe", field, docid));
         return;
@@ -347,7 +348,7 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
     public void copyStoredValue() {
       int docid = (Integer)docNumSpnr.getValue();
       String field = (String)documentTable.getModel().getValueAt(documentTable.getSelectedRow(), DocumentTableModel.Column.FIELD.getIndex());
-      String value = (String) documentTable.getModel().getValueAt(documentTable.getSelectedRow(), DocumentTableModel.Column.VALUE.getIndex());
+      String value = (String)documentTable.getModel().getValueAt(documentTable.getSelectedRow(), DocumentTableModel.Column.VALUE.getIndex());
       if (Objects.isNull(value)) {
         messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("documents.stored.message.not_availabe", field, docid));
         return;
@@ -417,6 +418,11 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
       controller.seekNextTerm();
     }
 
+    @Override
+    public void displayLatestDoc() {
+      controller.showLatestDoc();
+    }
+
   }
 
   @Inject
@@ -426,7 +432,6 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
                                 TabbedPaneProvider.TabSwitcherProxy tabSwitcher,
                                 DocumentsTabProxy documentsTabProxy,
                                 AddDocumentDialogFactory addDocDialogFactory,
-                                IndexOptionsDialogFactory indexOptionsDialogFactory,
                                 TermVectorDialogFactory tvDialogFactory,
                                 DocValuesDialogFactory dvDialogFactory,
                                 StoredValueDialogFactory valueDialogFactory,
@@ -435,7 +440,6 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
     this.messageBroker = messageBroker;
     this.listeners = new DocumentsPanelListeners(controller, tabSwitcher);
     this.addDocDialogFactory = addDocDialogFactory;
-    this.indexOptionsDialogFactory = indexOptionsDialogFactory;
     this.tvDialogFactory = tvDialogFactory;
     this.dvDialogFactory = dvDialogFactory;
     this.valueDialogFactory = valueDialogFactory;
@@ -685,8 +689,13 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
       holder.get(0).browseTerm(field, term);
     }
 
+    public void displayLatestDoc() {
+      holder.get(0).displayLatestDoc();
+    }
+
     public interface DocumentsTab {
       void browseTerm(String field, String term);
+      void displayLatestDoc();
     }
   }
 
