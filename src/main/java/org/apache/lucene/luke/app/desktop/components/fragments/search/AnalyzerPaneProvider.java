@@ -1,8 +1,14 @@
 package org.apache.lucene.luke.app.desktop.components.fragments.search;
 
+import com.google.inject.Inject;
 import com.google.inject.Provider;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.luke.app.desktop.components.TabbedPaneProvider;
+import org.apache.lucene.luke.app.desktop.components.util.FontUtil;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 
+import javax.annotation.Nonnull;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
@@ -11,11 +17,39 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JTextField;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.GridLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 
 public class AnalyzerPaneProvider implements Provider<JScrollPane> {
+
+  private final TabbedPaneProvider.TabSwitcherProxy tabSwitcher;
+
+  private final JLabel analyzerNameLbl = new JLabel();
+
+  private final JList<String> charFilterList = new JList<>();
+
+  private final JTextField tokenizerTF = new JTextField();
+
+  private final JList<String> tokenFilterList = new JList<>();
+
+  private Analyzer analyzer = new StandardAnalyzer();
+
+  @Inject
+  public AnalyzerPaneProvider(TabbedPaneProvider.TabSwitcherProxy tabSwitcher) {
+    this.tabSwitcher = tabSwitcher;
+  }
+
+  public void setAnalyzer(@Nonnull Analyzer analyzer) {
+    this.analyzer = analyzer;
+  }
 
   @Override
   public JScrollPane get() {
@@ -27,6 +61,7 @@ public class AnalyzerPaneProvider implements Provider<JScrollPane> {
     panel.add(new JSeparator(JSeparator.HORIZONTAL));
     panel.add(analysisChanePane());
 
+    tokenizerTF.setEditable(false);
     return new JScrollPane(panel);
   }
 
@@ -35,31 +70,73 @@ public class AnalyzerPaneProvider implements Provider<JScrollPane> {
 
     panel.add(new JLabel(MessageUtils.getLocalizedMessage("search_analyzer.label.name")));
 
-    JLabel analyzerLabel = new JLabel("StandardAnalyzer");
-    panel.add(analyzerLabel);
+    analyzerNameLbl.setText(analyzer.getClass().getName());
+    panel.add(analyzerNameLbl);
 
-    JLabel changeLabel = new JLabel(MessageUtils.getLocalizedMessage("search_analyzer.hyperlink.change"));
-    panel.add(changeLabel);
+    JLabel changeLbl = new JLabel(MessageUtils.getLocalizedMessage("search_analyzer.hyperlink.change"));
+    changeLbl.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        tabSwitcher.switchTab(TabbedPaneProvider.Tab.ANALYZER);
+      }
+    });
+    panel.add(FontUtil.toLinkText(changeLbl));
 
     return panel;
   }
 
   private JPanel analysisChanePane() {
-    JPanel panel = new JPanel(new GridLayout(7, 1));
+    JPanel panel = new JPanel(new BorderLayout());
 
-    panel.add(new JLabel(MessageUtils.getLocalizedMessage("search_analyzer.label.chain")));
+    JPanel top = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    top.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+    top.add(new JLabel(MessageUtils.getLocalizedMessage("search_analyzer.label.chain")));
+    panel.add(top, BorderLayout.PAGE_START);
 
-    panel.add(new JLabel(MessageUtils.getLocalizedMessage("search_analyzer.label.charfilters")));
+    JPanel center = new JPanel(new GridBagLayout());
 
-    panel.add(new JList<>(new String[]{}));
+    GridBagConstraints c = new GridBagConstraints();
+    c.fill = GridBagConstraints.BOTH;
+    c.insets = new Insets(5, 5, 5, 5);
 
-    panel.add(new JLabel(MessageUtils.getLocalizedMessage("search_analyzer.label.tokenizer")));
+    c.gridx = 0;
+    c.gridy = 0;
+    c.weightx = 0.1;
+    center.add(new JLabel(MessageUtils.getLocalizedMessage("search_analyzer.label.charfilters")), c);
 
-    panel.add(new JTextField("StandardTokenizerFactory"));
+    charFilterList.setVisibleRowCount(3);
+    JScrollPane charFilterSP = new JScrollPane(charFilterList);
+    c.gridx = 1;
+    c.gridy = 0;
+    c.weightx = 0.5;
+    center.add(charFilterSP, c);
 
-    panel.add(new JLabel(MessageUtils.getLocalizedMessage("search_analyzer.label.tokenfilters")));
+    c.gridx = 0;
+    c.gridy = 1;
+    c.weightx = 0.1;
+    center.add(new JLabel(MessageUtils.getLocalizedMessage("search_analyzer.label.tokenizer")), c);
 
-    panel.add(new JList<>(new String[]{}));
+    tokenizerTF.setColumns(30);
+    tokenizerTF.setPreferredSize(new Dimension(400, 25));
+    tokenizerTF.setBorder(BorderFactory.createLineBorder(Color.gray));
+    c.gridx = 1;
+    c.gridy = 1;
+    c.weightx = 0.5;
+    center.add(tokenizerTF, c);
+
+    c.gridx = 0;
+    c.gridy = 2;
+    c.weightx = 0.1;
+    center.add(new JLabel(MessageUtils.getLocalizedMessage("search_analyzer.label.tokenfilters")), c);
+
+    tokenFilterList.setVisibleRowCount(3);
+    JScrollPane tokenFilterSP = new JScrollPane(tokenFilterList);
+    c.gridx = 1;
+    c.gridy = 2;
+    c.weightx = 0.5;
+    center.add(tokenFilterSP, c);
+
+    panel.add(center, BorderLayout.CENTER);
 
     return panel;
   }

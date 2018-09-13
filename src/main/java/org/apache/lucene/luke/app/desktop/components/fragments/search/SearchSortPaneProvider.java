@@ -16,6 +16,19 @@ import java.awt.GridLayout;
 
 public class SearchSortPaneProvider implements Provider<JScrollPane> {
 
+  private final JComboBox<String> fieldCombo1 = new JComboBox<>();
+
+  private final JComboBox<String> typeCombo1 = new JComboBox<>();
+
+  private final JComboBox<String> orderCombo1 = new JComboBox<>(new String[]{"ASC", "DESC"});
+
+  private final JComboBox<String> fieldCombo2 = new JComboBox<>();
+
+  private final JComboBox<String> typeCombo2 = new JComboBox<>();
+
+  private final JComboBox<String> orderCombo2 = new JComboBox<>(new String[]{"ASC", "DESC"});
+
+
   @Override
   public JScrollPane get() {
     JPanel panel = new JPanel();
@@ -36,14 +49,13 @@ public class SearchSortPaneProvider implements Provider<JScrollPane> {
     JPanel primary = new JPanel(new FlowLayout(FlowLayout.LEADING));
     primary.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
     primary.add(new JLabel(MessageUtils.getLocalizedMessage("search_sort.label.field")));
-    JComboBox<String> fieldsCB = new JComboBox<>(new String[]{});
-    primary.add(fieldsCB);
+    primary.add(fieldCombo1);
     primary.add(new JLabel(MessageUtils.getLocalizedMessage("search_sort.label.type")));
-    JComboBox<String> typeCB = new JComboBox<>(new String[]{});
-    primary.add(typeCB);
+    typeCombo1.setEnabled(false);
+    primary.add(typeCombo1);
     primary.add(new JLabel(MessageUtils.getLocalizedMessage("search_sort.label.order")));
-    JComboBox<String> orderCB = new JComboBox<>(new String[]{});
-    primary.add(orderCB);
+    orderCombo1.setEnabled(false);
+    primary.add(orderCombo1);
     panel.add(primary);
 
     panel.add(new JLabel(MessageUtils.getLocalizedMessage("search_sort.label.secondary")));
@@ -51,14 +63,13 @@ public class SearchSortPaneProvider implements Provider<JScrollPane> {
     JPanel secondary = new JPanel(new FlowLayout(FlowLayout.LEADING));
     secondary.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
     secondary.add(new JLabel(MessageUtils.getLocalizedMessage("search_sort.label.field")));
-    JComboBox<String> fieldsCB2 = new JComboBox<>(new String[]{});
-    secondary.add(fieldsCB2);
+    secondary.add(fieldCombo2);
     secondary.add(new JLabel(MessageUtils.getLocalizedMessage("search_sort.label.type")));
-    JComboBox<String> typeCB2 = new JComboBox<>(new String[]{});
-    secondary.add(typeCB2);
+    typeCombo2.setEnabled(false);
+    secondary.add(typeCombo2);
     secondary.add(new JLabel(MessageUtils.getLocalizedMessage("search_sort.label.order")));
-    JComboBox<String> orderCB2 = new JComboBox<>(new String[]{});
-    secondary.add(orderCB2);
+    orderCombo2.setEnabled(false);
+    secondary.add(orderCombo2);
     panel.add(secondary);
 
     JPanel clear = new JPanel(new FlowLayout(FlowLayout.LEADING));

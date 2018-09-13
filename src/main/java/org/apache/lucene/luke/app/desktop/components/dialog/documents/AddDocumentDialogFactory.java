@@ -64,7 +64,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Arrays;
 import java.util.List;
-import java.util.TreeMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -368,7 +368,7 @@ class FieldsTableModel extends AbstractTableModel {
 
   }
 
-  private static final TreeMap<Integer, Column> columnMap = TableUtil.columnMap(Column.values());
+  private static final Map<Integer, Column> columnMap = TableUtil.columnMap(Column.values());
 
   private final String[] colNames = TableUtil.columnNames(Column.values());
 
@@ -426,6 +426,7 @@ class FieldsTableModel extends AbstractTableModel {
   @Override
   public void setValueAt(Object value, int rowIndex, int columnIndex) {
     data[rowIndex][columnIndex] = value;
+    fireTableCellUpdated(rowIndex, columnIndex);
     NewField selectedField = newFieldList.get(rowIndex);
     if (columnIndex == Column.DEL.getIndex()) {
       selectedField.setDeleted((Boolean)value);
@@ -438,7 +439,6 @@ class FieldsTableModel extends AbstractTableModel {
     } else if (columnIndex == Column.VALUE.getIndex()) {
       selectedField.setValue((String)value);
     }
-    fireTableCellUpdated(rowIndex, columnIndex);
   }
 }
 

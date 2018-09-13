@@ -3,29 +3,42 @@ package org.apache.lucene.luke.app.desktop.components;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.name.Named;
-import org.apache.lucene.luke.app.IndexObserver;
-import org.apache.lucene.luke.app.LukeState;
+import org.apache.lucene.luke.app.desktop.components.util.TableUtil;
 import org.apache.lucene.luke.app.desktop.util.ImageUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 
 import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.border.CompoundBorder;
+import javax.swing.table.AbstractTableModel;
 import java.awt.*;
+import java.util.Map;
 
-public class SearchPanelProvider implements IndexObserver, Provider<JPanel> {
+public class SearchPanelProvider implements Provider<JPanel> {
 
-  private JScrollPane qparser;
+  private final JScrollPane qparser;
 
-  private JScrollPane analyzer;
+  private final JScrollPane analyzer;
 
-  private JScrollPane similarity;
+  private final JScrollPane similarity;
 
-  private JScrollPane sort;
+  private final JScrollPane sort;
 
-  private JScrollPane values;
+  private final JScrollPane values;
 
-  private JScrollPane mlt;
+  private final JScrollPane mlt;
+
+  private final JCheckBox termQueryCB = new JCheckBox();
+
+  private final JTextArea queryStringTA = new JTextArea();
+
+  private final JTextArea parsedQueryTA = new JTextArea();
+
+  private final JCheckBox rewriteCB = new JCheckBox();
+
+  private final JTextField mltDocTF = new JTextField();
+
+  private final JLabel totalDocsLbl = new JLabel();
+
+  private final JTable resultsTable = new JTable();
 
   @Inject
   public SearchPanelProvider(@Named("search_qparser") JScrollPane qparser,
@@ -91,99 +104,95 @@ public class SearchPanelProvider implements IndexObserver, Provider<JPanel> {
     c.gridy = 0;
     c.gridwidth = 2;
     c.weightx = 0.5;
-    c.insets = new Insets(2, 0, 2, 0);
+    c.insets = new Insets(2, 0, 2, 2);
     panel.add(labelQE, c);
 
-    JPanel termQuery = new JPanel();
-    JCheckBox termQueryBtn = new JCheckBox();
-    termQuery.add(termQueryBtn);
-    JLabel labelTQ = new JLabel(MessageUtils.getLocalizedMessage("search.checkbox.term"));
-    termQuery.add(labelTQ);
+    termQueryCB.setText(MessageUtils.getLocalizedMessage("search.checkbox.term"));
     c.gridx = 2;
     c.gridy = 0;
     c.gridwidth = 1;
     c.weightx = 0.2;
-    c.insets = new Insets(2, 0, 2, 0);
-    panel.add(termQuery, c);
+    c.insets = new Insets(2, 0, 2, 2);
+    panel.add(termQueryCB, c);
 
-    JTextArea textQE = new JTextArea();
-    textQE.setRows(4);
+    queryStringTA.setRows(4);
+    queryStringTA.setLineWrap(true);
     c.gridx = 0;
     c.gridy = 1;
     c.gridwidth = 3;
     c.weightx = 0.0;
-    c.insets = new Insets(2, 0, 2, 0);
-    panel.add(textQE, c);
+    c.insets = new Insets(2, 0, 2, 2);
+    panel.add(new JScrollPane(queryStringTA, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER), c);
 
     JLabel labelPQ = new JLabel(MessageUtils.getLocalizedMessage("search.label.parsed"));
     c.gridx = 0;
     c.gridy = 2;
     c.gridwidth = 3;
     c.weightx = 0.0;
-    c.insets = new Insets(8, 0, 2, 0);
+    c.insets = new Insets(8, 0, 2, 2);
     panel.add(labelPQ, c);
 
-    JTextArea textPQ = new JTextArea();
-    textPQ.setRows(4);
+    parsedQueryTA.setRows(4);
+    parsedQueryTA.setLineWrap(true);
+    parsedQueryTA.setEditable(false);
     c.gridx = 0;
     c.gridy = 3;
     c.gridwidth = 3;
     c.weightx = 0.0;
-    c.insets = new Insets(2, 0, 2, 0);
-    panel.add(textPQ, c);
+    c.insets = new Insets(2, 0, 2, 2);
+    panel.add(new JScrollPane(parsedQueryTA), c);
 
-    JButton parse = new JButton(MessageUtils.getLocalizedMessage("search.button.parse"),
+    JButton parseBtn = new JButton(MessageUtils.getLocalizedMessage("search.button.parse"),
         ImageUtils.createImageIcon("/img/icon_flowchart_alt.png", 20, 20));
-    parse.setFont(new Font(parse.getFont().getFontName(), Font.PLAIN, 15));
+    parseBtn.setFont(new Font(parseBtn.getFont().getFontName(), Font.PLAIN, 15));
+    parseBtn.setMargin(new Insets(2, 2, 2, 2));
     c.gridx = 0;
     c.gridy = 4;
     c.gridwidth = 1;
     c.weightx = 0.2;
-    c.insets = new Insets(2, 0, 2, 0);
-    panel.add(parse, c);
+    c.insets = new Insets(5, 0, 0, 2);
+    panel.add(parseBtn, c);
 
-    JPanel rewrite = new JPanel(new FlowLayout());
-    JCheckBox rewriteCB = new JCheckBox();
-    rewrite.add(rewriteCB);
-    JLabel rewriteLabel = new JLabel(MessageUtils.getLocalizedMessage("search.checkbox.rewrite"));
-    rewrite.add(rewriteLabel);
+    rewriteCB.setText(MessageUtils.getLocalizedMessage("search.checkbox.rewrite"));
     c.gridx = 1;
     c.gridy = 4;
     c.gridwidth = 2;
     c.weightx = 0.2;
-    c.insets = new Insets(2, 0, 2, 0);
-    panel.add(rewrite, c);
+    c.insets = new Insets(5, 0, 0, 2);
+    panel.add(rewriteCB, c);
 
     JButton searchBtn = new JButton(MessageUtils.getLocalizedMessage("search.button.search"),
         ImageUtils.createImageIcon("/img/icon_search2.png", 20, 20));
     searchBtn.setFont(new Font(searchBtn.getFont().getFontName(), Font.PLAIN, 15));
+    searchBtn.setMargin(new Insets(2, 2, 2, 2));
     c.gridx = 0;
     c.gridy = 5;
     c.gridwidth = 1;
     c.weightx = 0.0;
-    c.insets = new Insets(2, 0, 2, 0);
+    c.insets = new Insets(5, 0, 5, 0);
     panel.add(searchBtn, c);
 
     JButton mltBtn = new JButton(MessageUtils.getLocalizedMessage("search.button.mlt"),
         ImageUtils.createImageIcon("/img/icon_heart_alt.png", 20, 20));
     mltBtn.setFont(new Font(mltBtn.getFont().getFontName(), Font.PLAIN, 15));
+    mltBtn.setMargin(new Insets(2, 2, 2, 2));
     c.gridx = 0;
     c.gridy = 6;
     c.gridwidth = 1;
     c.weightx = 0.3;
-    c.insets = new Insets(8, 0, 0, 0);
+    c.insets = new Insets(10, 0, 2, 0);
     panel.add(mltBtn, c);
 
     JPanel docNo = new JPanel(new FlowLayout());
     JLabel docNoLabel = new JLabel("with doc #");
     docNo.add(docNoLabel);
-    JTextField docNoField = new JTextField(3);
-    docNo.add(docNoField);
+    mltDocTF.setColumns(3);
+    docNo.add(mltDocTF);
     c.gridx = 1;
     c.gridy = 6;
     c.gridwidth = 2;
     c.weightx = 0.3;
-    c.insets = new Insets(8, 0, 0, 0);
+    c.insets = new Insets(8, 0, 0, 2);
     panel.add(docNo, c);
 
     return panel;
@@ -191,7 +200,7 @@ public class SearchPanelProvider implements IndexObserver, Provider<JPanel> {
 
   private JPanel createLowerPanel() {
     JPanel panel = new JPanel(new BorderLayout());
-    panel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+    panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
     panel.add(createSearchResultsHeaderPane(), BorderLayout.PAGE_START);
     panel.add(createSearchResultsTablePane(), BorderLayout.CENTER);
@@ -212,10 +221,11 @@ public class SearchPanelProvider implements IndexObserver, Provider<JPanel> {
     JLabel totalLabel = new JLabel(MessageUtils.getLocalizedMessage("search.label.total"));
     resultsInfo.add(totalLabel);
 
-    JLabel totalDocs = new JLabel("10");
-    resultsInfo.add(totalDocs);
+    totalDocsLbl.setText("?");
+    resultsInfo.add(totalDocsLbl);
 
     JButton prevBtn = new JButton(ImageUtils.createImageIcon("/img/arrow_triangle-left.png", 20, 20));
+    prevBtn.setMargin(new Insets(5, 5,5, 5));
     resultsInfo.add(prevBtn);
 
     JLabel start = new JLabel("");
@@ -227,13 +237,17 @@ public class SearchPanelProvider implements IndexObserver, Provider<JPanel> {
     resultsInfo.add(end);
 
     JButton nextBtn = new JButton(ImageUtils.createImageIcon("/img/arrow_triangle-right.png", 20, 20));
+    nextBtn.setMargin(new Insets(5, 5, 5, 5));
     resultsInfo.add(nextBtn);
 
     JSeparator sep = new JSeparator(JSeparator.VERTICAL);
     sep.setPreferredSize(new Dimension(5, 1));
     resultsInfo.add(sep);
 
-    JButton delBtn = new JButton(MessageUtils.getLocalizedMessage("search.button.del_all"), ImageUtils.createImageIcon("/img/icon_trash.png", 20, 20));
+    JButton delBtn = new JButton(MessageUtils.getLocalizedMessage("search.button.del_all"),
+        ImageUtils.createImageIcon("/img/icon_trash.png", 20, 20));
+    delBtn.setFont(new Font(delBtn.getFont().getFontName(), Font.PLAIN, 15));
+    delBtn.setMargin(new Insets(5, 5, 5, 5));
     resultsInfo.add(delBtn);
 
     panel.add(resultsInfo, BorderLayout.CENTER);
@@ -244,23 +258,87 @@ public class SearchPanelProvider implements IndexObserver, Provider<JPanel> {
   private JPanel createSearchResultsTablePane() {
     JPanel panel = new JPanel(new GridLayout(1, 1));
 
-    String[][] data = new String[][]{};
-    String[] columnNames = new String[]{"Doc ID", "Score", "Field Values"};
-    JTable table = new JTable(data, columnNames);
-    table.setFillsViewportHeight(true);
-    JScrollPane scrollPane = new JScrollPane(table);
+    TableUtil.setupTable(resultsTable, ListSelectionModel.SINGLE_SELECTION, new SearchResultsTableModel(), null, 50, 100);
+    JScrollPane scrollPane = new JScrollPane(resultsTable);
     panel.add(scrollPane);
 
     return panel;
   }
 
-  @Override
-  public void openIndex(LukeState state) {
+}
 
+class SearchResultsTableModel extends AbstractTableModel {
+
+  enum Column implements TableColumnInfo {
+    DOCID("Doc ID", 0, Integer.class),
+    SCORE("Score", 1, Float.class),
+    VALUE("Field Values", 2, String.class);
+
+    private String colName;
+    private int index;
+    private Class<?> type;
+
+    Column(String colName, int index, Class<?> type) {
+      this.colName = colName;
+      this.index = index;
+      this.type = type;
+    }
+
+    @Override
+    public String getColName() {
+      return colName;
+    }
+
+    @Override
+    public int getIndex() {
+      return index;
+    }
+
+    @Override
+    public Class<?> getType() {
+      return type;
+    }
+  }
+
+  private static final Map<Integer, Column> columnMap = TableUtil.columnMap(Column.values());
+
+  private final String[] colNames = TableUtil.columnNames(Column.values());
+
+  private final Object[][] data;
+
+  SearchResultsTableModel() {
+    this.data = new Object[0][colNames.length];
   }
 
   @Override
-  public void closeIndex() {
-
+  public int getRowCount() {
+    return data.length;
   }
+
+  @Override
+  public int getColumnCount() {
+    return colNames.length;
+  }
+
+  @Override
+  public String getColumnName(int colIndex) {
+    if (columnMap.containsKey(colIndex)) {
+      return columnMap.get(colIndex).colName;
+    }
+    return "";
+  }
+
+  @Override
+  public Class<?> getColumnClass(int colIndex) {
+    if (columnMap.containsKey(colIndex)) {
+      return columnMap.get(colIndex).type;
+    }
+    return Object.class;
+  }
+
+  @Override
+  public Object getValueAt(int rowIndex, int columnIndex) {
+    return data[rowIndex][columnIndex];
+  }
+
 }

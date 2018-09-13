@@ -11,6 +11,8 @@ public class StyleConstants {
 
   public static Color LINK_COLOR = Color.decode("#0099ff");
 
+  public static Color DISABLED_COLOR = Color.decode("#d9d9d9");
+
   public static int TABLE_ROW_HEIGHT_DEFAULT = 18;
 
   public static int TABLE_COLUMN_MARGIN_DEFAULT = 10;
