@@ -33,9 +33,7 @@ import org.apache.lucene.luke.app.desktop.components.fragments.search.FieldValue
 import org.apache.lucene.luke.app.desktop.components.fragments.search.MLTPaneProvider;
 import org.apache.lucene.luke.app.desktop.components.fragments.search.QueryParserPaneProvider;
 import org.apache.lucene.luke.app.desktop.components.fragments.search.SimilarityPaneProvider;
-import org.apache.lucene.luke.app.desktop.components.fragments.search.SearchSortPaneProvider;
-import org.apache.lucene.luke.app.desktop.listeners.dialog.documents.AddDocumentDialogListeners;
-import org.apache.lucene.luke.models.tools.IndexTools;
+import org.apache.lucene.luke.app.desktop.components.fragments.search.SortPaneProvider;
 import org.apache.lucene.luke.models.tools.IndexToolsFactory;
 
 import javax.swing.JDialog;
@@ -62,6 +60,10 @@ public class DesktopModule extends AbstractModule {
     // UI components and fragments
     bind(TabbedPaneProvider.TabSwitcherProxy.class).toInstance(new TabbedPaneProvider.TabSwitcherProxy());
     bind(DocumentsPanelProvider.DocumentsTabProxy.class).toInstance(new DocumentsPanelProvider.DocumentsTabProxy());
+    bind(QueryParserPaneProvider.QueryParserTabProxy.class).toInstance(new QueryParserPaneProvider.QueryParserTabProxy());
+    bind(SortPaneProvider.SortTabProxy.class).toInstance(new SortPaneProvider.SortTabProxy());
+    bind(FieldValuesPaneProvider.FieldValuesTabProxy.class).toInstance(new FieldValuesPaneProvider.FieldValuesTabProxy());
+    bind(MLTPaneProvider.MLTTabProxy.class).toInstance(new MLTPaneProvider.MLTTabProxy());
     bind(MessageBroker.class).toInstance(new MessageBroker());
     bind(JMenuBar.class).toProvider(MenuBarProvider.class);
 
@@ -76,7 +78,7 @@ public class DesktopModule extends AbstractModule {
     bind(JScrollPane.class).annotatedWith(Names.named("search_qparser")).toProvider(QueryParserPaneProvider.class);
     bind(JScrollPane.class).annotatedWith(Names.named("search_analyzer")).toProvider(AnalyzerPaneProvider.class);
     bind(JScrollPane.class).annotatedWith(Names.named("search_similarity")).toProvider(SimilarityPaneProvider.class);
-    bind(JScrollPane.class).annotatedWith(Names.named("search_sort")).toProvider(SearchSortPaneProvider.class);
+    bind(JScrollPane.class).annotatedWith(Names.named("search_sort")).toProvider(SortPaneProvider.class);
     bind(JScrollPane.class).annotatedWith(Names.named("search_values")).toProvider(FieldValuesPaneProvider.class);
     bind(JScrollPane.class).annotatedWith(Names.named("search_mlt")).toProvider(MLTPaneProvider.class);
 

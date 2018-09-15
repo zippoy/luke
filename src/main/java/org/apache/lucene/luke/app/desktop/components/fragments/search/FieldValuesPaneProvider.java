@@ -1,6 +1,8 @@
 package org.apache.lucene.luke.app.desktop.components.fragments.search;
 
+import com.google.inject.Inject;
 import com.google.inject.Provider;
+import org.apache.lucene.luke.app.desktop.components.ComponentProxy;
 import org.apache.lucene.luke.app.desktop.components.TableColumnInfo;
 import org.apache.lucene.luke.app.desktop.components.util.TableUtil;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
@@ -13,17 +15,69 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Collection;
 import java.util.Map;
 
 public class FieldValuesPaneProvider implements Provider<JScrollPane> {
 
+  private final Listeners listeners;
+
   private final JCheckBox loadAllCB = new JCheckBox();
 
-  private final JTable fieldTable = new JTable();
+  private final JTable fieldsTable = new JTable();
+
+  class FieldValuesTabImpl implements FieldValuesTabProxy.FieldValuesTab {
+
+    @Override
+    public void setFields(Collection<String> fields) {
+      fieldsTable.setModel(new FieldsTableModel(fields));
+      fieldsTable.getColumnModel().getColumn(FieldsTableModel.Column.LOAD.getIndex()).setMinWidth(50);
+      fieldsTable.getColumnModel().getColumn(FieldsTableModel.Column.LOAD.getIndex()).setMaxWidth(50);
+      fieldsTable.getModel().addTableModelListener(listeners.getFieldsTableModelListener());
+    }
+  }
+
+  class Listeners {
+
+    ActionListener getLoadAllCBListener() {
+      return (ActionEvent e) -> {
+        for (int i = 0; i < fieldsTable.getModel().getRowCount(); i++) {
+          if (loadAllCB.isSelected()) {
+            fieldsTable.setValueAt(true, i, FieldsTableModel.Column.LOAD.getIndex());
+          } else {
+            fieldsTable.setValueAt(false, i, FieldsTableModel.Column.LOAD.getIndex());
+          }
+        }
+      };
+    }
+
+    TableModelListener getFieldsTableModelListener() {
+      return (TableModelEvent e) -> {
+        int row = e.getFirstRow();
+        int col = e.getColumn();
+        if (col == FieldsTableModel.Column.LOAD.getIndex()) {
+          boolean isLoad = (boolean)fieldsTable.getModel().getValueAt(row, col);
+          if (!isLoad) {
+            loadAllCB.setSelected(false);
+          }
+        }
+      };
+    }
+  }
+
+  @Inject
+  public FieldValuesPaneProvider(FieldValuesTabProxy fieldValuesTab) {
+    this.listeners = new Listeners();
+
+    fieldValuesTab.set(new FieldValuesTabImpl());
+  }
 
   @Override
   public JScrollPane get() {
@@ -31,32 +85,45 @@ public class FieldValuesPaneProvider implements Provider<JScrollPane> {
     panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
     panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-    panel.add(fieldsSettings());
+    panel.add(fieldsConfig());
 
     return new JScrollPane(panel);
   }
 
-  private JPanel fieldsSettings() {
+  private JPanel fieldsConfig() {
     JPanel panel = new JPanel(new BorderLayout());
-    panel.setPreferredSize(new Dimension(500, 300));
-    panel.setMaximumSize(new Dimension(1000, 500));
 
     JPanel header = new JPanel(new GridLayout(1, 2));
     header.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
     header.add(new JLabel(MessageUtils.getLocalizedMessage("search_values.label.description")));
     loadAllCB.setText(MessageUtils.getLocalizedMessage("search_values.checkbox.load_all"));
+    loadAllCB.setSelected(true);
+    loadAllCB.addActionListener(listeners.getLoadAllCBListener());
     header.add(loadAllCB);
     panel.add(header, BorderLayout.PAGE_START);
 
-    TableUtil.setupTable(fieldTable, ListSelectionModel.SINGLE_SELECTION, new FieldTableModel(), null, 50);
-    panel.add(new JScrollPane(fieldTable), BorderLayout.CENTER);
+    TableUtil.setupTable(fieldsTable, ListSelectionModel.SINGLE_SELECTION, new FieldsTableModel(), null);
+    fieldsTable.setShowGrid(true);
+    fieldsTable.setPreferredScrollableViewportSize(fieldsTable.getPreferredSize());
+    panel.add(new JScrollPane(fieldsTable), BorderLayout.CENTER);
 
     return panel;
   }
 
+  public static class FieldValuesTabProxy extends ComponentProxy<FieldValuesTabProxy.FieldValuesTab>  {
+
+    public void setFields(Collection<String> fields) {
+      get().setFields(fields);
+    }
+
+    interface FieldValuesTab extends ComponentProxy.Component {
+      void setFields(Collection<String> fields);
+    }
+  }
+
 }
 
-class FieldTableModel extends AbstractTableModel {
+class FieldsTableModel extends AbstractTableModel {
 
   enum Column implements TableColumnInfo {
     LOAD("Load", 0, Boolean.class),
@@ -94,8 +161,18 @@ class FieldTableModel extends AbstractTableModel {
 
   private final Object[][] data;
 
-  FieldTableModel() {
+  FieldsTableModel() {
     this.data = new Object[0][colNames.length];
+  }
+
+  FieldsTableModel(Collection<String> fields) {
+    this.data = new Object[fields.size()][colNames.length];
+    int i = 0;
+    for (String field : fields) {
+      data[i][Column.LOAD.getIndex()] = true;
+      data[i][Column.FIELD.getIndex()] = field;
+      i++;
+    }
   }
 
   @Override

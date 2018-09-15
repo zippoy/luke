@@ -85,7 +85,7 @@ public class PreferencesImpl implements Preferences {
 
   /*@Override
   public LukeController.ColorTheme getTheme() {
-    String theme = ini.get("settings", "theme");
+    FIELD theme = ini.get("settings", "theme");
     return (theme == null) ? LukeController.ColorTheme.GRAY : LukeController.ColorTheme.valueOf(theme);
   }*/
 

@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.luke.app.desktop.components.ComponentProxy;
 import org.apache.lucene.luke.app.desktop.components.TabbedPaneProvider;
 import org.apache.lucene.luke.app.desktop.components.TableColumnInfo;
 import org.apache.lucene.luke.app.desktop.components.util.FontUtil;
@@ -20,16 +21,23 @@ import javax.swing.JSeparator;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Collection;
 import java.util.Map;
 
 public class MLTPaneProvider implements Provider<JScrollPane> {
+
+  private final Listeners listeners;
 
   private final JTextField maxDocFreqTF = new JTextField();
 
@@ -37,15 +45,61 @@ public class MLTPaneProvider implements Provider<JScrollPane> {
 
   private final JTextField minTermFreqTF = new JTextField();
 
-  private final JTable fieldTable = new JTable();
+  private final JCheckBox loadAllCB = new JCheckBox();
+
+  private final JTable fieldsTable = new JTable();
 
   private final TabbedPaneProvider.TabSwitcherProxy tabSwitcher;
 
   private Analyzer analyzer = new StandardAnalyzer();
 
+  class MLTTabImpl implements MLTTabProxy.MLTTab {
+
+    @Override
+    public void setFields(Collection<String> fields) {
+      fieldsTable.setModel(new MLTFieldTableModel(fields));
+      fieldsTable.getColumnModel().getColumn(FieldsTableModel.Column.LOAD.getIndex()).setMinWidth(50);
+      fieldsTable.getColumnModel().getColumn(FieldsTableModel.Column.LOAD.getIndex()).setMaxWidth(50);
+      fieldsTable.getModel().addTableModelListener(listeners.getFieldsTableModelListener());
+    }
+
+  }
+
+  class Listeners {
+
+    ActionListener getLoadAllCBListener() {
+      return (ActionEvent e) -> {
+        for (int i = 0; i < fieldsTable.getModel().getRowCount(); i++) {
+          if (loadAllCB.isSelected()) {
+            fieldsTable.setValueAt(true, i, FieldsTableModel.Column.LOAD.getIndex());
+          } else {
+            fieldsTable.setValueAt(false, i, FieldsTableModel.Column.LOAD.getIndex());
+          }
+        }
+      };
+    }
+
+    TableModelListener getFieldsTableModelListener() {
+      return (TableModelEvent e) -> {
+        int row = e.getFirstRow();
+        int col = e.getColumn();
+        if (col == FieldsTableModel.Column.LOAD.getIndex()) {
+          boolean isLoad = (boolean)fieldsTable.getModel().getValueAt(row, col);
+          if (!isLoad) {
+            loadAllCB.setSelected(false);
+          }
+        }
+      };
+    }
+  }
+
   @Inject
-  public MLTPaneProvider(TabbedPaneProvider.TabSwitcherProxy tabSwitcher) {
+  public MLTPaneProvider(TabbedPaneProvider.TabSwitcherProxy tabSwitcher,
+                         MLTTabProxy mltTab) {
+    this.listeners = new Listeners();
     this.tabSwitcher = tabSwitcher;
+
+    mltTab.set(new MLTTabImpl());
   }
 
   public void setAnalyzer(Analyzer analyzer) {
@@ -119,15 +173,30 @@ public class MLTPaneProvider implements Provider<JScrollPane> {
     JPanel header = new JPanel(new GridLayout(2, 1));
     header.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
     header.add(new JLabel(MessageUtils.getLocalizedMessage("search_mlt.label.description")));
-    JCheckBox loadAllCB = new JCheckBox(MessageUtils.getLocalizedMessage("search_mlt.checkbox.select_all"));
+    loadAllCB.setText(MessageUtils.getLocalizedMessage("search_mlt.checkbox.select_all"));
+    loadAllCB.setSelected(true);
+    loadAllCB.addActionListener(listeners.getLoadAllCBListener());
     header.add(loadAllCB);
     panel.add(header, BorderLayout.PAGE_START);
 
-    TableUtil.setupTable(fieldTable, ListSelectionModel.SINGLE_SELECTION, new MLTFieldTableModel(), null, 50);
-    panel.add(new JScrollPane(fieldTable), BorderLayout.CENTER);
+    TableUtil.setupTable(fieldsTable, ListSelectionModel.SINGLE_SELECTION, new MLTFieldTableModel(), null, 50);
+    fieldsTable.setPreferredScrollableViewportSize(fieldsTable.getPreferredSize());
+    panel.add(new JScrollPane(fieldsTable), BorderLayout.CENTER);
 
     return panel;
   }
+
+  public static class MLTTabProxy extends ComponentProxy<MLTTabProxy.MLTTab>  {
+
+    public void setFields(Collection<String> fields) {
+      get().setFields(fields);
+    }
+
+    interface MLTTab extends ComponentProxy.Component {
+      void setFields(Collection<String> fields);
+    }
+  }
+
 
 }
 
@@ -135,7 +204,7 @@ class MLTFieldTableModel extends AbstractTableModel {
 
   enum Column implements TableColumnInfo {
     SELECT("Select", 0, Boolean.class),
-    String("Field", 1, String.class);
+    FIELD("Field", 1, String.class);
 
     private String colName;
     private int index;
@@ -171,6 +240,16 @@ class MLTFieldTableModel extends AbstractTableModel {
 
   MLTFieldTableModel() {
     this.data = new Object[0][colNames.length];
+  }
+
+  MLTFieldTableModel(Collection<String> fields) {
+    this.data = new Object[fields.size()][colNames.length];
+    int i = 0;
+    for (String field : fields) {
+      data[i][Column.SELECT.getIndex()] = true;
+      data[i][Column.FIELD.getIndex()] = field;
+      i++;
+    }
   }
 
   @Override

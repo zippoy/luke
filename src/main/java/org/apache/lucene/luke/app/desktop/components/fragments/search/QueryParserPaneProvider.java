@@ -1,13 +1,17 @@
 package org.apache.lucene.luke.app.desktop.components.fragments.search;
 
+import com.google.inject.Inject;
 import com.google.inject.Provider;
+import org.apache.lucene.document.DateTools;
 import org.apache.lucene.luke.app.desktop.components.TableColumnInfo;
 import org.apache.lucene.luke.app.desktop.components.util.TableUtil;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
+import org.apache.lucene.luke.models.search.QueryParserConfig;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
+import javax.swing.DefaultCellEditor;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -19,8 +23,15 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableCellRenderer;
+import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 public class QueryParserPaneProvider implements Provider<JScrollPane> {
@@ -31,7 +42,7 @@ public class QueryParserPaneProvider implements Provider<JScrollPane> {
 
   private final JComboBox<String> dfCB = new JComboBox<>();
 
-  private final JComboBox<String> defOpCB = new JComboBox<>(new String[]{"OR", "AND"});
+  private final JComboBox<String> defOpCombo = new JComboBox<>(new String[]{QueryParserConfig.Operator.OR.name(), QueryParserConfig.Operator.AND.name()});
 
   private final JCheckBox posIncCB = new JCheckBox();
 
@@ -49,13 +60,15 @@ public class QueryParserPaneProvider implements Provider<JScrollPane> {
 
   private final JTextField prefLenTF = new JTextField();
 
-  private final JComboBox<String> dateResCB = new JComboBox<>();
+  private final JComboBox<String> dateResCombo = new JComboBox<>();
 
   private final JTextField locationTF = new JTextField();
 
   private final JTextField timezoneTF = new JTextField();
 
   private final JTable pointRangeQueryTable = new JTable();
+
+  private QueryParserConfig config = new QueryParserConfig.Builder().build();
 
   private final Controller controller;
 
@@ -76,7 +89,41 @@ public class QueryParserPaneProvider implements Provider<JScrollPane> {
     }
   }
 
-  public QueryParserPaneProvider() {
+  class QueryParserTabImpl implements QueryParserTabProxy.QueryParserTab {
+
+    @Override
+    public void setSearchableFields(Collection<String> searchableFields) {
+      for (String field : searchableFields) {
+        dfCB.addItem(field);
+      }
+    }
+
+    @Override
+    public void setRangeSearchableFields(Collection<String> rangeSearchableFields) {
+      pointRangeQueryTable.setModel(new PointRangeQueryTableModel(rangeSearchableFields));
+      pointRangeQueryTable.setShowGrid(true);
+      String[] numTypes = Arrays.stream(PointRangeQueryTableModel.NumType.values())
+          .map(PointRangeQueryTableModel.NumType::name)
+          .toArray(String[]::new);
+      JComboBox<String> numTypesCombo = new JComboBox<>(numTypes);
+      numTypesCombo.setRenderer((list, value, index, isSelected, cellHasFocus) -> new JLabel(value));
+      pointRangeQueryTable.getColumnModel().getColumn(PointRangeQueryTableModel.Column.TYPE.getIndex()).setCellEditor(new DefaultCellEditor(numTypesCombo));
+      pointRangeQueryTable.getColumnModel().getColumn(PointRangeQueryTableModel.Column.TYPE.getIndex()).setCellRenderer(
+          (table, value, isSelected, hasFocus, row, column) -> new JLabel((String)value)
+      );
+      pointRangeQueryTable.getColumnModel().getColumn(PointRangeQueryTableModel.Column.FIELD.getIndex()).setPreferredWidth(300);
+      pointRangeQueryTable.setPreferredScrollableViewportSize(pointRangeQueryTable.getPreferredSize());
+
+      // set default type to Integer
+      for (int i = 0; i < rangeSearchableFields.size(); i++) {
+        pointRangeQueryTable.setValueAt(PointRangeQueryTableModel.NumType.INT.name(), i, PointRangeQueryTableModel.Column.TYPE.getIndex());
+      }
+    }
+  }
+
+  @Inject
+  public QueryParserPaneProvider(QueryParserTabProxy proxy) {
+    proxy.set(new QueryParserTabImpl());
     this.controller = new Controller();
   }
 
@@ -133,18 +180,20 @@ public class QueryParserPaneProvider implements Provider<JScrollPane> {
     JPanel defOp = new JPanel(new FlowLayout(FlowLayout.LEADING));
     JLabel defOpLabel = new JLabel(MessageUtils.getLocalizedMessage("search_parser.label.dop"));
     defOp.add(defOpLabel);
-    defOp.add(defOpCB);
+    defOpCombo.setSelectedItem(config.getDefaultOperator().name());
+    defOp.add(defOpCombo);
     panel.add(defOp);
 
     posIncCB.setText(MessageUtils.getLocalizedMessage("search_parser.checkbox.pos_incr"));
-    posIncCB.setSelected(true);
+    posIncCB.setSelected(config.isEnablePositionIncrements());
     panel.add(posIncCB);
 
     wildCardCB.setText(MessageUtils.getLocalizedMessage("search_parser.checkbox.lead_wildcard"));
+    wildCardCB.setSelected(config.isAllowLeadingWildcard());
     panel.add(wildCardCB);
 
     splitWS.setText(MessageUtils.getLocalizedMessage("search_parser.checkbox.split_ws"));
-    splitWS.setEnabled(false);
+    splitWS.setEnabled(config.isSplitOnWhitespace());
     panel.add(splitWS);
 
     return panel;
@@ -161,14 +210,14 @@ public class QueryParserPaneProvider implements Provider<JScrollPane> {
     JPanel genPQ = new JPanel(new FlowLayout(FlowLayout.LEADING));
     genPQ.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
     genPhraseQueryCB.setText(MessageUtils.getLocalizedMessage("search_parser.checkbox.gen_pq"));
-    genPhraseQueryCB.setEnabled(false);
+    genPhraseQueryCB.setEnabled(config.isAutoGeneratePhraseQueries());
     genPQ.add(genPhraseQueryCB);
     panel.add(genPQ);
 
     JPanel genMTPQ = new JPanel(new FlowLayout(FlowLayout.LEADING));
     genMTPQ.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
     genMultiTermSynonymsPhraseQueryCB.setText(MessageUtils.getLocalizedMessage("search_parser.checkbox.gen_mts"));
-    genMultiTermSynonymsPhraseQueryCB.setEnabled(false);
+    genMultiTermSynonymsPhraseQueryCB.setEnabled(config.isAutoGenerateMultiTermSynonymsPhraseQuery());
     genMTPQ.add(genMultiTermSynonymsPhraseQueryCB);
     panel.add(genMTPQ);
 
@@ -177,6 +226,7 @@ public class QueryParserPaneProvider implements Provider<JScrollPane> {
     JLabel slopLabel = new JLabel(MessageUtils.getLocalizedMessage("search_parser.label.phrase_slop"));
     slop.add(slopLabel);
     slopTF.setColumns(5);
+    slopTF.setText(String.valueOf(config.getPhraseSlop()));
     slop.add(slopTF);
     slop.add(new JLabel(MessageUtils.getLocalizedMessage("label.int_required")));
     panel.add(slop);
@@ -197,6 +247,7 @@ public class QueryParserPaneProvider implements Provider<JScrollPane> {
     JLabel minSimLabel = new JLabel(MessageUtils.getLocalizedMessage("search_parser.label.fuzzy_minsim"));
     minSim.add(minSimLabel);
     minSimTF.setColumns(5);
+    minSimTF.setText(String.valueOf(config.getFuzzyMinSim()));
     minSim.add(minSimTF);
     minSim.add(new JLabel(MessageUtils.getLocalizedMessage("label.float_required")));
     panel.add(minSim);
@@ -206,6 +257,7 @@ public class QueryParserPaneProvider implements Provider<JScrollPane> {
     JLabel prefLenLabel = new JLabel(MessageUtils.getLocalizedMessage("search_parser.label.fuzzy_preflen"));
     prefLen.add(prefLenLabel);
     prefLenTF.setColumns(5);
+    prefLenTF.setText(String.valueOf(config.getFuzzyPrefixLength()));
     prefLen.add(prefLenTF);
     prefLen.add(new JLabel(MessageUtils.getLocalizedMessage("label.int_required")));
     panel.add(prefLen);
@@ -225,7 +277,9 @@ public class QueryParserPaneProvider implements Provider<JScrollPane> {
     resolution.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
     JLabel resLabel = new JLabel(MessageUtils.getLocalizedMessage("search_parser.label.date_res"));
     resolution.add(resLabel);
-    resolution.add(dateResCB);
+    Arrays.stream(DateTools.Resolution.values()).map(DateTools.Resolution::name).forEach(dateResCombo::addItem);
+    dateResCombo.setSelectedItem(config.getDateResolution().name());
+    resolution.add(dateResCombo);
     panel.add(resolution);
 
     JPanel locale = new JPanel(new FlowLayout(FlowLayout.LEADING));
@@ -233,10 +287,12 @@ public class QueryParserPaneProvider implements Provider<JScrollPane> {
     JLabel locLabel = new JLabel(MessageUtils.getLocalizedMessage("search_parser.label.locale"));
     locale.add(locLabel);
     locationTF.setColumns(10);
+    locationTF.setText(config.getLocale().toString());
     locale.add(locationTF);
     JLabel tzLabel = new JLabel(MessageUtils.getLocalizedMessage("search_parser.label.timezone"));
     locale.add(tzLabel);
     timezoneTF.setColumns(10);
+    timezoneTF.setText(config.getTimeZone().getID());
     locale.add(timezoneTF);
     panel.add(locale);
 
@@ -257,10 +313,35 @@ public class QueryParserPaneProvider implements Provider<JScrollPane> {
     panel.add(headerNote);
 
     TableUtil.setupTable(pointRangeQueryTable, ListSelectionModel.SINGLE_SELECTION, new PointRangeQueryTableModel(), null);
+    pointRangeQueryTable.setShowGrid(true);
     JScrollPane scrollPane = new JScrollPane(pointRangeQueryTable);
     panel.add(scrollPane);
 
     return panel;
+  }
+
+  public static class QueryParserTabProxy {
+
+    private final List<QueryParserTab> holder = new ArrayList<>();
+
+    private void set(QueryParserTab tab) {
+      if (holder.isEmpty()) {
+        holder.add(tab);
+      }
+    }
+
+    public void setSearchableFields(Collection<String> searchableFields) {
+      holder.get(0).setSearchableFields(searchableFields);
+    }
+
+    public void setRangeSearchableFields(Collection<String> rangeSearchableFields) {
+      holder.get(0).setRangeSearchableFields(rangeSearchableFields);
+    }
+
+    public interface QueryParserTab {
+      void setSearchableFields(Collection<String> searchableFields);
+      void setRangeSearchableFields(Collection<String> rangeSearchableFields);
+    }
   }
 }
 
@@ -269,7 +350,7 @@ class PointRangeQueryTableModel extends AbstractTableModel {
   enum Column implements TableColumnInfo {
 
     FIELD("Field", 0, String.class),
-    TYPE("Numeric Type", 1, String.class);
+    TYPE("Numeric Type", 1, NumType.class);
 
     private String colName;
     private int index;
@@ -297,6 +378,12 @@ class PointRangeQueryTableModel extends AbstractTableModel {
     }
   }
 
+  enum NumType {
+
+    INT, LONG, FLOAT, DOUBLE
+
+  }
+
   private static final Map<Integer, Column> columnMap = TableUtil.columnMap(Column.values());
 
   private final String[] colNames = TableUtil.columnNames(Column.values());
@@ -305,6 +392,14 @@ class PointRangeQueryTableModel extends AbstractTableModel {
 
   PointRangeQueryTableModel() {
     this.data = new Object[0][colNames.length];
+  }
+
+  PointRangeQueryTableModel(Collection<String> rangeSearchableFields) {
+    this.data = new Object[rangeSearchableFields.size()][colNames.length];
+    int i = 0;
+    for (String field : rangeSearchableFields) {
+      data[i++][Column.FIELD.getIndex()] = field;
+    }
   }
 
   @Override
@@ -340,7 +435,10 @@ class PointRangeQueryTableModel extends AbstractTableModel {
 
   @Override
   public boolean isCellEditable(int rowIndex, int columnIndex) {
-    return true;
+    if (columnIndex == Column.TYPE.getIndex()) {
+      return true;
+    }
+    return false;
   }
 
   @Override
@@ -349,3 +447,4 @@ class PointRangeQueryTableModel extends AbstractTableModel {
     fireTableCellUpdated(rowIndex, columnIndex);
   }
 }
+

@@ -3,9 +3,19 @@ package org.apache.lucene.luke.app.desktop.components;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.name.Named;
+import org.apache.lucene.luke.app.IndexHandler;
+import org.apache.lucene.luke.app.IndexObserver;
+import org.apache.lucene.luke.app.LukeState;
+import org.apache.lucene.luke.app.desktop.components.fragments.search.FieldValuesPaneProvider;
+import org.apache.lucene.luke.app.desktop.components.fragments.search.MLTPaneProvider;
+import org.apache.lucene.luke.app.desktop.components.fragments.search.QueryParserPaneProvider;
+import org.apache.lucene.luke.app.desktop.components.fragments.search.SortPaneProvider;
 import org.apache.lucene.luke.app.desktop.components.util.TableUtil;
 import org.apache.lucene.luke.app.desktop.util.ImageUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
+import org.apache.lucene.luke.models.search.Search;
+import org.apache.lucene.luke.models.search.SearchFactory;
+import org.apache.lucene.luke.models.tools.IndexToolsFactory;
 
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
@@ -13,6 +23,20 @@ import java.awt.*;
 import java.util.Map;
 
 public class SearchPanelProvider implements Provider<JPanel> {
+
+  private final SearchFactory searchFactory;
+
+  private final IndexToolsFactory toolsFactory;
+
+  private final IndexHandler indexHandler;
+
+  private final QueryParserPaneProvider.QueryParserTabProxy queryParserTab;
+
+  private final SortPaneProvider.SortTabProxy sortTab;
+
+  private final FieldValuesPaneProvider.FieldValuesTabProxy fieldValuesTab;
+
+  private final MLTPaneProvider.MLTTabProxy mltTab;
 
   private final JScrollPane qparser;
 
@@ -40,19 +64,56 @@ public class SearchPanelProvider implements Provider<JPanel> {
 
   private final JTable resultsTable = new JTable();
 
+  class Observer implements IndexObserver {
+
+    @Override
+    public void openIndex(LukeState state) {
+      Search searchModel = searchFactory.newInstance(state.getIndexReader());
+      queryParserTab.setSearchableFields(searchModel.getSearchableFieldNames());
+      queryParserTab.setRangeSearchableFields(searchModel.getRangeSearchableFieldNames());
+      sortTab.setSearchModel(searchModel);
+      sortTab.setSortableFields(searchModel.getSortableFieldNames());
+      fieldValuesTab.setFields(searchModel.getFieldNames());
+      mltTab.setFields(searchModel.getFieldNames());
+    }
+
+    @Override
+    public void closeIndex() {
+
+    }
+
+    private Observer() {}
+  }
+
   @Inject
-  public SearchPanelProvider(@Named("search_qparser") JScrollPane qparser,
+  public SearchPanelProvider(SearchFactory searchFactory,
+                             IndexToolsFactory toolsFactory,
+                             IndexHandler indexHandler,
+                             QueryParserPaneProvider.QueryParserTabProxy queryParserTab,
+                             SortPaneProvider.SortTabProxy sortTab,
+                             FieldValuesPaneProvider.FieldValuesTabProxy fieldValuesTab,
+                             MLTPaneProvider.MLTTabProxy mltTab,
+                             @Named("search_qparser") JScrollPane qparser,
                              @Named("search_analyzer") JScrollPane analyzer,
                              @Named("search_similarity") JScrollPane similarity,
                              @Named("search_sort") JScrollPane sort,
                              @Named("search_values") JScrollPane values,
                              @Named("search_mlt") JScrollPane mlt) {
+    this.searchFactory = searchFactory;
+    this.toolsFactory = toolsFactory;
+    this.indexHandler = indexHandler;
+    this.queryParserTab = queryParserTab;
+    this.sortTab = sortTab;
+    this.fieldValuesTab = fieldValuesTab;
+    this.mltTab = mltTab;
     this.qparser = qparser;
     this.analyzer = analyzer;
     this.similarity = similarity;
     this.sort = sort;
     this.values = values;
     this.mlt = mlt;
+
+    indexHandler.addObserver(new Observer());
   }
 
   @Override
