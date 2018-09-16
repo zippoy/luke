@@ -4,22 +4,23 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.luke.app.desktop.components.ComponentProxy;
+import org.apache.lucene.luke.app.desktop.components.ComponentOperatorRegistry;
 import org.apache.lucene.luke.app.desktop.components.TabbedPaneProvider;
 import org.apache.lucene.luke.app.desktop.components.TableColumnInfo;
 import org.apache.lucene.luke.app.desktop.components.util.FontUtil;
 import org.apache.lucene.luke.app.desktop.components.util.TableUtil;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
+import org.apache.lucene.luke.models.search.MLTConfig;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
+import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JTable;
-import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
@@ -32,18 +33,21 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class MLTPaneProvider implements Provider<JScrollPane> {
 
   private final Listeners listeners;
 
-  private final JTextField maxDocFreqTF = new JTextField();
+  private final JFormattedTextField maxDocFreqFTF = new JFormattedTextField();
 
-  private final JTextField minDocFreqTF = new JTextField();
+  private final JFormattedTextField minDocFreqFTF = new JFormattedTextField();
 
-  private final JTextField minTermFreqTF = new JTextField();
+  private final JFormattedTextField minTermFreqFTF = new JFormattedTextField();
 
   private final JCheckBox loadAllCB = new JCheckBox();
 
@@ -51,9 +55,11 @@ public class MLTPaneProvider implements Provider<JScrollPane> {
 
   private final TabbedPaneProvider.TabSwitcherProxy tabSwitcher;
 
+  private MLTConfig config = new MLTConfig.Builder().build();
+
   private Analyzer analyzer = new StandardAnalyzer();
 
-  class MLTTabImpl implements MLTTabProxy.MLTTab {
+  class MLTTabOperatorImpl implements MLTTabOperator {
 
     @Override
     public void setFields(Collection<String> fields) {
@@ -63,6 +69,23 @@ public class MLTPaneProvider implements Provider<JScrollPane> {
       fieldsTable.getModel().addTableModelListener(listeners.getFieldsTableModelListener());
     }
 
+    @Override
+    public MLTConfig getConfig() {
+      List<String> fields = new ArrayList<>();
+      for (int row = 0; row < fieldsTable.getRowCount(); row++) {
+        boolean selected = (boolean)fieldsTable.getValueAt(row, MLTFieldTableModel.Column.SELECT.getIndex());
+        if (selected) {
+          fields.add((String)fieldsTable.getValueAt(row, MLTFieldTableModel.Column.FIELD.getIndex()));
+        }
+      }
+
+      return new MLTConfig.Builder()
+          .fields(fields)
+          .maxDocFreq((int)maxDocFreqFTF.getValue())
+          .minDocFreq((int)minDocFreqFTF.getValue())
+          .minTermFreq((int)minTermFreqFTF.getValue())
+          .build();
+    }
   }
 
   class Listeners {
@@ -95,11 +118,11 @@ public class MLTPaneProvider implements Provider<JScrollPane> {
 
   @Inject
   public MLTPaneProvider(TabbedPaneProvider.TabSwitcherProxy tabSwitcher,
-                         MLTTabProxy mltTab) {
+                         ComponentOperatorRegistry operatorRegistry) {
     this.listeners = new Listeners();
     this.tabSwitcher = tabSwitcher;
 
-    mltTab.set(new MLTTabImpl());
+    operatorRegistry.register(MLTTabOperator.class, new MLTTabOperatorImpl());
   }
 
   public void setAnalyzer(Analyzer analyzer) {
@@ -126,20 +149,27 @@ public class MLTPaneProvider implements Provider<JScrollPane> {
 
     JPanel maxDocFreq = new JPanel(new FlowLayout(FlowLayout.LEADING));
     maxDocFreq.add(new JLabel(MessageUtils.getLocalizedMessage("search_mlt.label.max_doc_freq")));
-    maxDocFreqTF.setColumns(10);
-    maxDocFreq.add(maxDocFreqTF);
+    maxDocFreqFTF.setColumns(10);
+    maxDocFreqFTF.setValue(config.getMaxDocFreq());
+    maxDocFreq.add(maxDocFreqFTF);
+    maxDocFreq.add(new JLabel(MessageUtils.getLocalizedMessage("label.int_required")));
     panel.add(maxDocFreq);
 
     JPanel minDocFreq = new JPanel(new FlowLayout(FlowLayout.LEADING));
     minDocFreq.add(new JLabel(MessageUtils.getLocalizedMessage("search_mlt.label.min_doc_freq")));
-    minDocFreqTF.setColumns(5);
-    minDocFreq.add(minDocFreqTF);
+    minDocFreqFTF.setColumns(5);
+    minDocFreqFTF.setValue(config.getMinDocFreq());
+    minDocFreq.add(minDocFreqFTF);
+
+    minDocFreq.add(new JLabel(MessageUtils.getLocalizedMessage("label.int_required")));
     panel.add(minDocFreq);
 
     JPanel minTermFreq = new JPanel(new FlowLayout(FlowLayout.LEADING));
     minTermFreq.add(new JLabel(MessageUtils.getLocalizedMessage("serach_mlt.label.min_term_freq")));
-    minTermFreqTF.setColumns(5);
-    minTermFreq.add(minTermFreqTF);
+    minTermFreqFTF.setColumns(5);
+    minTermFreqFTF.setValue(config.getMinTermFreq());
+    minTermFreq.add(minTermFreqFTF);
+    minTermFreq.add(new JLabel(MessageUtils.getLocalizedMessage("label.int_required")));
     panel.add(minTermFreq);
 
     return panel;
@@ -186,17 +216,10 @@ public class MLTPaneProvider implements Provider<JScrollPane> {
     return panel;
   }
 
-  public static class MLTTabProxy extends ComponentProxy<MLTTabProxy.MLTTab>  {
-
-    public void setFields(Collection<String> fields) {
-      get().setFields(fields);
-    }
-
-    interface MLTTab extends ComponentProxy.Component {
-      void setFields(Collection<String> fields);
-    }
+  public interface MLTTabOperator extends ComponentOperatorRegistry.ComponentOperator {
+    void setFields(Collection<String> fields);
+    MLTConfig getConfig();
   }
-
 
 }
 

@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.luke.app.desktop.components.ComponentOperatorRegistry;
 import org.apache.lucene.luke.app.desktop.components.TabbedPaneProvider;
 import org.apache.lucene.luke.app.desktop.components.util.FontUtil;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
@@ -42,9 +43,20 @@ public class AnalyzerPaneProvider implements Provider<JScrollPane> {
 
   private Analyzer analyzer = new StandardAnalyzer();
 
+  class AnalyzerTabOperatorImpl implements AnalyzerTabOperator {
+
+    @Override
+    public Analyzer getCurrentAnalyzer() {
+      return analyzer;
+    }
+  }
+
   @Inject
-  public AnalyzerPaneProvider(TabbedPaneProvider.TabSwitcherProxy tabSwitcher) {
+  public AnalyzerPaneProvider(TabbedPaneProvider.TabSwitcherProxy tabSwitcher,
+                              ComponentOperatorRegistry operatorRegistry) {
     this.tabSwitcher = tabSwitcher;
+
+    operatorRegistry.register(AnalyzerTabOperator.class, new AnalyzerTabOperatorImpl());
   }
 
   public void setAnalyzer(@Nonnull Analyzer analyzer) {
@@ -141,4 +153,7 @@ public class AnalyzerPaneProvider implements Provider<JScrollPane> {
     return panel;
   }
 
+  public interface AnalyzerTabOperator extends ComponentOperatorRegistry.ComponentOperator {
+    Analyzer getCurrentAnalyzer();
+  }
 }

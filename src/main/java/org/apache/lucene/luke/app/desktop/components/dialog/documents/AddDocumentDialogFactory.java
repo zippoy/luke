@@ -20,6 +20,8 @@ import org.apache.lucene.document.TextField;
 import org.apache.lucene.luke.app.IndexHandler;
 import org.apache.lucene.luke.app.IndexObserver;
 import org.apache.lucene.luke.app.LukeState;
+import org.apache.lucene.luke.app.desktop.MessageBroker;
+import org.apache.lucene.luke.app.desktop.components.ComponentOperatorRegistry;
 import org.apache.lucene.luke.app.desktop.components.DocumentsPanelProvider;
 import org.apache.lucene.luke.app.desktop.components.TabbedPaneProvider;
 import org.apache.lucene.luke.app.desktop.components.TableColumnInfo;
@@ -65,6 +67,7 @@ import java.awt.event.MouseEvent;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -82,6 +85,8 @@ public class AddDocumentDialogFactory implements DialogOpener.DialogFactory {
 
   private final JButton addBtn = new JButton();
 
+  private final JButton closeBtn = new JButton();
+
   private final JTextArea infoTA = new JTextArea();
 
   private final IndexOptionsDialogFactory indexOptionsDialogFactory;
@@ -94,7 +99,8 @@ public class AddDocumentDialogFactory implements DialogOpener.DialogFactory {
 
   private final TabbedPaneProvider.TabSwitcherProxy tabSwitcher;
 
-  private final DocumentsPanelProvider.DocumentsTabProxy documentsTab;
+  //private final Optional<DocumentsPanelProvider.DocumentsTabOperator> documentsTabOperator;
+  private final ComponentOperatorRegistry operatorRegistry;
 
   private IndexTools toolsModel;
 
@@ -114,10 +120,11 @@ public class AddDocumentDialogFactory implements DialogOpener.DialogFactory {
       try {
         toolsModel.addDocument(doc, currentAnalyzer);
         indexHandler.reOpen();
-        documentsTab.displayLatestDoc();
+        operatorRegistry.get(DocumentsPanelProvider.DocumentsTabOperator.class).ifPresent(DocumentsPanelProvider.DocumentsTabOperator::displayLatestDoc);
         tabSwitcher.switchTab(TabbedPaneProvider.Tab.DOCUMENTS);
         infoTA.setText(MessageUtils.getLocalizedMessage("add_document.message.success"));
         addBtn.setEnabled(false);
+        closeBtn.setText(MessageUtils.getLocalizedMessage("button.close"));
       } catch (LukeException e) {
         infoTA.setText(MessageUtils.getLocalizedMessage("add_document.message.fail"));
         throw e;
@@ -149,13 +156,13 @@ public class AddDocumentDialogFactory implements DialogOpener.DialogFactory {
   public AddDocumentDialogFactory(IndexOptionsDialogFactory indexOptionsDialogFactory, HelpDialogFactory helpDialogFactory,
                                   IndexHandler indexHandler, IndexToolsFactory toolsFactory,
                                   TabbedPaneProvider.TabSwitcherProxy tabSwitcher,
-                                  DocumentsPanelProvider.DocumentsTabProxy documentsTab) {
+                                  ComponentOperatorRegistry operatorRegistry) {
     this.indexOptionsDialogFactory = indexOptionsDialogFactory;
     this.helpDialogFactory = helpDialogFactory;
     this.indexHandler = indexHandler;
     this.toolsFactory = toolsFactory;
     this.tabSwitcher = tabSwitcher;
-    this.documentsTab = documentsTab;
+    this.operatorRegistry = operatorRegistry;
     this.listeners = new AddDocumentDialogListeners(new Controller());
 
     indexHandler.addObserver(new Observer());
@@ -221,9 +228,9 @@ public class AddDocumentDialogFactory implements DialogOpener.DialogFactory {
     addBtn.setText(MessageUtils.getLocalizedMessage("add_document.button.add"));
     addBtn.addActionListener(listeners.getAddBtnListener());
     tableFooter.add(addBtn);
-    JButton cancelBtn = new JButton(MessageUtils.getLocalizedMessage("button.cancel"));
-    cancelBtn.addActionListener(e -> dialog.dispose());
-    tableFooter.add(cancelBtn);
+    closeBtn.setText(MessageUtils.getLocalizedMessage("button.cancel"));
+    closeBtn.addActionListener(e -> dialog.dispose());
+    tableFooter.add(closeBtn);
     panel.add(tableFooter, BorderLayout.PAGE_END);
 
     return panel;

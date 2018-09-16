@@ -204,12 +204,12 @@ public class OverviewPanelProvider implements Provider<JPanel> {
   public OverviewPanelProvider(
       OverviewFactory overviewFactory,
       MessageBroker messageBroker,
+      ComponentOperatorRegistry operatorRegistry,
       IndexHandler indexHandler,
-      DocumentsPanelProvider.DocumentsTabProxy documentsTabProxy,
       TabbedPaneProvider.TabSwitcherProxy tabSwitcher) {
     this.overviewFactory = overviewFactory;
     this.messageBroker = messageBroker;
-    this.listeners = new OverviewPanelListeners(new Controller(), documentsTabProxy, tabSwitcher);
+    this.listeners = new OverviewPanelListeners(new Controller(), operatorRegistry, tabSwitcher);
 
     indexHandler.addObserver(new Observer());
   }

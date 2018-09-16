@@ -1,12 +1,17 @@
 package org.apache.lucene.luke.app.desktop.components.fragments.search;
 
+import com.google.inject.Inject;
 import com.google.inject.Provider;
+import org.apache.lucene.luke.app.desktop.components.ComponentOperatorRegistry;
 import org.apache.lucene.luke.app.desktop.components.util.StyleConstants;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
+import org.apache.lucene.luke.models.LukeException;
+import org.apache.lucene.luke.models.search.SimilarityConfig;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
+import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -26,35 +31,50 @@ public class SimilarityPaneProvider implements Provider<JScrollPane> {
 
   private final JCheckBox discardOverlapsCB = new JCheckBox();
 
-  private final JTextField k1TF = new JTextField();
+  private final JFormattedTextField k1FTF = new JFormattedTextField();
 
-  private final JTextField bTF = new JTextField();
+  private final JFormattedTextField bFTF = new JFormattedTextField();
 
-  private final Listeners listeners;
+  private final SimilarityConfig config = new SimilarityConfig.Builder().build();
 
-  class Listeners {
+  private final ListenerFunctions listeners = new ListenerFunctions();
 
-    ActionListener getTfIdfCBListener() {
-      return (ActionEvent e) -> {
-        if (tfidfCB.isSelected()) {
-          k1TF.setEnabled(false);
-          k1TF.setBackground(StyleConstants.DISABLED_COLOR);
-          bTF.setEnabled(false);
-          bTF.setBackground(StyleConstants.DISABLED_COLOR);
-        } else {
-          k1TF.setEnabled(true);
-          k1TF.setBackground(Color.white);
-          bTF.setEnabled(true);
-          bTF.setBackground(Color.white);
-        }
-      };
+  class ListenerFunctions {
+
+    void toggleTfIdf(ActionEvent e) {
+      if (tfidfCB.isSelected()) {
+        k1FTF.setEnabled(false);
+        k1FTF.setBackground(StyleConstants.DISABLED_COLOR);
+        bFTF.setEnabled(false);
+        bFTF.setBackground(StyleConstants.DISABLED_COLOR);
+      } else {
+        k1FTF.setEnabled(true);
+        k1FTF.setBackground(Color.white);
+        bFTF.setEnabled(true);
+        bFTF.setBackground(Color.white);
+      }
+    }
+  }
+
+  class SimilarityTabOperatorImpl implements SimilarityTabOperator {
+
+    @Override
+    public SimilarityConfig getConfig() {
+      float k1 = (float)k1FTF.getValue();
+      float b = (float)bFTF.getValue();
+      return new SimilarityConfig.Builder()
+          .useClassicSimilarity(tfidfCB.isSelected())
+          .discountOverlaps(discardOverlapsCB.isSelected())
+          .k1(k1)
+          .b(b)
+          .build();
     }
 
   }
 
-  public SimilarityPaneProvider() {
-    this.listeners = new Listeners();
-    UIManager.put("inactiveBackground", new ColorUIResource(Color.lightGray));
+  @Inject
+  public SimilarityPaneProvider(ComponentOperatorRegistry operatorRegistry) {
+    operatorRegistry.register(SimilarityTabOperator.class, new SimilarityTabOperatorImpl());
   }
 
   @Override
@@ -73,10 +93,11 @@ public class SimilarityPaneProvider implements Provider<JScrollPane> {
     panel.setMaximumSize(new Dimension(700, 220));
 
     tfidfCB.setText(MessageUtils.getLocalizedMessage("search_similarity.checkbox.use_classic"));
-    tfidfCB.addActionListener(listeners.getTfIdfCBListener());
+    tfidfCB.addActionListener(listeners::toggleTfIdf);
     panel.add(tfidfCB);
 
     discardOverlapsCB.setText(MessageUtils.getLocalizedMessage("search_similarity.checkbox.discount_overlaps"));
+    discardOverlapsCB.setSelected(config.isUseClassicSimilarity());
     panel.add(discardOverlapsCB);
 
     JLabel bm25Label = new JLabel(MessageUtils.getLocalizedMessage("search_similarity.label.bm25_params"));
@@ -87,20 +108,26 @@ public class SimilarityPaneProvider implements Provider<JScrollPane> {
 
     JPanel k1Val = new JPanel(new FlowLayout(FlowLayout.LEADING));
     k1Val.add(new JLabel("k1: "));
-    k1TF.setColumns(5);
-    k1Val.add(k1TF);
+    k1FTF.setColumns(5);
+    k1FTF.setValue(config.getK1());
+    k1Val.add(k1FTF);
     k1Val.add(new JLabel(MessageUtils.getLocalizedMessage("label.float_required")));
     bm25Params.add(k1Val);
 
     JPanel bVal = new JPanel(new FlowLayout(FlowLayout.LEADING));
     bVal.add(new JLabel("b: "));
-    bTF.setColumns(5);
-    bVal.add(bTF);
+    bFTF.setColumns(5);
+    bFTF.setValue(config.getB());
+    bVal.add(bFTF);
     bVal.add(new JLabel(MessageUtils.getLocalizedMessage("label.float_required")));
     bm25Params.add(bVal);
 
     panel.add(bm25Params);
 
     return panel;
+  }
+
+  public interface SimilarityTabOperator extends ComponentOperatorRegistry.ComponentOperator {
+    SimilarityConfig getConfig();
   }
 }

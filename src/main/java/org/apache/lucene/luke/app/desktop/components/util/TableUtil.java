@@ -39,6 +39,19 @@ public class TableUtil {
     }
   }
 
+  public static void setEnabled(JTable table, boolean enabled) {
+    table.setEnabled(enabled);
+    if (enabled) {
+      table.setRowSelectionAllowed(true);
+      table.setForeground(Color.black);
+      table.setBackground(Color.white);
+    } else {
+      table.setRowSelectionAllowed(false);
+      table.setForeground(Color.gray);
+      table.setBackground(Color.lightGray);
+    }
+  }
+
   public static <T extends TableColumnInfo> String[] columnNames(T[] columns) {
     return columnMap(columns).entrySet().stream().map(e -> e.getValue().getColName()).toArray(String[]::new);
   }

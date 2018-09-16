@@ -1,6 +1,8 @@
 package org.apache.lucene.luke.app.desktop.listeners;
 
+import org.apache.lucene.luke.app.desktop.components.ComponentOperatorRegistry;
 import org.apache.lucene.luke.app.desktop.components.DocumentsPanelProvider;
+import org.apache.lucene.luke.app.desktop.components.SearchPanelProvider;
 import org.apache.lucene.luke.app.desktop.components.TabbedPaneProvider;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 
@@ -20,9 +22,14 @@ public class DocumentsPanelListeners {
 
   private final TabbedPaneProvider.TabSwitcherProxy tabSwitcher;
 
-  public DocumentsPanelListeners(DocumentsPanelProvider.Controller controller, TabbedPaneProvider.TabSwitcherProxy tabSwitcher) {
+  private final ComponentOperatorRegistry operatorRegistry;
+
+  public DocumentsPanelListeners(DocumentsPanelProvider.Controller controller,
+                                 TabbedPaneProvider.TabSwitcherProxy tabSwitcher,
+                                 ComponentOperatorRegistry operatorRegistry) {
     this.controller = controller;
     this.tabSwitcher = tabSwitcher;
+    this.operatorRegistry = operatorRegistry;
   }
 
   public ActionListener getFieldsCBListener() {
@@ -51,7 +58,8 @@ public class DocumentsPanelListeners {
 
   public ActionListener getMltSearchBtnListener() {
     return (ActionEvent e) -> {
-      // TODO
+      int docNum = controller.getMLTDocNum();
+      operatorRegistry.get(SearchPanelProvider.SearchTabOperator.class).ifPresent(operator -> operator.mltSearch(docNum));
       tabSwitcher.switchTab(TabbedPaneProvider.Tab.SEARCH);
     };
   }

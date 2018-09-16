@@ -1,7 +1,9 @@
 package org.apache.lucene.luke.app.desktop.listeners;
 
+import org.apache.lucene.luke.app.desktop.components.ComponentOperatorRegistry;
 import org.apache.lucene.luke.app.desktop.components.DocumentsPanelProvider;
 import org.apache.lucene.luke.app.desktop.components.OverviewPanelProvider;
+import org.apache.lucene.luke.app.desktop.components.SearchPanelProvider;
 import org.apache.lucene.luke.app.desktop.components.TabbedPaneProvider;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 import org.apache.lucene.luke.models.overview.Overview;
@@ -15,6 +17,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.List;
+import java.util.Optional;
 
 public class OverviewPanelListeners {
 
@@ -22,16 +25,16 @@ public class OverviewPanelListeners {
 
   private final TabbedPaneProvider.TabSwitcherProxy tabSwitcher;
 
-  private final DocumentsPanelProvider.DocumentsTabProxy documentsTabProxy;
+  private final ComponentOperatorRegistry operatorRegistry;
 
   private Overview overviewModel;
 
   public OverviewPanelListeners(
       OverviewPanelProvider.Controller controller,
-      DocumentsPanelProvider.DocumentsTabProxy documentsTabProxy,
+      ComponentOperatorRegistry operatorRegistry,
       TabbedPaneProvider.TabSwitcherProxy tabSwitcher) {
     this.controller = controller;
-    this.documentsTabProxy = documentsTabProxy;
+    this.operatorRegistry = operatorRegistry;
     this.tabSwitcher = tabSwitcher;
   }
 
@@ -98,7 +101,7 @@ public class OverviewPanelListeners {
     return (ActionEvent e) -> {
       String field = controller.getSelectedField();
       String term = controller.getSelectedTerm();
-      documentsTabProxy.browseTerm(field, term);
+      operatorRegistry.get(DocumentsPanelProvider.DocumentsTabOperator.class).ifPresent(operator -> operator.browseTerm(field, term));
       tabSwitcher.switchTab(TabbedPaneProvider.Tab.DOCUMENTS);
     };
   }
@@ -107,8 +110,7 @@ public class OverviewPanelListeners {
     return (ActionEvent e) -> {
       String field = controller.getSelectedField();
       String term = controller.getSelectedTerm();
-      // TODO
-      System.out.println(String.format("Search term %s in %s", term, field));
+      operatorRegistry.get(SearchPanelProvider.SearchTabOperator.class).ifPresent(operator -> operator.searchByTerm(field, term));
       tabSwitcher.switchTab(TabbedPaneProvider.Tab.SEARCH);
     };
   }

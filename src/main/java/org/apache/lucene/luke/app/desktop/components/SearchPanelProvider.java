@@ -1,28 +1,77 @@
 package org.apache.lucene.luke.app.desktop.components;
 
+import com.google.common.base.Strings;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.name.Named;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.index.Term;
 import org.apache.lucene.luke.app.IndexHandler;
 import org.apache.lucene.luke.app.IndexObserver;
 import org.apache.lucene.luke.app.LukeState;
+import org.apache.lucene.luke.app.desktop.MessageBroker;
+import org.apache.lucene.luke.app.desktop.components.dialog.ConfirmDialogFactory;
+import org.apache.lucene.luke.app.desktop.components.fragments.search.AnalyzerPaneProvider;
 import org.apache.lucene.luke.app.desktop.components.fragments.search.FieldValuesPaneProvider;
 import org.apache.lucene.luke.app.desktop.components.fragments.search.MLTPaneProvider;
 import org.apache.lucene.luke.app.desktop.components.fragments.search.QueryParserPaneProvider;
+import org.apache.lucene.luke.app.desktop.components.fragments.search.SimilarityPaneProvider;
 import org.apache.lucene.luke.app.desktop.components.fragments.search.SortPaneProvider;
+import org.apache.lucene.luke.app.desktop.components.util.DialogOpener;
 import org.apache.lucene.luke.app.desktop.components.util.TableUtil;
 import org.apache.lucene.luke.app.desktop.util.ImageUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
+import org.apache.lucene.luke.models.LukeException;
+import org.apache.lucene.luke.models.search.MLTConfig;
+import org.apache.lucene.luke.models.search.QueryParserConfig;
 import org.apache.lucene.luke.models.search.Search;
 import org.apache.lucene.luke.models.search.SearchFactory;
+import org.apache.lucene.luke.models.search.SearchResults;
+import org.apache.lucene.luke.models.search.SimilarityConfig;
+import org.apache.lucene.luke.models.tools.IndexTools;
 import org.apache.lucene.luke.models.tools.IndexToolsFactory;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.Sort;
+import org.apache.lucene.search.TermQuery;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JFormattedTextField;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
+import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTable;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
 import javax.swing.table.AbstractTableModel;
-import java.awt.*;
+import javax.swing.table.DefaultTableCellRenderer;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class SearchPanelProvider implements Provider<JPanel> {
+
+  private static final int DEFAULT_PAGE_SIZE = 10;
 
   private final SearchFactory searchFactory;
 
@@ -30,13 +79,13 @@ public class SearchPanelProvider implements Provider<JPanel> {
 
   private final IndexHandler indexHandler;
 
-  private final QueryParserPaneProvider.QueryParserTabProxy queryParserTab;
+  private final MessageBroker messageBroker;
 
-  private final SortPaneProvider.SortTabProxy sortTab;
+  private final ComponentOperatorRegistry operatorRegistry;
 
-  private final FieldValuesPaneProvider.FieldValuesTabProxy fieldValuesTab;
+  private final ConfirmDialogFactory confirmDialogFactory;
 
-  private final MLTPaneProvider.MLTTabProxy mltTab;
+  private final JTabbedPane tabbedPane = new JTabbedPane();
 
   private final JScrollPane qparser;
 
@@ -56,43 +105,268 @@ public class SearchPanelProvider implements Provider<JPanel> {
 
   private final JTextArea parsedQueryTA = new JTextArea();
 
+  private final JButton parseBtn = new JButton();
+
   private final JCheckBox rewriteCB = new JCheckBox();
 
-  private final JTextField mltDocTF = new JTextField();
+  private final JButton searchBtn = new JButton();
 
-  private final JLabel totalDocsLbl = new JLabel();
+  private final JButton mltBtn = new JButton();
+
+  private final JFormattedTextField mltDocFTF = new JFormattedTextField();
+
+  private final JLabel totalHitsLbl = new JLabel();
+
+  private final JLabel startLbl = new JLabel();
+
+  private final JLabel endLbl = new JLabel();
+
+  private final JButton prevBtn = new JButton();
+
+  private final JButton nextBtn = new JButton();
+
+  private final JButton delBtn = new JButton();
 
   private final JTable resultsTable = new JTable();
+
+  private final ListenerFunctions listeners = new ListenerFunctions();
+
+  private Search searchModel;
+
+  private IndexTools toolsModel;
+
+  class ListenerFunctions {
+
+    void toggleTermQuery(ActionEvent e) {
+      if (termQueryCB.isSelected()) {
+        enableTermQuery();
+      } else {
+        disableTermQuery();
+      }
+    }
+
+    private void enableTermQuery() {
+      tabbedPane.setEnabled(false);
+      parseBtn.setEnabled(false);
+      rewriteCB.setEnabled(false);
+      mltBtn.setEnabled(false);
+      mltDocFTF.setEnabled(false);
+    }
+
+    private void disableTermQuery() {
+      tabbedPane.setEnabled(true);
+      parseBtn.setEnabled(true);
+      rewriteCB.setEnabled(true);
+      mltBtn.setEnabled(true);
+      mltDocFTF.setEnabled(true);
+    }
+
+    void execParse(ActionEvent e) {
+      Query query = parse(rewriteCB.isSelected());
+      parsedQueryTA.setText(query.toString());
+      messageBroker.clearStatusMessage();
+    }
+
+    void execSearch(ActionEvent e) {
+      doSearch();
+    }
+
+    private void doSearch() {
+      Query query;
+      if (termQueryCB.isSelected()) {
+        // term query
+        if (Strings.isNullOrEmpty(queryStringTA.getText())) {
+          throw new LukeException("Query is not set.");
+        }
+        String[] tmp = queryStringTA.getText().split(":");
+        if (tmp.length < 2) {
+          throw new LukeException(String.format("Invalid query [ %s ]", queryStringTA.getText()));
+        }
+        query = new TermQuery(new Term(tmp[0].trim(), tmp[1].trim()));
+      } else {
+        query = parse(false);
+      }
+      SimilarityConfig simConfig = operatorRegistry.get(SimilarityPaneProvider.SimilarityTabOperator.class)
+          .map(SimilarityPaneProvider.SimilarityTabOperator::getConfig)
+          .orElse(new SimilarityConfig.Builder().build());
+      Sort sort = operatorRegistry.get(SortPaneProvider.SortTabOperator.class)
+          .map(SortPaneProvider.SortTabOperator::getSort)
+          .orElse(null);
+      Set<String> fieldsToLoad = operatorRegistry.get(FieldValuesPaneProvider.FieldValuesTabOperator.class)
+          .map(FieldValuesPaneProvider.FieldValuesTabOperator::getFieldsToLoad)
+          .orElse(Collections.emptySet());
+      SearchResults results = searchModel.search(query, simConfig, sort, fieldsToLoad, DEFAULT_PAGE_SIZE);
+
+      TableUtil.setupTable(resultsTable, ListSelectionModel.SINGLE_SELECTION, new SearchResultsTableModel(), null, 50, 100);
+      populateResults(results);
+    }
+
+    void nextPage(ActionEvent e) {
+      searchModel.nextPage().ifPresent(this::populateResults);
+    }
+
+    void prevPage(ActionEvent e) {
+      searchModel.prevPage().ifPresent(this::populateResults);
+    }
+
+    void execMLTSearch(ActionEvent e) {
+      doMLTSearch();
+    }
+
+    void doMLTSearch() {
+      if (Objects.isNull(mltDocFTF.getValue())) {
+        throw new LukeException("Doc num is not set.");
+      }
+      int docNum = (int)mltDocFTF.getValue();
+      MLTConfig mltConfig = operatorRegistry.get(MLTPaneProvider.MLTTabOperator.class)
+          .map(MLTPaneProvider.MLTTabOperator::getConfig)
+          .orElse(new MLTConfig.Builder().build());
+      Analyzer analyzer = operatorRegistry.get(AnalyzerPaneProvider.AnalyzerTabOperator.class)
+          .map(AnalyzerPaneProvider.AnalyzerTabOperator::getCurrentAnalyzer)
+          .orElse(new StandardAnalyzer());
+      Query query = searchModel.mltQuery(docNum, mltConfig, analyzer);
+      Set<String> fieldsToLoad = operatorRegistry.get(FieldValuesPaneProvider.FieldValuesTabOperator.class)
+          .map(FieldValuesPaneProvider.FieldValuesTabOperator::getFieldsToLoad)
+          .orElse(Collections.emptySet());
+      SearchResults results = searchModel.search(query, new SimilarityConfig.Builder().build(), fieldsToLoad, DEFAULT_PAGE_SIZE);
+
+      TableUtil.setupTable(resultsTable, ListSelectionModel.SINGLE_SELECTION, new SearchResultsTableModel(), null, 50, 100);
+      populateResults(results);
+    }
+
+    private Query parse(boolean rewrite) {
+      String expr = Strings.isNullOrEmpty(queryStringTA.getText()) ? "*:*" : queryStringTA.getText();
+      String df = operatorRegistry.get(QueryParserPaneProvider.QueryParserTabOperator.class)
+          .map(QueryParserPaneProvider.QueryParserTabOperator::getDefaultField)
+          .orElse("");
+      QueryParserConfig config = operatorRegistry.get(QueryParserPaneProvider.QueryParserTabOperator.class)
+          .map(QueryParserPaneProvider.QueryParserTabOperator::getConfig)
+          .orElse(new QueryParserConfig.Builder().build());
+      Analyzer analyzer = operatorRegistry.get(AnalyzerPaneProvider.AnalyzerTabOperator.class)
+          .map(AnalyzerPaneProvider.AnalyzerTabOperator::getCurrentAnalyzer)
+          .orElse(new StandardAnalyzer());
+      return searchModel.parseQuery(expr, df, analyzer, config, rewrite);
+    }
+
+    private void populateResults(SearchResults res) {
+      totalHitsLbl.setText(String.valueOf(res.getTotalHits()));
+      if (res.getTotalHits() > 0) {
+        startLbl.setText(String.valueOf(res.getOffset() + 1));
+        endLbl.setText(String.valueOf(res.getOffset() + res.size()));
+
+        prevBtn.setEnabled(res.getOffset() > 0);
+        nextBtn.setEnabled(res.getTotalHits() > res.getOffset() + res.size());
+
+        if (!indexHandler.getState().readOnly() && indexHandler.getState().hasDirectoryReader()) {
+          delBtn.setEnabled(true);
+        }
+
+        resultsTable.setModel(new SearchResultsTableModel(res));
+        resultsTable.getColumnModel().getColumn(SearchResultsTableModel.Column.DOCID.getIndex()).setPreferredWidth(50);
+        resultsTable.getColumnModel().getColumn(SearchResultsTableModel.Column.SCORE.getIndex()).setPreferredWidth(100);
+        resultsTable.getColumnModel().getColumn(SearchResultsTableModel.Column.VALUE.getIndex()).setPreferredWidth(800);
+      } else {
+        startLbl.setText("0");
+        endLbl.setText("0");
+        prevBtn.setEnabled(false);
+        nextBtn.setEnabled(false);
+        delBtn.setEnabled(false);
+      }
+    }
+
+    void confirmDeletion(ActionEvent e) {
+      new DialogOpener<>(confirmDialogFactory).open("Confirm Deletion", 400, 200, (factory) -> {
+        factory.setMessage(MessageUtils.getLocalizedMessage("search.message.delete_confirm"));
+        factory.setCallback(listeners::deleteDocs);
+      });
+    }
+
+    void deleteDocs() {
+      Query query = searchModel.getCurrentQuery();
+      if (query != null) {
+        toolsModel.deleteDocuments(query);
+        indexHandler.reOpen();
+        messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("search.message.delete_success", query.toString()));
+      }
+      delBtn.setEnabled(false);
+    }
+
+  }
 
   class Observer implements IndexObserver {
 
     @Override
     public void openIndex(LukeState state) {
-      Search searchModel = searchFactory.newInstance(state.getIndexReader());
-      queryParserTab.setSearchableFields(searchModel.getSearchableFieldNames());
-      queryParserTab.setRangeSearchableFields(searchModel.getRangeSearchableFieldNames());
-      sortTab.setSearchModel(searchModel);
-      sortTab.setSortableFields(searchModel.getSortableFieldNames());
-      fieldValuesTab.setFields(searchModel.getFieldNames());
-      mltTab.setFields(searchModel.getFieldNames());
+      searchModel = searchFactory.newInstance(state.getIndexReader());
+      toolsModel = toolsFactory.newInstance(state.getIndexReader(), state.useCompound(), state.keepAllCommits());
+      operatorRegistry.get(QueryParserPaneProvider.QueryParserTabOperator.class).ifPresent(operator -> {
+        operator.setSearchableFields(searchModel.getSearchableFieldNames());
+        operator.setRangeSearchableFields(searchModel.getRangeSearchableFieldNames());
+      });
+      operatorRegistry.get(SortPaneProvider.SortTabOperator.class).ifPresent(operator -> {
+        operator.setSearchModel(searchModel);
+        operator.setSortableFields(searchModel.getFieldNames());
+      });
+      operatorRegistry.get(FieldValuesPaneProvider.FieldValuesTabOperator.class).ifPresent(operator -> {
+        operator.setFields(searchModel.getFieldNames());
+      });
+      operatorRegistry.get(MLTPaneProvider.MLTTabOperator.class).ifPresent(operator -> {
+        operator.setFields(searchModel.getFieldNames());
+      });
+
+      queryStringTA.setText("*:*");
+      parsedQueryTA.setText("");
+      parseBtn.setEnabled(true);
+      searchBtn.setEnabled(true);
+      mltBtn.setEnabled(true);
     }
 
     @Override
     public void closeIndex() {
+      searchModel = null;
+      toolsModel = null;
 
+      queryStringTA.setText("");
+      parsedQueryTA.setText("");
+      parseBtn.setEnabled(false);
+      searchBtn.setEnabled(false);
+      mltBtn.setEnabled(false);
+      totalHitsLbl.setText("0");
+      startLbl.setText("0");
+      endLbl.setText("0");
+      nextBtn.setEnabled(false);
+      prevBtn.setEnabled(false);
+      delBtn.setEnabled(false);
+      TableUtil.setupTable(resultsTable, ListSelectionModel.SINGLE_SELECTION, new SearchResultsTableModel(), null, 50, 100);
     }
 
     private Observer() {}
+  }
+
+  class SearchTabOperatorImpl implements SearchTabOperator {
+
+    @Override
+    public void searchByTerm(String field, String term) {
+      termQueryCB.setSelected(true);
+      listeners.enableTermQuery();
+      queryStringTA.setText(String.format("%s:%s", field, term));
+      listeners.doSearch();
+    }
+
+    @Override
+    public void mltSearch(int docNum) {
+      mltDocFTF.setValue(docNum);
+      listeners.doMLTSearch();
+    }
   }
 
   @Inject
   public SearchPanelProvider(SearchFactory searchFactory,
                              IndexToolsFactory toolsFactory,
                              IndexHandler indexHandler,
-                             QueryParserPaneProvider.QueryParserTabProxy queryParserTab,
-                             SortPaneProvider.SortTabProxy sortTab,
-                             FieldValuesPaneProvider.FieldValuesTabProxy fieldValuesTab,
-                             MLTPaneProvider.MLTTabProxy mltTab,
+                             MessageBroker messageBroker,
+                             ComponentOperatorRegistry operatorRegistry,
+                             ConfirmDialogFactory confirmDialogFactory,
                              @Named("search_qparser") JScrollPane qparser,
                              @Named("search_analyzer") JScrollPane analyzer,
                              @Named("search_similarity") JScrollPane similarity,
@@ -102,10 +376,9 @@ public class SearchPanelProvider implements Provider<JPanel> {
     this.searchFactory = searchFactory;
     this.toolsFactory = toolsFactory;
     this.indexHandler = indexHandler;
-    this.queryParserTab = queryParserTab;
-    this.sortTab = sortTab;
-    this.fieldValuesTab = fieldValuesTab;
-    this.mltTab = mltTab;
+    this.messageBroker = messageBroker;
+    this.operatorRegistry = operatorRegistry;
+    this.confirmDialogFactory = confirmDialogFactory;
     this.qparser = qparser;
     this.analyzer = analyzer;
     this.similarity = similarity;
@@ -114,6 +387,7 @@ public class SearchPanelProvider implements Provider<JPanel> {
     this.mlt = mlt;
 
     indexHandler.addObserver(new Observer());
+    operatorRegistry.register(SearchTabOperator.class, new SearchTabOperatorImpl());
   }
 
   @Override
@@ -141,7 +415,6 @@ public class SearchPanelProvider implements Provider<JPanel> {
     JLabel label = new JLabel(MessageUtils.getLocalizedMessage("search.label.settings"));
     panel.add(label, BorderLayout.PAGE_START);
 
-    JTabbedPane tabbedPane = new JTabbedPane();
     tabbedPane.addTab("Query Parser", qparser);
     tabbedPane.addTab("Analyzer", analyzer);
     tabbedPane.addTab("Similarity", similarity);
@@ -169,6 +442,7 @@ public class SearchPanelProvider implements Provider<JPanel> {
     panel.add(labelQE, c);
 
     termQueryCB.setText(MessageUtils.getLocalizedMessage("search.checkbox.term"));
+    termQueryCB.addActionListener(listeners::toggleTermQuery);
     c.gridx = 2;
     c.gridy = 0;
     c.gridwidth = 1;
@@ -178,6 +452,7 @@ public class SearchPanelProvider implements Provider<JPanel> {
 
     queryStringTA.setRows(4);
     queryStringTA.setLineWrap(true);
+    queryStringTA.setText("*:*");
     c.gridx = 0;
     c.gridy = 1;
     c.gridwidth = 3;
@@ -203,10 +478,11 @@ public class SearchPanelProvider implements Provider<JPanel> {
     c.insets = new Insets(2, 0, 2, 2);
     panel.add(new JScrollPane(parsedQueryTA), c);
 
-    JButton parseBtn = new JButton(MessageUtils.getLocalizedMessage("search.button.parse"),
-        ImageUtils.createImageIcon("/img/icon_flowchart_alt.png", 20, 20));
+    parseBtn.setText(MessageUtils.getLocalizedMessage("search.button.parse"));
+    parseBtn.setIcon(ImageUtils.createImageIcon("/img/icon_flowchart_alt.png", 20, 20));
     parseBtn.setFont(new Font(parseBtn.getFont().getFontName(), Font.PLAIN, 15));
     parseBtn.setMargin(new Insets(2, 2, 2, 2));
+    parseBtn.addActionListener(listeners::execParse);
     c.gridx = 0;
     c.gridy = 4;
     c.gridwidth = 1;
@@ -222,10 +498,11 @@ public class SearchPanelProvider implements Provider<JPanel> {
     c.insets = new Insets(5, 0, 0, 2);
     panel.add(rewriteCB, c);
 
-    JButton searchBtn = new JButton(MessageUtils.getLocalizedMessage("search.button.search"),
-        ImageUtils.createImageIcon("/img/icon_search2.png", 20, 20));
+    searchBtn.setText(MessageUtils.getLocalizedMessage("search.button.search"));
+    searchBtn.setIcon(ImageUtils.createImageIcon("/img/icon_search2.png", 20, 20));
     searchBtn.setFont(new Font(searchBtn.getFont().getFontName(), Font.PLAIN, 15));
     searchBtn.setMargin(new Insets(2, 2, 2, 2));
+    searchBtn.addActionListener(listeners::execSearch);
     c.gridx = 0;
     c.gridy = 5;
     c.gridwidth = 1;
@@ -233,10 +510,11 @@ public class SearchPanelProvider implements Provider<JPanel> {
     c.insets = new Insets(5, 0, 5, 0);
     panel.add(searchBtn, c);
 
-    JButton mltBtn = new JButton(MessageUtils.getLocalizedMessage("search.button.mlt"),
-        ImageUtils.createImageIcon("/img/icon_heart_alt.png", 20, 20));
+    mltBtn.setText(MessageUtils.getLocalizedMessage("search.button.mlt"));
+    mltBtn.setIcon(ImageUtils.createImageIcon("/img/icon_heart_alt.png", 20, 20));
     mltBtn.setFont(new Font(mltBtn.getFont().getFontName(), Font.PLAIN, 15));
     mltBtn.setMargin(new Insets(2, 2, 2, 2));
+    mltBtn.addActionListener(listeners::execMLTSearch);
     c.gridx = 0;
     c.gridy = 6;
     c.gridwidth = 1;
@@ -247,8 +525,9 @@ public class SearchPanelProvider implements Provider<JPanel> {
     JPanel docNo = new JPanel(new FlowLayout());
     JLabel docNoLabel = new JLabel("with doc #");
     docNo.add(docNoLabel);
-    mltDocTF.setColumns(3);
-    docNo.add(mltDocTF);
+    mltDocFTF.setColumns(3);
+    mltDocFTF.setValue(0);
+    docNo.add(mltDocFTF);
     c.gridx = 1;
     c.gridy = 6;
     c.gridwidth = 2;
@@ -282,33 +561,39 @@ public class SearchPanelProvider implements Provider<JPanel> {
     JLabel totalLabel = new JLabel(MessageUtils.getLocalizedMessage("search.label.total"));
     resultsInfo.add(totalLabel);
 
-    totalDocsLbl.setText("?");
-    resultsInfo.add(totalDocsLbl);
+    totalHitsLbl.setText("?");
+    resultsInfo.add(totalHitsLbl);
 
-    JButton prevBtn = new JButton(ImageUtils.createImageIcon("/img/arrow_triangle-left.png", 20, 20));
+    prevBtn.setIcon(ImageUtils.createImageIcon("/img/arrow_triangle-left.png", 20, 20));
     prevBtn.setMargin(new Insets(5, 5,5, 5));
+    prevBtn.setEnabled(false);
+    prevBtn.addActionListener(listeners::prevPage);
     resultsInfo.add(prevBtn);
 
-    JLabel start = new JLabel("");
-    resultsInfo.add(start);
+    startLbl.setText("0");
+    resultsInfo.add(startLbl);
 
     resultsInfo.add(new JLabel(" ~ "));
 
-    JLabel end = new JLabel("");
-    resultsInfo.add(end);
+    endLbl.setText("0");
+    resultsInfo.add(endLbl);
 
-    JButton nextBtn = new JButton(ImageUtils.createImageIcon("/img/arrow_triangle-right.png", 20, 20));
+    nextBtn.setIcon(ImageUtils.createImageIcon("/img/arrow_triangle-right.png", 20, 20));
     nextBtn.setMargin(new Insets(5, 5, 5, 5));
+    nextBtn.setEnabled(false);
+    nextBtn.addActionListener(listeners::nextPage);
     resultsInfo.add(nextBtn);
 
     JSeparator sep = new JSeparator(JSeparator.VERTICAL);
     sep.setPreferredSize(new Dimension(5, 1));
     resultsInfo.add(sep);
 
-    JButton delBtn = new JButton(MessageUtils.getLocalizedMessage("search.button.del_all"),
-        ImageUtils.createImageIcon("/img/icon_trash.png", 20, 20));
+    delBtn.setText(MessageUtils.getLocalizedMessage("search.button.del_all"));
+    delBtn.setIcon(ImageUtils.createImageIcon("/img/icon_trash.png", 20, 20));
     delBtn.setFont(new Font(delBtn.getFont().getFontName(), Font.PLAIN, 15));
     delBtn.setMargin(new Insets(5, 5, 5, 5));
+    delBtn.setEnabled(false);
+    delBtn.addActionListener(listeners::confirmDeletion);
     resultsInfo.add(delBtn);
 
     panel.add(resultsInfo, BorderLayout.CENTER);
@@ -324,6 +609,11 @@ public class SearchPanelProvider implements Provider<JPanel> {
     panel.add(scrollPane);
 
     return panel;
+  }
+
+  public interface SearchTabOperator extends ComponentOperatorRegistry.ComponentOperator {
+    void searchByTerm(String field, String term);
+    void mltSearch(int docNum);
   }
 
 }
@@ -369,6 +659,24 @@ class SearchResultsTableModel extends AbstractTableModel {
 
   SearchResultsTableModel() {
     this.data = new Object[0][colNames.length];
+  }
+
+  SearchResultsTableModel(SearchResults results) {
+    this.data = new Object[results.size()][colNames.length];
+    for (int i = 0; i < results.size(); i++) {
+      SearchResults.Doc doc = results.getHits().get(i);
+      data[i][Column.DOCID.getIndex()] = doc.getDocId();
+      if (!Float.isNaN(doc.getScore())) {
+        data[i][Column.SCORE.getIndex()] = doc.getScore();
+      } else {
+        data[i][Column.SCORE.getIndex()] = 1.0f;
+      }
+      List<String> concatValues = doc.getFieldValues().entrySet().stream().map(e -> {
+        String v = String.join(",", Arrays.asList(e.getValue()));
+        return e.getKey() + "=" + v + ";";
+      }).collect(Collectors.toList());
+      data[i][Column.VALUE.getIndex()] = String.join(" ", concatValues);
+    }
   }
 
   @Override

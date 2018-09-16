@@ -51,6 +51,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -60,7 +61,6 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -110,7 +110,7 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
 
   private final JLabel maxDocsLbl = new JLabel();
 
-  private final JButton mltSearchBtn = new JButton();
+  private final JButton mltBtn = new JButton();
 
   private final JButton addDocBtn = new JButton();
 
@@ -238,6 +238,10 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
 
       nextTermDocBtn.setDefaultCapable(true);
       messageBroker.clearStatusMessage();
+    }
+
+    public int getMLTDocNum() {
+      return (int)docNumSpnr.getValue();
     }
 
     public void showAddDocumentDialog() {
@@ -408,7 +412,7 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
     }
   }
 
-  public class DocumentsTabImpl implements DocumentsTabProxy.DocumentsTab {
+  class DocumentsTabOperatorImpl implements DocumentsTabOperator {
 
     @Override
     public void browseTerm(String field, String term) {
@@ -429,7 +433,7 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
                                 MessageBroker messageBroker,
                                 IndexHandler indexHandler,
                                 TabbedPaneProvider.TabSwitcherProxy tabSwitcher,
-                                DocumentsTabProxy documentsTabProxy,
+                                ComponentOperatorRegistry operatorRegistry,
                                 AddDocumentDialogFactory addDocDialogFactory,
                                 TermVectorDialogFactory tvDialogFactory,
                                 DocValuesDialogFactory dvDialogFactory,
@@ -437,7 +441,7 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
                                 HelpDialogFactory helpDialogFactory) {
     this.documentsFactory = documentsFactory;
     this.messageBroker = messageBroker;
-    this.listeners = new DocumentsPanelListeners(controller, tabSwitcher);
+    this.listeners = new DocumentsPanelListeners(controller, tabSwitcher, operatorRegistry);
     this.addDocDialogFactory = addDocDialogFactory;
     this.tvDialogFactory = tvDialogFactory;
     this.dvDialogFactory = dvDialogFactory;
@@ -445,7 +449,7 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
     this.helpDialogFactory = helpDialogFactory;
 
     indexHandler.addObserver(new Observer());
-    documentsTabProxy.set(new DocumentsTabImpl());
+    operatorRegistry.register(DocumentsTabOperator.class, new DocumentsTabOperatorImpl());
   }
 
   @Override
@@ -658,12 +662,16 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
     panel.add(left);
 
     JPanel right = new JPanel(new FlowLayout(FlowLayout.TRAILING, 10, 2));
-    mltSearchBtn.setText(MessageUtils.getLocalizedMessage("documents.button.mlt"));
-    mltSearchBtn.setIcon(ImageUtils.createImageIcon("/img/icon_heart_alt.png", 20, 20));
-    mltSearchBtn.addActionListener(listeners.getMltSearchBtnListener());
-    right.add(mltSearchBtn);
+    mltBtn.setText(MessageUtils.getLocalizedMessage("documents.button.mlt"));
+    mltBtn.setIcon(ImageUtils.createImageIcon("/img/icon_heart_alt.png", 20, 20));
+    mltBtn.setFont(new Font(mltBtn.getFont().getFontName(), Font.PLAIN, 15));
+    mltBtn.setMargin(new Insets(5, 5, 5, 5));
+    mltBtn.addActionListener(listeners.getMltSearchBtnListener());
+    right.add(mltBtn);
     addDocBtn.setText(MessageUtils.getLocalizedMessage("documents.button.add"));
     addDocBtn.setIcon(ImageUtils.createImageIcon("/img/icon_plus-box.png", 20, 20));
+    addDocBtn.setFont(new Font(addDocBtn.getFont().getFontName(), Font.PLAIN, 15));
+    addDocBtn.setMargin(new Insets(5, 5, 5, 5));
     addDocBtn.addActionListener(listeners.getAddDocBtnListener());
     right.add(addDocBtn);
     panel.add(right);
@@ -671,31 +679,9 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
     return panel;
   }
 
-  public static class DocumentsTabProxy {
-
-    private final List<DocumentsTab> holder = new ArrayList<>();
-
-    private void set(DocumentsTab docTab) {
-      if (holder.isEmpty()) {
-        holder.add(docTab);
-      }
-    }
-
-    public void browseTerm(String field, String term){
-      if (holder.isEmpty() || holder.get(0) == null) {
-        throw new IllegalStateException();
-      }
-      holder.get(0).browseTerm(field, term);
-    }
-
-    public void displayLatestDoc() {
-      holder.get(0).displayLatestDoc();
-    }
-
-    public interface DocumentsTab {
-      void browseTerm(String field, String term);
-      void displayLatestDoc();
-    }
+  public interface DocumentsTabOperator extends ComponentOperatorRegistry.ComponentOperator {
+    void browseTerm(String field, String term);
+    void displayLatestDoc();
   }
 
 }

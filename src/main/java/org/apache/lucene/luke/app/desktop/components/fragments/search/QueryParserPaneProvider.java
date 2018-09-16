@@ -3,6 +3,7 @@ package org.apache.lucene.luke.app.desktop.components.fragments.search;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import org.apache.lucene.document.DateTools;
+import org.apache.lucene.luke.app.desktop.components.ComponentOperatorRegistry;
 import org.apache.lucene.luke.app.desktop.components.TableColumnInfo;
 import org.apache.lucene.luke.app.desktop.components.util.TableUtil;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
@@ -14,6 +15,7 @@ import javax.swing.ButtonGroup;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
@@ -23,16 +25,18 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.TableCellRenderer;
-import java.awt.Component;
+import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
-import java.util.ArrayList;
+import java.awt.event.ActionEvent;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
+import java.util.TimeZone;
+
+import static org.apache.lucene.luke.app.desktop.components.fragments.search.PointRangeQueryTableModel.NumType.INT;
 
 public class QueryParserPaneProvider implements Provider<JScrollPane> {
 
@@ -48,17 +52,17 @@ public class QueryParserPaneProvider implements Provider<JScrollPane> {
 
   private final JCheckBox wildCardCB = new JCheckBox();
 
-  private final JCheckBox splitWS = new JCheckBox();
+  private final JCheckBox splitWSCB = new JCheckBox();
 
   private final JCheckBox genPhraseQueryCB = new JCheckBox();
 
   private final JCheckBox genMultiTermSynonymsPhraseQueryCB = new JCheckBox();
 
-  private final JTextField slopTF = new JTextField();
+  private final JFormattedTextField slopFTF = new JFormattedTextField();
 
-  private final JTextField minSimTF = new JTextField();
+  private final JFormattedTextField minSimFTF = new JFormattedTextField();
 
-  private final JTextField prefLenTF = new JTextField();
+  private final JFormattedTextField prefLenFTF = new JFormattedTextField();
 
   private final JComboBox<String> dateResCombo = new JComboBox<>();
 
@@ -68,29 +72,45 @@ public class QueryParserPaneProvider implements Provider<JScrollPane> {
 
   private final JTable pointRangeQueryTable = new JTable();
 
-  private QueryParserConfig config = new QueryParserConfig.Builder().build();
+  private final ListenerFunctions listeners = new ListenerFunctions();
 
-  private final Controller controller;
+  private final QueryParserConfig config = new QueryParserConfig.Builder().build();
 
-  class Controller {
+  class ListenerFunctions {
 
-    void selectStandardQParser() {
-      splitWS.setEnabled(false);
+    void selectStandardQParser(ActionEvent e) {
+      splitWSCB.setEnabled(false);
       genPhraseQueryCB.setEnabled(false);
       genMultiTermSynonymsPhraseQueryCB.setEnabled(false);
-      pointRangeQueryTable.setEnabled(false);
+      TableUtil.setEnabled(pointRangeQueryTable, true);
     }
 
-    void selectClassicQparser() {
-      splitWS.setEnabled(true);
-      genPhraseQueryCB.setEnabled(true);
+    void selectClassicQparser(ActionEvent e) {
+      splitWSCB.setEnabled(true);
+      if (splitWSCB.isSelected()) {
+        genPhraseQueryCB.setEnabled(true);
+      } else {
+        genPhraseQueryCB.setEnabled(false);
+        genPhraseQueryCB.setSelected(false);
+      }
       genMultiTermSynonymsPhraseQueryCB.setEnabled(true);
-      pointRangeQueryTable.setEnabled(true);
+      pointRangeQueryTable.setEnabled(false);
+      pointRangeQueryTable.setForeground(Color.gray);
+      TableUtil.setEnabled(pointRangeQueryTable, false);
     }
+
+    void toggleSplitOnWhiteSpace(ActionEvent e) {
+      if (splitWSCB.isSelected()) {
+        genPhraseQueryCB.setEnabled(true);
+      } else {
+        genPhraseQueryCB.setEnabled(false);
+        genPhraseQueryCB.setSelected(false);
+      }
+    }
+
   }
 
-  class QueryParserTabImpl implements QueryParserTabProxy.QueryParserTab {
-
+  class QueryParserTabOperatorImpl implements QueryParserTabOperator {
     @Override
     public void setSearchableFields(Collection<String> searchableFields) {
       for (String field : searchableFields) {
@@ -116,15 +136,66 @@ public class QueryParserPaneProvider implements Provider<JScrollPane> {
 
       // set default type to Integer
       for (int i = 0; i < rangeSearchableFields.size(); i++) {
-        pointRangeQueryTable.setValueAt(PointRangeQueryTableModel.NumType.INT.name(), i, PointRangeQueryTableModel.Column.TYPE.getIndex());
+        pointRangeQueryTable.setValueAt(INT.name(), i, PointRangeQueryTableModel.Column.TYPE.getIndex());
       }
+
+    }
+
+    @Override
+    public QueryParserConfig getConfig() {
+      int phraseSlop = (int)slopFTF.getValue();
+      float fuzzyMinSimFloat = (float)minSimFTF.getValue();
+      int fuzzyPrefLenInt = (int)prefLenFTF.getValue();
+
+      Map<String, Class<? extends Number>> typeMap = new HashMap<>();
+      for (int row = 0; row < pointRangeQueryTable.getModel().getRowCount(); row++) {
+        String field = (String)pointRangeQueryTable.getValueAt(row, PointRangeQueryTableModel.Column.FIELD.getIndex());
+        String type = (String)pointRangeQueryTable.getValueAt(row, PointRangeQueryTableModel.Column.TYPE.getIndex());
+        switch (PointRangeQueryTableModel.NumType.valueOf(type)) {
+          case INT:
+            typeMap.put(field, Integer.class);
+            break;
+          case LONG:
+            typeMap.put(field, Long.class);
+            break;
+          case FLOAT:
+            typeMap.put(field, Float.class);
+            break;
+          case DOUBLE:
+            typeMap.put(field, Double.class);
+            break;
+          default:
+            break;
+        }
+      }
+
+      return new QueryParserConfig.Builder()
+          .useClassicParser(classicRB.isSelected())
+          .defaultOperator(QueryParserConfig.Operator.valueOf((String)defOpCombo.getSelectedItem()))
+          .enablePositionIncrements(posIncCB.isSelected())
+          .allowLeadingWildcard(wildCardCB.isSelected())
+          .splitOnWhitespace(splitWSCB.isSelected())
+          .autoGeneratePhraseQueries(genPhraseQueryCB.isSelected())
+          .autoGenerateMultiTermSynonymsPhraseQuery(genMultiTermSynonymsPhraseQueryCB.isSelected())
+          .phraseSlop(phraseSlop)
+          .fuzzyMinSim(fuzzyMinSimFloat)
+          .fuzzyPrefixLength(fuzzyPrefLenInt)
+          .dateResolution(DateTools.Resolution.valueOf((String)dateResCombo.getSelectedItem()))
+          .locale(new Locale(locationTF.getText()))
+          .timeZone(TimeZone.getTimeZone(timezoneTF.getText()))
+          .typeMap(typeMap)
+          .build();
+    }
+
+    @Override
+    public String getDefaultField() {
+      return (String)dfCB.getSelectedItem();
     }
   }
 
   @Inject
-  public QueryParserPaneProvider(QueryParserTabProxy proxy) {
-    proxy.set(new QueryParserTabImpl());
-    this.controller = new Controller();
+  public QueryParserPaneProvider(ComponentOperatorRegistry operatorRegistry) {
+    operatorRegistry.register(QueryParserTabOperator.class, new QueryParserTabOperatorImpl());
   }
 
   @Override
@@ -153,10 +224,10 @@ public class QueryParserPaneProvider implements Provider<JScrollPane> {
 
     standardRB.setText("StandardQueryParser");
     standardRB.setSelected(true);
-    standardRB.addActionListener(e -> controller.selectStandardQParser());
+    standardRB.addActionListener(listeners::selectStandardQParser);
 
     classicRB.setText("Classic QueryParser");
-    classicRB.addActionListener(e -> controller.selectClassicQparser());
+    classicRB.addActionListener(listeners::selectClassicQparser);
 
     ButtonGroup group = new ButtonGroup();
     group.add(standardRB);
@@ -192,9 +263,10 @@ public class QueryParserPaneProvider implements Provider<JScrollPane> {
     wildCardCB.setSelected(config.isAllowLeadingWildcard());
     panel.add(wildCardCB);
 
-    splitWS.setText(MessageUtils.getLocalizedMessage("search_parser.checkbox.split_ws"));
-    splitWS.setEnabled(config.isSplitOnWhitespace());
-    panel.add(splitWS);
+    splitWSCB.setText(MessageUtils.getLocalizedMessage("search_parser.checkbox.split_ws"));
+    splitWSCB.setEnabled(config.isSplitOnWhitespace());
+    splitWSCB.addActionListener(listeners::toggleSplitOnWhiteSpace);
+    panel.add(splitWSCB);
 
     return panel;
   }
@@ -225,9 +297,9 @@ public class QueryParserPaneProvider implements Provider<JScrollPane> {
     slop.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
     JLabel slopLabel = new JLabel(MessageUtils.getLocalizedMessage("search_parser.label.phrase_slop"));
     slop.add(slopLabel);
-    slopTF.setColumns(5);
-    slopTF.setText(String.valueOf(config.getPhraseSlop()));
-    slop.add(slopTF);
+    slopFTF.setColumns(5);
+    slopFTF.setValue(config.getPhraseSlop());
+    slop.add(slopFTF);
     slop.add(new JLabel(MessageUtils.getLocalizedMessage("label.int_required")));
     panel.add(slop);
 
@@ -246,9 +318,9 @@ public class QueryParserPaneProvider implements Provider<JScrollPane> {
     minSim.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
     JLabel minSimLabel = new JLabel(MessageUtils.getLocalizedMessage("search_parser.label.fuzzy_minsim"));
     minSim.add(minSimLabel);
-    minSimTF.setColumns(5);
-    minSimTF.setText(String.valueOf(config.getFuzzyMinSim()));
-    minSim.add(minSimTF);
+    minSimFTF.setColumns(5);
+    minSimFTF.setValue(config.getFuzzyMinSim());
+    minSim.add(minSimFTF);
     minSim.add(new JLabel(MessageUtils.getLocalizedMessage("label.float_required")));
     panel.add(minSim);
 
@@ -256,9 +328,9 @@ public class QueryParserPaneProvider implements Provider<JScrollPane> {
     prefLen.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
     JLabel prefLenLabel = new JLabel(MessageUtils.getLocalizedMessage("search_parser.label.fuzzy_preflen"));
     prefLen.add(prefLenLabel);
-    prefLenTF.setColumns(5);
-    prefLenTF.setText(String.valueOf(config.getFuzzyPrefixLength()));
-    prefLen.add(prefLenTF);
+    prefLenFTF.setColumns(5);
+    prefLenFTF.setValue(config.getFuzzyPrefixLength());
+    prefLen.add(prefLenFTF);
     prefLen.add(new JLabel(MessageUtils.getLocalizedMessage("label.int_required")));
     panel.add(prefLen);
 
@@ -320,29 +392,13 @@ public class QueryParserPaneProvider implements Provider<JScrollPane> {
     return panel;
   }
 
-  public static class QueryParserTabProxy {
-
-    private final List<QueryParserTab> holder = new ArrayList<>();
-
-    private void set(QueryParserTab tab) {
-      if (holder.isEmpty()) {
-        holder.add(tab);
-      }
-    }
-
-    public void setSearchableFields(Collection<String> searchableFields) {
-      holder.get(0).setSearchableFields(searchableFields);
-    }
-
-    public void setRangeSearchableFields(Collection<String> rangeSearchableFields) {
-      holder.get(0).setRangeSearchableFields(rangeSearchableFields);
-    }
-
-    public interface QueryParserTab {
-      void setSearchableFields(Collection<String> searchableFields);
-      void setRangeSearchableFields(Collection<String> rangeSearchableFields);
-    }
+  public interface QueryParserTabOperator extends ComponentOperatorRegistry.ComponentOperator {
+    void setSearchableFields(Collection<String> searchableFields);
+    void setRangeSearchableFields(Collection<String> rangeSearchableFields);
+    QueryParserConfig getConfig();
+    String getDefaultField();
   }
+
 }
 
 class PointRangeQueryTableModel extends AbstractTableModel {

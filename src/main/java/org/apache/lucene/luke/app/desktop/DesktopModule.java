@@ -15,8 +15,10 @@ import org.apache.lucene.luke.app.desktop.components.LogsPanelProvider;
 import org.apache.lucene.luke.app.desktop.components.LukeWindowProvider;
 import org.apache.lucene.luke.app.desktop.components.MenuBarProvider;
 import org.apache.lucene.luke.app.desktop.components.OverviewPanelProvider;
+import org.apache.lucene.luke.app.desktop.components.ComponentOperatorRegistry;
 import org.apache.lucene.luke.app.desktop.components.SearchPanelProvider;
 import org.apache.lucene.luke.app.desktop.components.TabbedPaneProvider;
+import org.apache.lucene.luke.app.desktop.components.dialog.ConfirmDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.HelpDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.documents.AddDocumentDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.documents.DocValuesDialogFactory;
@@ -58,13 +60,10 @@ public class DesktopModule extends AbstractModule {
     install(new LukeModule());
 
     // UI components and fragments
+    bind(ComponentOperatorRegistry.class).toInstance(new ComponentOperatorRegistry());
     bind(TabbedPaneProvider.TabSwitcherProxy.class).toInstance(new TabbedPaneProvider.TabSwitcherProxy());
-    bind(DocumentsPanelProvider.DocumentsTabProxy.class).toInstance(new DocumentsPanelProvider.DocumentsTabProxy());
-    bind(QueryParserPaneProvider.QueryParserTabProxy.class).toInstance(new QueryParserPaneProvider.QueryParserTabProxy());
-    bind(SortPaneProvider.SortTabProxy.class).toInstance(new SortPaneProvider.SortTabProxy());
-    bind(FieldValuesPaneProvider.FieldValuesTabProxy.class).toInstance(new FieldValuesPaneProvider.FieldValuesTabProxy());
-    bind(MLTPaneProvider.MLTTabProxy.class).toInstance(new MLTPaneProvider.MLTTabProxy());
     bind(MessageBroker.class).toInstance(new MessageBroker());
+
     bind(JMenuBar.class).toProvider(MenuBarProvider.class);
 
     bind(JPanel.class).annotatedWith(Names.named("overview")).toProvider(OverviewPanelProvider.class);
@@ -96,6 +95,7 @@ public class DesktopModule extends AbstractModule {
     bind(DocValuesDialogFactory.class).toInstance(new DocValuesDialogFactory());
     bind(StoredValueDialogFactory.class).toInstance(new StoredValueDialogFactory());
     bind(HelpDialogFactory.class).toInstance(new HelpDialogFactory());
+    bind(ConfirmDialogFactory.class).toInstance(new ConfirmDialogFactory());
   }
 
   @Provides
@@ -103,8 +103,8 @@ public class DesktopModule extends AbstractModule {
   public AddDocumentDialogFactory provideAddDocumentDialogFactory(
       IndexOptionsDialogFactory indexOptionsDialogFactory, HelpDialogFactory helpDialogFactory,
       IndexHandler indexHandler, IndexToolsFactory toolsFactory,
-      TabbedPaneProvider.TabSwitcherProxy tabSwitcherProxy, DocumentsPanelProvider.DocumentsTabProxy documentsTab) {
-    return new AddDocumentDialogFactory(indexOptionsDialogFactory, helpDialogFactory, indexHandler, toolsFactory, tabSwitcherProxy, documentsTab);
+      TabbedPaneProvider.TabSwitcherProxy tabSwitcherProxy, ComponentOperatorRegistry operatorRegistry) {
+    return new AddDocumentDialogFactory(indexOptionsDialogFactory, helpDialogFactory, indexHandler, toolsFactory, tabSwitcherProxy, operatorRegistry);
   }
 
   private DesktopModule() {}

@@ -2,7 +2,7 @@ package org.apache.lucene.luke.app.desktop.components.fragments.search;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
-import org.apache.lucene.luke.app.desktop.components.ComponentProxy;
+import org.apache.lucene.luke.app.desktop.components.ComponentOperatorRegistry;
 import org.apache.lucene.luke.app.desktop.components.TableColumnInfo;
 import org.apache.lucene.luke.app.desktop.components.util.TableUtil;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
@@ -16,67 +16,73 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class FieldValuesPaneProvider implements Provider<JScrollPane> {
-
-  private final Listeners listeners;
 
   private final JCheckBox loadAllCB = new JCheckBox();
 
   private final JTable fieldsTable = new JTable();
 
-  class FieldValuesTabImpl implements FieldValuesTabProxy.FieldValuesTab {
+  private ListenerFunctions listners = new ListenerFunctions();
 
+  class FieldValuesTabOperatorImpl implements FieldValuesTabOperator {
     @Override
     public void setFields(Collection<String> fields) {
       fieldsTable.setModel(new FieldsTableModel(fields));
       fieldsTable.getColumnModel().getColumn(FieldsTableModel.Column.LOAD.getIndex()).setMinWidth(50);
       fieldsTable.getColumnModel().getColumn(FieldsTableModel.Column.LOAD.getIndex()).setMaxWidth(50);
-      fieldsTable.getModel().addTableModelListener(listeners.getFieldsTableModelListener());
+      fieldsTable.getModel().addTableModelListener(listners::tableDataChenged);
+    }
+
+    @Override
+    public Set<String> getFieldsToLoad() {
+      Set<String> fieldsToLoad = new HashSet<>();
+      for (int row = 0; row < fieldsTable.getRowCount(); row++) {
+        boolean loaded = (boolean)fieldsTable.getValueAt(row, FieldsTableModel.Column.LOAD.getIndex());
+        if (loaded) {
+          fieldsToLoad.add((String)fieldsTable.getValueAt(row, FieldsTableModel.Column.FIELD.getIndex()));
+        }
+      }
+      return fieldsToLoad;
     }
   }
 
-  class Listeners {
+  class ListenerFunctions {
 
-    ActionListener getLoadAllCBListener() {
-      return (ActionEvent e) -> {
-        for (int i = 0; i < fieldsTable.getModel().getRowCount(); i++) {
-          if (loadAllCB.isSelected()) {
-            fieldsTable.setValueAt(true, i, FieldsTableModel.Column.LOAD.getIndex());
-          } else {
-            fieldsTable.setValueAt(false, i, FieldsTableModel.Column.LOAD.getIndex());
-          }
+    void loadAllFields(ActionEvent e) {
+      for (int i = 0; i < fieldsTable.getModel().getRowCount(); i++) {
+        if (loadAllCB.isSelected()) {
+          fieldsTable.setValueAt(true, i, FieldsTableModel.Column.LOAD.getIndex());
+        } else {
+          fieldsTable.setValueAt(false, i, FieldsTableModel.Column.LOAD.getIndex());
         }
-      };
+      }
     }
 
-    TableModelListener getFieldsTableModelListener() {
-      return (TableModelEvent e) -> {
-        int row = e.getFirstRow();
-        int col = e.getColumn();
-        if (col == FieldsTableModel.Column.LOAD.getIndex()) {
-          boolean isLoad = (boolean)fieldsTable.getModel().getValueAt(row, col);
-          if (!isLoad) {
-            loadAllCB.setSelected(false);
-          }
+    void tableDataChenged(TableModelEvent e) {
+      int row = e.getFirstRow();
+      int col = e.getColumn();
+      if (col == FieldsTableModel.Column.LOAD.getIndex()) {
+        boolean isLoad = (boolean)fieldsTable.getModel().getValueAt(row, col);
+        if (!isLoad) {
+          loadAllCB.setSelected(false);
         }
-      };
+      }
     }
   }
 
   @Inject
-  public FieldValuesPaneProvider(FieldValuesTabProxy fieldValuesTab) {
-    this.listeners = new Listeners();
-
-    fieldValuesTab.set(new FieldValuesTabImpl());
+  public FieldValuesPaneProvider(ComponentOperatorRegistry operatorRegistry) {
+    operatorRegistry.register(FieldValuesTabOperator.class, new FieldValuesTabOperatorImpl());
   }
 
   @Override
@@ -98,7 +104,7 @@ public class FieldValuesPaneProvider implements Provider<JScrollPane> {
     header.add(new JLabel(MessageUtils.getLocalizedMessage("search_values.label.description")));
     loadAllCB.setText(MessageUtils.getLocalizedMessage("search_values.checkbox.load_all"));
     loadAllCB.setSelected(true);
-    loadAllCB.addActionListener(listeners.getLoadAllCBListener());
+    loadAllCB.addActionListener(listners::loadAllFields);
     header.add(loadAllCB);
     panel.add(header, BorderLayout.PAGE_START);
 
@@ -110,15 +116,9 @@ public class FieldValuesPaneProvider implements Provider<JScrollPane> {
     return panel;
   }
 
-  public static class FieldValuesTabProxy extends ComponentProxy<FieldValuesTabProxy.FieldValuesTab>  {
-
-    public void setFields(Collection<String> fields) {
-      get().setFields(fields);
-    }
-
-    interface FieldValuesTab extends ComponentProxy.Component {
-      void setFields(Collection<String> fields);
-    }
+  public interface FieldValuesTabOperator extends ComponentOperatorRegistry.ComponentOperator {
+    void setFields(Collection<String> fields);
+    Set<String> getFieldsToLoad();
   }
 
 }
