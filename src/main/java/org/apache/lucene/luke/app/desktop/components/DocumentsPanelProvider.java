@@ -208,7 +208,7 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
         return;
       }
       termDocIdxTF.setText(String.valueOf(1));
-      docNumSpnr.setValue(doc);
+      //docNumSpnr.setValue(doc);
       showDoc(doc);
 
       List<TermPosting> postings = documentsModel.getTermPositions();
@@ -230,7 +230,7 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
       }
       int curIdx = Integer.parseInt(termDocIdxTF.getText());
       termDocIdxTF.setText(String.valueOf(curIdx + 1));
-      docNumSpnr.setValue(doc);
+      //docNumSpnr.setValue(doc);
       showDoc(doc);
 
       List<TermPosting> postings = documentsModel.getTermPositions();
@@ -252,11 +252,13 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
 
     public void showLatestDoc() {
       int docid = documentsModel.getMaxDoc() - 1;
+      //docNumSpnr.setValue(docid);
       showDoc(docid);
-      docNumSpnr.setValue(docid);
     }
 
     private void showDoc(int docid) {
+      docNumSpnr.setValue(docid);
+
       List<DocumentField> doc = documentsModel.getDocumentFields(docid);
       documentTable.setModel(new DocumentTableModel(doc));
       documentTable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
@@ -426,6 +428,10 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
       controller.showLatestDoc();
     }
 
+    @Override
+    public void displayDoc(int docid) {
+      controller.showDoc(docid);
+    }
   }
 
   @Inject
@@ -682,6 +688,7 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
   public interface DocumentsTabOperator extends ComponentOperatorRegistry.ComponentOperator {
     void browseTerm(String field, String term);
     void displayLatestDoc();
+    void displayDoc(int donid);
   }
 
 }

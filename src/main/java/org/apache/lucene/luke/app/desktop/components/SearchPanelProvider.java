@@ -12,6 +12,7 @@ import org.apache.lucene.luke.app.IndexObserver;
 import org.apache.lucene.luke.app.LukeState;
 import org.apache.lucene.luke.app.desktop.MessageBroker;
 import org.apache.lucene.luke.app.desktop.components.dialog.ConfirmDialogFactory;
+import org.apache.lucene.luke.app.desktop.components.dialog.search.ExplainDialogProvider;
 import org.apache.lucene.luke.app.desktop.components.fragments.search.AnalyzerPaneProvider;
 import org.apache.lucene.luke.app.desktop.components.fragments.search.FieldValuesPaneProvider;
 import org.apache.lucene.luke.app.desktop.components.fragments.search.MLTPaneProvider;
@@ -31,6 +32,7 @@ import org.apache.lucene.luke.models.search.SearchResults;
 import org.apache.lucene.luke.models.search.SimilarityConfig;
 import org.apache.lucene.luke.models.tools.IndexTools;
 import org.apache.lucene.luke.models.tools.IndexToolsFactory;
+import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.TermQuery;
@@ -40,17 +42,17 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
-import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -61,6 +63,9 @@ import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -81,9 +86,13 @@ public class SearchPanelProvider implements Provider<JPanel> {
 
   private final MessageBroker messageBroker;
 
+  private final TabbedPaneProvider.TabSwitcherProxy tabSwitcher;
+
   private final ComponentOperatorRegistry operatorRegistry;
 
   private final ConfirmDialogFactory confirmDialogFactory;
+
+  private final ExplainDialogProvider explainDialogProvider;
 
   private final JTabbedPane tabbedPane = new JTabbedPane();
 
@@ -281,7 +290,7 @@ public class SearchPanelProvider implements Provider<JPanel> {
       });
     }
 
-    void deleteDocs() {
+    private void deleteDocs() {
       Query query = searchModel.getCurrentQuery();
       if (query != null) {
         toolsModel.deleteDocuments(query);
@@ -289,6 +298,40 @@ public class SearchPanelProvider implements Provider<JPanel> {
         messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("search.message.delete_success", query.toString()));
       }
       delBtn.setEnabled(false);
+    }
+
+    void showContextMenuInResultsTable(MouseEvent e) {
+      if (e.isPopupTrigger()) {
+        createResultsTablePopup().show(e.getComponent(), e.getX(), e.getY());
+      }
+    }
+
+    private JPopupMenu createResultsTablePopup() {
+      JPopupMenu popup = new JPopupMenu();
+
+      // show explanation
+      JMenuItem item1 = new JMenuItem(MessageUtils.getLocalizedMessage("search.results.menu.explain"));
+      item1.addActionListener(e -> {
+        int docid = (int)resultsTable.getModel().getValueAt(resultsTable.getSelectedRow(), SearchResultsTableModel.Column.DOCID.getIndex());
+        Explanation explanation = searchModel.explain(parse(false), docid);
+        new DialogOpener<>(explainDialogProvider).open("Explanation", 600, 400,
+            (factory) -> {
+              factory.setDocid(docid);
+              factory.setExplanation(explanation);
+            });
+      });
+      popup.add(item1);
+
+      // show all fields
+      JMenuItem item2 = new JMenuItem(MessageUtils.getLocalizedMessage("search.results.menu.showdoc"));
+      item2.addActionListener(e -> {
+        int docid = (int)resultsTable.getModel().getValueAt(resultsTable.getSelectedRow(), SearchResultsTableModel.Column.DOCID.getIndex());
+        operatorRegistry.get(DocumentsPanelProvider.DocumentsTabOperator.class).ifPresent(operator -> operator.displayDoc(docid));
+        tabSwitcher.switchTab(TabbedPaneProvider.Tab.DOCUMENTS);
+      });
+      popup.add(item2);
+
+      return popup;
     }
 
   }
@@ -365,8 +408,10 @@ public class SearchPanelProvider implements Provider<JPanel> {
                              IndexToolsFactory toolsFactory,
                              IndexHandler indexHandler,
                              MessageBroker messageBroker,
+                             TabbedPaneProvider.TabSwitcherProxy tabSwitcher,
                              ComponentOperatorRegistry operatorRegistry,
                              ConfirmDialogFactory confirmDialogFactory,
+                             ExplainDialogProvider explainDialogProvider,
                              @Named("search_qparser") JScrollPane qparser,
                              @Named("search_analyzer") JScrollPane analyzer,
                              @Named("search_similarity") JScrollPane similarity,
@@ -377,8 +422,10 @@ public class SearchPanelProvider implements Provider<JPanel> {
     this.toolsFactory = toolsFactory;
     this.indexHandler = indexHandler;
     this.messageBroker = messageBroker;
+    this.tabSwitcher = tabSwitcher;
     this.operatorRegistry = operatorRegistry;
     this.confirmDialogFactory = confirmDialogFactory;
+    this.explainDialogProvider = explainDialogProvider;
     this.qparser = qparser;
     this.analyzer = analyzer;
     this.similarity = similarity;
@@ -604,7 +651,13 @@ public class SearchPanelProvider implements Provider<JPanel> {
   private JPanel createSearchResultsTablePane() {
     JPanel panel = new JPanel(new GridLayout(1, 1));
 
-    TableUtil.setupTable(resultsTable, ListSelectionModel.SINGLE_SELECTION, new SearchResultsTableModel(), null, 50, 100);
+    MouseListener mouseListener = new MouseAdapter() {
+      @Override
+      public void mousePressed(MouseEvent e) {
+        listeners.showContextMenuInResultsTable(e);
+      }
+    };
+    TableUtil.setupTable(resultsTable, ListSelectionModel.SINGLE_SELECTION, new SearchResultsTableModel(), mouseListener, 50, 100);
     JScrollPane scrollPane = new JScrollPane(resultsTable);
     panel.add(scrollPane);
 
