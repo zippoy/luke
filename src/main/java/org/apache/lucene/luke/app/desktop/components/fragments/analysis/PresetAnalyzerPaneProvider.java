@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.luke.app.desktop.components.AnalysisPanelProvider;
 import org.apache.lucene.luke.app.desktop.components.ComponentOperatorRegistry;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 
@@ -16,11 +17,28 @@ import javax.swing.JPanel;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
 import java.util.Collection;
 
 public class PresetAnalyzerPaneProvider implements Provider<JPanel> {
 
+  private final ComponentOperatorRegistry operatorRegistry;
+
   private final JComboBox<String> analyzersCB = new JComboBox<>();
+
+  private final ListenerFunctions listeners = new ListenerFunctions();
+
+  private
+
+  class ListenerFunctions {
+
+    void setAnalyzer(ActionEvent e) {
+      operatorRegistry.get(AnalysisPanelProvider.AnalysisPanelOperator.class).ifPresent(operator ->
+          operator.setAnalyzerByType((String)analyzersCB.getSelectedItem())
+      );
+    }
+
+  }
 
   class PresetAnalyzerPaneOperatorImpl implements PresetAnalyzerPaneOperator {
 
@@ -39,6 +57,7 @@ public class PresetAnalyzerPaneProvider implements Provider<JPanel> {
 
   @Inject
   public PresetAnalyzerPaneProvider(ComponentOperatorRegistry operatorRegistry) {
+    this.operatorRegistry = operatorRegistry;
     operatorRegistry.register(PresetAnalyzerPaneOperator.class, new PresetAnalyzerPaneOperatorImpl());
   }
 
@@ -53,6 +72,7 @@ public class PresetAnalyzerPaneProvider implements Provider<JPanel> {
     JPanel center = new JPanel(new FlowLayout(FlowLayout.LEADING));
     center.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
     center.setPreferredSize(new Dimension(400, 40));
+    analyzersCB.addActionListener(listeners::setAnalyzer);
     center.add(analyzersCB);
     panel.add(center, BorderLayout.CENTER);
 
@@ -62,6 +82,7 @@ public class PresetAnalyzerPaneProvider implements Provider<JPanel> {
   public interface PresetAnalyzerPaneOperator extends ComponentOperatorRegistry.ComponentOperator {
     void setPresetAnalyzers(Collection<Class<? extends Analyzer>> presetAnalyzers);
     void setSelectedAnalyzer(Class<? extends Analyzer> analyzer);
+
   }
 
 }

@@ -3,6 +3,7 @@ package org.apache.lucene.luke.app.desktop.components;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.name.Named;
+import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.luke.app.desktop.components.fragments.analysis.PresetAnalyzerPaneProvider;
 import org.apache.lucene.luke.app.desktop.util.ImageUtils;
@@ -53,6 +54,16 @@ public class AnalysisPanelProvider implements Provider<JPanel> {
 
   private Analysis analysisModel;
 
+  class AnalysisPanelOperatorImpl implements AnalysisPanelOperator {
+
+    @Override
+    public void setAnalyzerByType(String analyzerType) {
+      analysisModel.createAnalyzerFromClassName(analyzerType);
+      analyzerNameLbl.setText(analysisModel.currentAnalyzer().getClass().getName());
+    }
+
+  }
+
   class ListenerFunctions {
 
     void toggleMainPanel(ActionEvent e) {
@@ -79,6 +90,8 @@ public class AnalysisPanelProvider implements Provider<JPanel> {
 
     this.analysisModel = analysisFactory.newInstance();
     analysisModel.createAnalyzerFromClassName(StandardAnalyzer.class.getName());
+
+    operatorRegistry.register(AnalysisPanelOperator.class, new AnalysisPanelOperatorImpl());
 
     operatorRegistry.get(PresetAnalyzerPaneProvider.PresetAnalyzerPaneOperator.class).ifPresent(operator -> {
       operator.setPresetAnalyzers(analysisModel.getPresetAnalyzerTypes());
@@ -178,6 +191,10 @@ public class AnalysisPanelProvider implements Provider<JPanel> {
     panel.add(inner2, BorderLayout.CENTER);
 
     return panel;
+  }
+
+  public interface AnalysisPanelOperator extends ComponentOperatorRegistry.ComponentOperator {
+    void setAnalyzerByType(String analyzerType);
   }
 
 }
