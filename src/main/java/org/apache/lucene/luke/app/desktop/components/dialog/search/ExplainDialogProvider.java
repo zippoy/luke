@@ -20,6 +20,7 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.Toolkit;
+import java.awt.Window;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.util.Objects;
@@ -44,7 +45,7 @@ public class ExplainDialogProvider implements DialogOpener.DialogFactory {
   }
 
   @Override
-  public JDialog create(JFrame owner, String title, int width, int height) {
+  public JDialog create(Window owner, String title, int width, int height) {
     if (docid < 0 || Objects.isNull(explanation)) {
       throw new IllegalStateException("docid and/or explanation is not set.");
     }

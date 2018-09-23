@@ -1,15 +1,14 @@
-package org.apache.lucene.luke.app.desktop.components.dialog.documents;
+package org.apache.lucene.luke.app.desktop.components.dialog.analysis;
 
 import org.apache.lucene.luke.app.desktop.components.TableColumnInfo;
 import org.apache.lucene.luke.app.desktop.components.util.DialogOpener;
 import org.apache.lucene.luke.app.desktop.components.util.TableUtil;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
-import org.apache.lucene.luke.models.documents.TermVectorEntry;
+import org.apache.lucene.luke.models.analysis.Analysis;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -23,23 +22,28 @@ import java.awt.FlowLayout;
 import java.awt.Window;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class TermVectorDialogFactory implements DialogOpener.DialogFactory {
+public class TokenAttributeDialogFactory implements DialogOpener.DialogFactory {
+
+  private final JTable attributesTable = new JTable();
 
   private JDialog dialog;
 
-  private String field;
+  private String term;
 
-  List<TermVectorEntry> tvEntries;
+  private List<Analysis.TokenAttribute> attributes;
+
+  public void setTerm(String term) {
+    this.term = term;
+  }
+
+  public void setAttributes(List<Analysis.TokenAttribute> attributes) {
+    this.attributes = attributes;
+  }
 
   @Override
   public JDialog create(Window owner, String title, int width, int height) {
-    if (Objects.isNull(field) || Objects.isNull(tvEntries)) {
-      throw new IllegalStateException("field name and/or term vector is not set.");
-    }
-
     dialog = new JDialog(owner, title, Dialog.ModalityType.APPLICATION_MODAL);
     dialog.add(content());
     dialog.setSize(new Dimension(width, height));
@@ -51,42 +55,35 @@ public class TermVectorDialogFactory implements DialogOpener.DialogFactory {
     JPanel panel = new JPanel(new BorderLayout());
     panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
-    JPanel header = new JPanel(new FlowLayout(FlowLayout.LEADING, 5, 5));
-    header.add(new JLabel(MessageUtils.getLocalizedMessage("documents.termvector.label.term_vector")));
-    header.add(new JLabel(field));
+    JPanel header = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    header.add(new JLabel("All token attributes for:"));
+    header.add(new JLabel(term));
     panel.add(header, BorderLayout.PAGE_START);
 
-    JTable tvTable = new JTable();
-    TableUtil.setupTable(tvTable, ListSelectionModel.SINGLE_SELECTION, new TermVectorTableModel(tvEntries), null, 100, 50, 100);
-    JScrollPane scrollPane = new JScrollPane(tvTable);
-    panel.add(scrollPane, BorderLayout.CENTER);
+    List<TokenAttValue> attrValues = attributes.stream()
+        .flatMap(att -> att.getAttValues().entrySet().stream().map(e -> TokenAttValue.of(att.getAttClass(), e.getKey(), e.getValue())))
+        .collect(Collectors.toList());
+    TableUtil.setupTable(attributesTable, ListSelectionModel.SINGLE_SELECTION, new AttributeTableModel(attrValues), null);
+    panel.add(new JScrollPane(attributesTable), BorderLayout.CENTER);
 
-    JPanel footer = new JPanel(new FlowLayout(FlowLayout.TRAILING, 0, 10));
-    JButton closeBtn = new JButton(MessageUtils.getLocalizedMessage("button.close"));
-    closeBtn.addActionListener(e -> dialog.dispose());
-    footer.add(closeBtn);
+    JPanel footer = new JPanel(new FlowLayout(FlowLayout.TRAILING));
+    JButton okBtn = new JButton(MessageUtils.getLocalizedMessage("button.ok"));
+    okBtn.addActionListener(e -> dialog.dispose());
+    footer.add(okBtn);
     panel.add(footer, BorderLayout.PAGE_END);
 
     return panel;
   }
 
-  public void setField(String field) {
-    this.field = field;
-  }
-
-  public void setTvEntries(List<TermVectorEntry> tvEntries) {
-    this.tvEntries = tvEntries;
-  }
 }
 
-class TermVectorTableModel extends AbstractTableModel {
+class AttributeTableModel extends AbstractTableModel {
 
   enum Column implements TableColumnInfo {
 
-    TERM("Term", 0, String.class),
-    FREQ("Freq", 1, Long.class),
-    POSITIONS("Positions", 2, String.class),
-    OFFSETS("Offsets", 3, String.class);
+    ATTR("Attribute", 0, String.class),
+    NAME("Name", 1, String.class),
+    VALUE("Value", 2, String.class);
 
     private String colName;
     private int index;
@@ -120,32 +117,14 @@ class TermVectorTableModel extends AbstractTableModel {
 
   private final Object[][] data;
 
-  TermVectorTableModel() {
-    this.data = new Object[0][colNames.length];
-  }
-
-  TermVectorTableModel(List<TermVectorEntry> tvEntries) {
-    this.data = new Object[tvEntries.size()][colNames.length];
-
-    for (int i = 0; i < tvEntries.size(); i++) {
-      TermVectorEntry entry = tvEntries.get(i);
-
-      String termText = entry.getTermText();
-      long freq = tvEntries.get(i).getFreq();
-      String positions = String.join(",",
-          entry.getPositions().stream()
-              .map(pos -> Integer.toString(pos.getPosition()))
-              .collect(Collectors.toList()));
-      String offsets = String.join(",",
-          entry.getPositions().stream()
-              .filter(pos -> pos.getStartOffset().isPresent() && pos.getEndOffset().isPresent())
-              .map(pos -> String.format("%d-%d", pos.getStartOffset().orElse(-1), pos.getEndOffset().orElse(-1)))
-              .collect(Collectors.toList())
-      );
-
-      data[i] = new Object[]{ termText, freq, positions, offsets };
+  AttributeTableModel(List<TokenAttValue> attrValues) {
+    this.data = new Object[attrValues.size()][colNames.length];
+    for (int i = 0; i < attrValues.size(); i++) {
+      TokenAttValue attrValue = attrValues.get(i);
+      data[i][Column.ATTR.getIndex()] = attrValue.getAttClass();
+      data[i][Column.NAME.getIndex()] = attrValue.getName();
+      data[i][Column.VALUE.getIndex()] = attrValue.getValue();
     }
-
   }
 
   @Override
@@ -177,5 +156,34 @@ class TermVectorTableModel extends AbstractTableModel {
   @Override
   public Object getValueAt(int rowIndex, int columnIndex) {
     return data[rowIndex][columnIndex];
+  }
+}
+
+class TokenAttValue {
+  private String attClass;
+  private String name;
+  private String value;
+
+  public static TokenAttValue of(String attClass, String name, String value) {
+    TokenAttValue attValue = new TokenAttValue();
+    attValue.attClass = attClass;
+    attValue.name = name;
+    attValue.value = value;
+    return attValue;
+  }
+
+  private TokenAttValue() {
+  }
+
+  public String getAttClass() {
+    return attClass;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public String getValue() {
+    return value;
   }
 }

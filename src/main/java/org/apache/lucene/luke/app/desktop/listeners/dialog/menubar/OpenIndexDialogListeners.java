@@ -3,6 +3,7 @@ package org.apache.lucene.luke.app.desktop.listeners.dialog.menubar;
 import org.apache.lucene.luke.app.DirectoryHandler;
 import org.apache.lucene.luke.app.IndexHandler;
 import org.apache.lucene.luke.app.desktop.Preferences;
+import org.apache.lucene.luke.app.desktop.components.dialog.menubar.OpenIndexDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.menubar.OpenIndexDialogProvider;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 import org.apache.lucene.luke.models.LukeException;
@@ -20,7 +21,7 @@ public class OpenIndexDialogListeners {
 
   private static final Logger logger = LoggerFactory.getLogger(OpenIndexDialogListeners.class);
 
-  private final OpenIndexDialogProvider.Controller controller;
+  private final OpenIndexDialogFactory.Controller controller;
 
   private final DirectoryHandler directoryHandler;
 
@@ -28,7 +29,7 @@ public class OpenIndexDialogListeners {
 
   private final Preferences prefs;
 
-  public OpenIndexDialogListeners(OpenIndexDialogProvider.Controller controller,
+  public OpenIndexDialogListeners(OpenIndexDialogFactory.Controller controller,
                                   DirectoryHandler directoryHandler, IndexHandler indexHandler,
                                   Preferences preferences) {
     this.controller = controller;

@@ -2,6 +2,7 @@ package org.apache.lucene.luke.app.desktop.listeners;
 
 import org.apache.lucene.luke.app.desktop.LukeMain;
 import org.apache.lucene.luke.app.desktop.components.MenuBarProvider;
+import org.apache.lucene.luke.app.desktop.components.dialog.menubar.OpenIndexDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.menubar.OpenIndexDialogProvider;
 
 import java.awt.event.ActionEvent;
@@ -16,7 +17,7 @@ public class MenuBarListeners {
   }
 
   public ActionListener getOpenIndexMItemListener() {
-    return (ActionEvent e) -> OpenIndexDialogProvider.showOpenIndexDialog();
+    return (ActionEvent e) -> OpenIndexDialogFactory.showOpenIndexDialog();
   }
 
   public ActionListener getReopenIndexMItemListener() {

@@ -31,6 +31,7 @@ public class TableUtil {
       table.setModel(new DefaultTableModel());
     }
     if (mouseListener != null) {
+      table.removeMouseListener(mouseListener);
       table.addMouseListener(mouseListener);
     }
     for (int i = 0; i < colWidth.length; i++) {

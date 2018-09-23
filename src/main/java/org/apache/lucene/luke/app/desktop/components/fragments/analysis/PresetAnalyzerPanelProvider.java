@@ -3,7 +3,6 @@ package org.apache.lucene.luke.app.desktop.components.fragments.analysis;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.luke.app.desktop.components.AnalysisPanelProvider;
 import org.apache.lucene.luke.app.desktop.components.ComponentOperatorRegistry;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
@@ -20,7 +19,7 @@ import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.util.Collection;
 
-public class PresetAnalyzerPaneProvider implements Provider<JPanel> {
+public class PresetAnalyzerPanelProvider implements Provider<JPanel> {
 
   private final ComponentOperatorRegistry operatorRegistry;
 
@@ -56,7 +55,7 @@ public class PresetAnalyzerPaneProvider implements Provider<JPanel> {
   }
 
   @Inject
-  public PresetAnalyzerPaneProvider(ComponentOperatorRegistry operatorRegistry) {
+  public PresetAnalyzerPanelProvider(ComponentOperatorRegistry operatorRegistry) {
     this.operatorRegistry = operatorRegistry;
     operatorRegistry.register(PresetAnalyzerPaneOperator.class, new PresetAnalyzerPaneOperatorImpl());
   }

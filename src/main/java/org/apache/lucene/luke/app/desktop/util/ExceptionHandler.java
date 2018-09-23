@@ -66,14 +66,10 @@ public class ExceptionHandler {
   }
 
   public static void handle(Throwable t, MessageBroker messageBroker) {
-    if (t instanceof ExceptionWrapper) {
-      Throwable cause = unwrap((ExceptionWrapper) t);
-      if (cause instanceof LukeException) {
-        messageBroker.showStatusMessage(cause.getMessage());
-      } else {
-        logger.error(cause.getMessage(), cause);
-        messageBroker.showUnknownErrorMessage();
-      }
+    if (t instanceof LukeException) {
+      Throwable cause = t.getCause();
+      String message = (cause == null) ? t.getMessage() : t.getMessage() + " " + cause.getMessage();
+      messageBroker.showStatusMessage(message);
     } else {
       logger.error(t.getMessage(), t);
       messageBroker.showUnknownErrorMessage();

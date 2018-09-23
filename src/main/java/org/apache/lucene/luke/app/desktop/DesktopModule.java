@@ -20,16 +20,19 @@ import org.apache.lucene.luke.app.desktop.components.SearchPanelProvider;
 import org.apache.lucene.luke.app.desktop.components.TabbedPaneProvider;
 import org.apache.lucene.luke.app.desktop.components.dialog.ConfirmDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.HelpDialogFactory;
+import org.apache.lucene.luke.app.desktop.components.dialog.analysis.EditFiltersDialogFactory;
+import org.apache.lucene.luke.app.desktop.components.dialog.analysis.EditParamsDialogFactory;
+import org.apache.lucene.luke.app.desktop.components.dialog.analysis.TokenAttributeDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.documents.AddDocumentDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.documents.DocValuesDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.documents.IndexOptionsDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.documents.StoredValueDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.documents.TermVectorDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.menubar.CheckIndexDialogProvider;
+import org.apache.lucene.luke.app.desktop.components.dialog.menubar.OpenIndexDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.menubar.OpenIndexDialogProvider;
-import org.apache.lucene.luke.app.desktop.components.dialog.menubar.OptimizeIndexDialogProvider;
-import org.apache.lucene.luke.app.desktop.components.fragments.analysis.CustomAnalyzerPaneProvider;
-import org.apache.lucene.luke.app.desktop.components.fragments.analysis.PresetAnalyzerPaneProvider;
+import org.apache.lucene.luke.app.desktop.components.fragments.analysis.CustomAnalyzerPanelProvider;
+import org.apache.lucene.luke.app.desktop.components.fragments.analysis.PresetAnalyzerPanelProvider;
 import org.apache.lucene.luke.app.desktop.components.fragments.search.AnalyzerPaneProvider;
 import org.apache.lucene.luke.app.desktop.components.fragments.search.FieldValuesPaneProvider;
 import org.apache.lucene.luke.app.desktop.components.fragments.search.MLTPaneProvider;
@@ -81,19 +84,20 @@ public class DesktopModule extends AbstractModule {
     bind(JScrollPane.class).annotatedWith(Names.named("search_values")).toProvider(FieldValuesPaneProvider.class);
     bind(JScrollPane.class).annotatedWith(Names.named("search_mlt")).toProvider(MLTPaneProvider.class);
 
-    bind(JPanel.class).annotatedWith(Names.named("analysis_preset")).toProvider(PresetAnalyzerPaneProvider.class);
-    bind(JPanel.class).annotatedWith(Names.named("analysis_custom")).toProvider(CustomAnalyzerPaneProvider.class);
+    bind(JPanel.class).annotatedWith(Names.named("analysis_preset")).toProvider(PresetAnalyzerPanelProvider.class);
+    bind(JPanel.class).annotatedWith(Names.named("analysis_custom")).toProvider(CustomAnalyzerPanelProvider.class);
 
     bind(JFrame.class).toProvider(LukeWindowProvider.class);
 
     bind(JDialog.class).annotatedWith(Names.named("menubar_openindex")).toProvider(OpenIndexDialogProvider.class);
-    bind(JDialog.class).annotatedWith(Names.named("menubar_optimize")).toProvider(OptimizeIndexDialogProvider.class);
     bind(JDialog.class).annotatedWith(Names.named("menubar_checkidx")).toProvider(CheckIndexDialogProvider.class);
 
+    bind(OpenIndexDialogFactory.class).toInstance(new OpenIndexDialogFactory());
     bind(IndexOptionsDialogFactory.class).toInstance(new IndexOptionsDialogFactory());
     bind(TermVectorDialogFactory.class).toInstance(new TermVectorDialogFactory());
     bind(DocValuesDialogFactory.class).toInstance(new DocValuesDialogFactory());
     bind(StoredValueDialogFactory.class).toInstance(new StoredValueDialogFactory());
+    bind(TokenAttributeDialogFactory.class).toInstance(new TokenAttributeDialogFactory());
     bind(HelpDialogFactory.class).toInstance(new HelpDialogFactory());
     bind(ConfirmDialogFactory.class).toInstance(new ConfirmDialogFactory());
   }
@@ -105,6 +109,20 @@ public class DesktopModule extends AbstractModule {
       IndexHandler indexHandler, IndexToolsFactory toolsFactory,
       TabbedPaneProvider.TabSwitcherProxy tabSwitcherProxy, ComponentOperatorRegistry operatorRegistry) {
     return new AddDocumentDialogFactory(indexOptionsDialogFactory, helpDialogFactory, indexHandler, toolsFactory, tabSwitcherProxy, operatorRegistry);
+  }
+
+  @Provides
+  @Singleton
+  public EditFiltersDialogFactory provideEditFiltersDialogFactory(
+      ComponentOperatorRegistry operatorRegistry,
+      EditParamsDialogFactory editParamsDialogFactory) {
+    return new EditFiltersDialogFactory(operatorRegistry, editParamsDialogFactory);
+  }
+
+  @Provides
+  @Singleton
+  public EditParamsDialogFactory provideEditParamsDialogFactory(ComponentOperatorRegistry operatorRegistry) {
+    return new EditParamsDialogFactory(operatorRegistry);
   }
 
   private DesktopModule() {}

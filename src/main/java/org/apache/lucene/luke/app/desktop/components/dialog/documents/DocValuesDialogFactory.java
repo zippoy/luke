@@ -25,6 +25,7 @@ import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Window;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -99,7 +100,7 @@ public class DocValuesDialogFactory implements DialogOpener.DialogFactory {
   }
 
   @Override
-  public JDialog create(JFrame owner, String title, int width, int height) {
+  public JDialog create(Window owner, String title, int width, int height) {
     if (Objects.isNull(field) || Objects.isNull(docValues)) {
       throw new IllegalStateException("field name and/or doc values is not set.");
     }

@@ -1,14 +1,13 @@
 package org.apache.lucene.luke.app.desktop.components.dialog.menubar;
 
-import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Key;
-import com.google.inject.Provider;
 import com.google.inject.name.Names;
 import org.apache.lucene.luke.app.DirectoryHandler;
 import org.apache.lucene.luke.app.IndexHandler;
 import org.apache.lucene.luke.app.desktop.DesktopModule;
 import org.apache.lucene.luke.app.desktop.Preferences;
+import org.apache.lucene.luke.app.desktop.components.util.DialogOpener;
 import org.apache.lucene.luke.app.desktop.listeners.dialog.menubar.OpenIndexDialogListeners;
 import org.apache.lucene.luke.app.desktop.util.ImageUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
@@ -36,20 +35,21 @@ import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
+import java.awt.Window;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class OpenIndexDialogProvider implements Provider<JDialog> {
+public class OpenIndexDialogFactory implements DialogOpener.DialogFactory {
 
-  private final JFrame owner;
+  private JDialog dialog;
 
-  private final Preferences prefs;
+  private Controller controller = new Controller();
 
-  private final Controller controller;
+  private OpenIndexDialogListeners listeners;
 
-  private final JDialog dialog;
+  private Preferences prefs;
 
   private final JComboBox<String> idxPathCombo = new JComboBox<>();
 
@@ -112,19 +112,16 @@ public class OpenIndexDialogProvider implements Provider<JDialog> {
 
   }
 
-  @Inject
-  public OpenIndexDialogProvider(JFrame owner, DirectoryHandler directoryHandler, IndexHandler indexHandler, Preferences prefs) {
-    this.owner = owner;
-    this.dialog = new JDialog(owner, MessageUtils.getLocalizedMessage("openindex.dialog.title"), Dialog.ModalityType.APPLICATION_MODAL);
-    this.controller = new Controller();
-    //this.listeners = new OpenIndexDialogListeners(controller, directoryHandler, indexHandler, prefs);
+  public void init(DirectoryHandler directoryHandler, IndexHandler indexHandler, Preferences prefs) {
+    this.listeners = new OpenIndexDialogListeners(controller, directoryHandler, indexHandler, prefs);
     this.prefs = prefs;
   }
 
   @Override
-  public JDialog get() {
+  public JDialog create(Window owner, String title, int width, int height) {
+    dialog = new JDialog(owner, title, Dialog.ModalityType.APPLICATION_MODAL);
     dialog.add(content());
-    dialog.setSize(new Dimension(600, 420));
+    dialog.setSize(new Dimension(width, height));
     dialog.setLocationRelativeTo(owner);
     return dialog;
   }
@@ -158,7 +155,7 @@ public class OpenIndexDialogProvider implements Provider<JDialog> {
     browseBtn.setText(MessageUtils.getLocalizedMessage("button.browse"));
     browseBtn.setIcon(ImageUtils.createImageIcon("/img/icon_folder-open_alt.png", 20, 20));
     browseBtn.setPreferredSize(new Dimension(120, 35));
-    //browseBtn.addActionListener(listeners.getBrowseBtnListener());
+    browseBtn.addActionListener(listeners.getBrowseBtnListener());
     idxPath.add(browseBtn);
 
     panel.add(idxPath);
@@ -166,7 +163,7 @@ public class OpenIndexDialogProvider implements Provider<JDialog> {
     JPanel readOnly = new JPanel(new FlowLayout(FlowLayout.LEADING));
     readOnlyCB.setText(MessageUtils.getLocalizedMessage("openindex.checkbox.readonly"));
     readOnlyCB.setSelected(prefs.isReadOnly());
-    //readOnlyCB.addActionListener(listeners.getReadOnlyCBListener());
+    readOnlyCB.addActionListener(listeners.getReadOnlyCBListener());
     readOnly.add(readOnlyCB);
     JLabel roIconLB = new JLabel(ImageUtils.createImageIcon("/img/icon_lock.png", 12, 12));
     readOnly.add(roIconLB);
@@ -252,11 +249,11 @@ public class OpenIndexDialogProvider implements Provider<JDialog> {
     panel.setBorder(BorderFactory.createEmptyBorder(3, 3, 10, 20));
 
     JButton okBtn = new JButton(MessageUtils.getLocalizedMessage("button.ok"));
-    //okBtn.addActionListener(listeners.getOkBtnListener());
+    okBtn.addActionListener(listeners.getOkBtnListener());
     panel.add(okBtn);
 
     JButton cancelBtn = new JButton(MessageUtils.getLocalizedMessage("button.cancel"));
-    //cancelBtn.addActionListener(listeners.getCancelBtnListener());
+    cancelBtn.addActionListener(listeners.getCancelBtnListener());
     panel.add(cancelBtn);
 
     return panel;
@@ -264,8 +261,15 @@ public class OpenIndexDialogProvider implements Provider<JDialog> {
 
   public static void showOpenIndexDialog() {
     Injector injector = DesktopModule.getIngector();
-    JDialog dialog = injector.getInstance(Key.get(JDialog.class, Names.named("menubar_openindex")));
-    dialog.setVisible(true);
+    DirectoryHandler directoryHandler = injector.getInstance(DirectoryHandler.class);
+    IndexHandler indexHandler = injector.getInstance(IndexHandler.class);
+    Preferences prefs = injector.getInstance(Preferences.class);
+
+    OpenIndexDialogFactory openIndexDialogFactory = new OpenIndexDialogFactory();
+    new DialogOpener<>(openIndexDialogFactory).open(MessageUtils.getLocalizedMessage("openindex.dialog.title"), 600, 420,
+        (factory) -> {
+          factory.init(directoryHandler, indexHandler, prefs);
+        });
   }
 
 }

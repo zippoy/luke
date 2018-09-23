@@ -18,6 +18,7 @@ import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Toolkit;
+import java.awt.Window;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.util.Objects;
@@ -39,7 +40,7 @@ public class StoredValueDialogFactory implements DialogOpener.DialogFactory {
   }
 
   @Override
-  public JDialog create(JFrame owner, String title, int width, int height) {
+  public JDialog create(Window owner, String title, int width, int height) {
     if (Objects.isNull(field) || Objects.isNull(value)) {
       throw new IllegalStateException("field name and/or stored value is not set.");
     }

@@ -62,6 +62,7 @@ import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
+import java.awt.Window;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Arrays;
@@ -99,7 +100,6 @@ public class AddDocumentDialogFactory implements DialogOpener.DialogFactory {
 
   private final TabbedPaneProvider.TabSwitcherProxy tabSwitcher;
 
-  //private final Optional<DocumentsPanelProvider.DocumentsTabOperator> documentsTabOperator;
   private final ComponentOperatorRegistry operatorRegistry;
 
   private IndexTools toolsModel;
@@ -174,7 +174,7 @@ public class AddDocumentDialogFactory implements DialogOpener.DialogFactory {
   }
 
   @Override
-  public JDialog create(JFrame owner, String title, int width, int height) {
+  public JDialog create(Window owner, String title, int width, int height) {
     dialog = new JDialog(owner, title, Dialog.ModalityType.APPLICATION_MODAL);
     dialog.add(content());
     dialog.setSize(new Dimension(width, height));

@@ -18,6 +18,7 @@
 package org.apache.lucene.luke.app.desktop;
 
 import com.google.inject.Injector;
+import org.apache.lucene.luke.app.desktop.components.dialog.menubar.OpenIndexDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.menubar.OpenIndexDialogProvider;
 
 import javax.swing.JFrame;
@@ -25,6 +26,12 @@ import javax.swing.JFrame;
 import static org.apache.lucene.luke.app.desktop.util.ExceptionHandler.handle;
 
 public class LukeMain {
+
+  private static JFrame frame;
+
+  public static JFrame getOwnerFrame() {
+    return frame;
+  }
 
   private static void createAndShowGUI() {
     Injector injector = DesktopModule.getIngector();
@@ -34,13 +41,13 @@ public class LukeMain {
         handle(cause, messageBroker)
     );
 
-    JFrame frame = injector.getInstance(JFrame.class);
+    frame = injector.getInstance(JFrame.class);
 
     frame.setLocation(200, 100);
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     frame.setVisible(true);
 
-    OpenIndexDialogProvider.showOpenIndexDialog();
+    OpenIndexDialogFactory.showOpenIndexDialog();
   }
 
   public static void main(String[] args) {
