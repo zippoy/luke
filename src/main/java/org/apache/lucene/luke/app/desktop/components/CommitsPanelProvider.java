@@ -166,7 +166,7 @@ public class CommitsPanelProvider implements Provider<JPanel> {
 
     @Override
     public void closeDirectory() {
-
+      close();
     }
 
     @Override
@@ -180,7 +180,7 @@ public class CommitsPanelProvider implements Provider<JPanel> {
 
     @Override
     public void closeIndex() {
-
+      close();
     }
 
     private void populateCommitGenerations() {
@@ -195,6 +195,20 @@ public class CommitsPanelProvider implements Provider<JPanel> {
       }
     }
 
+    private void close() {
+      commitsModel = null;
+
+      commitGenCombo.setModel(new DefaultComboBoxModel<>());
+      deletedLbl.setText("");
+      segCntLbl.setText("");
+      userDataTA.setText("");
+      TableUtil.setupTable(filesTable, ListSelectionModel.SINGLE_SELECTION, new FileTableModel(), null, 200);
+      TableUtil.setupTable(segmentsTable, ListSelectionModel.SINGLE_SELECTION, new SegmentTableModel(), null, 60, 60, 60, 60, 100, 150);
+      diagRB.setEnabled(false);
+      attrRB.setEnabled(false);
+      codecRB.setEnabled(false);
+      segDetailList.setModel(new DefaultListModel<>());
+    }
   }
 
   @Inject
