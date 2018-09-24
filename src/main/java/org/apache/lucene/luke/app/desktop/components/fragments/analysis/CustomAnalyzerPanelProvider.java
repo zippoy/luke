@@ -40,8 +40,11 @@ import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -113,6 +116,21 @@ public class CustomAnalyzerPanelProvider implements Provider<JPanel> {
         // do nothing
       }
     }
+
+    void loadExternalJars(MouseEvent e) {
+      fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+      fileChooser.setMultiSelectionEnabled(true);
+
+      int ret = fileChooser.showOpenDialog(containerPanel);
+      if (ret == JFileChooser.APPROVE_OPTION) {
+        File[] files = fileChooser.getSelectedFiles();
+        operatorRegistry.get(AnalysisPanelProvider.AnalysisPanelOperator.class).ifPresent(operator -> {
+            operator.addExternalJars(Arrays.stream(files).map(File::getAbsolutePath).collect(Collectors.toList()));
+        });
+        messageBroker.showStatusMessage("External jars were added.");
+      }
+    }
+
 
     void buildAnalyzer(ActionEvent e) {
       List<String> charFilterFactories = ListUtil.getAllItems(selectedCfList);
@@ -246,6 +264,7 @@ public class CustomAnalyzerPanelProvider implements Provider<JPanel> {
             factory.setCallback(callback);
           });
     }
+
   }
 
   class CustomAnalyzerPanelOperatorImpl implements CustomAnalyzerPanelOperator {
@@ -256,7 +275,6 @@ public class CustomAnalyzerPanelProvider implements Provider<JPanel> {
       charFilterNames[0] = "";
       System.arraycopy(charFilters.stream().map(Class::getName).toArray(String[]::new), 0, charFilterNames, 1, charFilters.size());
       cfFactoryCombo.setModel(new DefaultComboBoxModel<>(charFilterNames));
-      cfFactoryCombo.addActionListener(listeners::addCharFilter);
     }
 
     @Override
@@ -265,7 +283,6 @@ public class CustomAnalyzerPanelProvider implements Provider<JPanel> {
       tokenizerNames[0] = "";
       System.arraycopy(tokenizers.stream().map(Class::getName).toArray(String[]::new), 0, tokenizerNames, 1, tokenizers.size());
       tokFactoryCombo.setModel(new DefaultComboBoxModel<>(tokenizerNames));
-      tokFactoryCombo.addActionListener(listeners::setTokenizer);
     }
 
     @Override
@@ -274,7 +291,6 @@ public class CustomAnalyzerPanelProvider implements Provider<JPanel> {
       tokenFilterNames[0] = "";
       System.arraycopy(tokenFilters.stream().map(Class::getName).toArray(String[]::new), 0, tokenFilterNames, 1, tokenFilters.size());
       tfFactoryCombo.setModel(new DefaultComboBoxModel<>(tokenFilterNames));
-      tfFactoryCombo.addActionListener(listeners::addTokenFilter);
     }
 
     @Override
@@ -336,11 +352,6 @@ public class CustomAnalyzerPanelProvider implements Provider<JPanel> {
     }
 
     @Override
-    public Map<String, String> getTokenizerParams() {
-      return ImmutableMap.copyOf(tokParams);
-    }
-
-    @Override
     public void updateTokenizerParams(Map<String, String> updatedParams) {
       tokParams.clear();
       tokParams.putAll(updatedParams);
@@ -378,6 +389,10 @@ public class CustomAnalyzerPanelProvider implements Provider<JPanel> {
     this.messageBroker = messageBroker;
 
     operatorRegistry.register(CustomAnalyzerPanelOperator.class, new CustomAnalyzerPanelOperatorImpl());
+
+    cfFactoryCombo.addActionListener(listeners::addCharFilter);
+    tokFactoryCombo.addActionListener(listeners::setTokenizer);
+    tfFactoryCombo.addActionListener(listeners::addTokenFilter);
   }
 
   @Override
@@ -413,6 +428,12 @@ public class CustomAnalyzerPanelProvider implements Provider<JPanel> {
     buildBtn.addActionListener(listeners::buildAnalyzer);
     panel.add(buildBtn);
     loadJarLbl.setText(MessageUtils.getLocalizedMessage("analysis.hyperlink.load_jars"));
+    loadJarLbl.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        listeners.loadExternalJars(e);
+      }
+    });
     panel.add(FontUtil.toLinkText(loadJarLbl));
 
     return panel;
@@ -659,7 +680,6 @@ public class CustomAnalyzerPanelProvider implements Provider<JPanel> {
 
     Map<String, String> getCharFilterParams(int index);
     void updateCharFilterParams(int index, Map<String, String> updatedParams);
-    Map<String, String> getTokenizerParams();
     void updateTokenizerParams(Map<String, String> updatedParams);
     Map<String, String> getTokenFilterParams(int index);
     void updateTokenFilterParams(int index, Map<String, String> updatedParams);

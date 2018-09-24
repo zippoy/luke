@@ -73,9 +73,9 @@ public class AnalysisPanelProvider implements Provider<JPanel> {
 
   private final ListenerFunctions listeners = new ListenerFunctions();
 
-  private Analysis analysisModel;
-
   private List<Analysis.Token> tokens;
+
+  private Analysis analysisModel;
 
   class AnalysisPanelOperatorImpl implements AnalysisPanelOperator {
 
@@ -89,6 +89,16 @@ public class AnalysisPanelProvider implements Provider<JPanel> {
     public void setAnalyzerByCustomConfiguration(CustomAnalyzerConfig config) {
       analysisModel.buildCustomAnalyzer(config);
       analyzerNameLbl.setText(analysisModel.currentAnalyzer().getClass().getName());
+    }
+
+    @Override
+    public void addExternalJars(List<String> jarFiles) {
+      analysisModel.addExternalJars(jarFiles);
+      operatorRegistry.get(CustomAnalyzerPanelProvider.CustomAnalyzerPanelOperator.class).ifPresent(operator -> {
+        operator.setAvailableCharFilterFactories(analysisModel.getAvailableCharFilterFactories());
+        operator.setAvailableTokenizerFactories(analysisModel.getAvailableTokenizerFactories());
+        operator.setAvailableTokenFilterFactories(analysisModel.getAvailableTokenFilterFactories());
+      });
     }
   }
 
@@ -279,6 +289,7 @@ public class AnalysisPanelProvider implements Provider<JPanel> {
   public interface AnalysisPanelOperator extends ComponentOperatorRegistry.ComponentOperator {
     void setAnalyzerByType(String analyzerType);
     void setAnalyzerByCustomConfiguration(CustomAnalyzerConfig config);
+    void addExternalJars(List<String> jarFiles);
   }
 
 }
