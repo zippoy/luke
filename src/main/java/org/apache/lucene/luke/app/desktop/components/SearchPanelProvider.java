@@ -154,7 +154,16 @@ public class SearchPanelProvider implements Provider<JPanel> {
     }
 
     private void enableTermQuery() {
-      tabbedPane.setEnabled(false);
+      tabbedPane.setEnabledAt(Tab.QPARSER.index(), false);
+      tabbedPane.setEnabledAt(Tab.ANALYZER.index(), false);
+      tabbedPane.setEnabledAt(Tab.SIMILARITY.index(), false);
+      tabbedPane.setEnabledAt(Tab.MLT.index(), false);
+      if (tabbedPane.getSelectedIndex() == Tab.QPARSER.index() ||
+          tabbedPane.getSelectedIndex() == Tab.ANALYZER.index() ||
+          tabbedPane.getSelectedIndex() == Tab.SIMILARITY.index() ||
+          tabbedPane.getSelectedIndex() == Tab.MLT.index()) {
+        tabbedPane.setSelectedIndex(Tab.SORT.index());
+      }
       parseBtn.setEnabled(false);
       rewriteCB.setEnabled(false);
       mltBtn.setEnabled(false);
@@ -162,7 +171,10 @@ public class SearchPanelProvider implements Provider<JPanel> {
     }
 
     private void disableTermQuery() {
-      tabbedPane.setEnabled(true);
+      tabbedPane.setEnabledAt(Tab.QPARSER.index(), true);
+      tabbedPane.setEnabledAt(Tab.ANALYZER.index(), true);
+      tabbedPane.setEnabledAt(Tab.SIMILARITY.index(), true);
+      tabbedPane.setEnabledAt(Tab.MLT.index(), true);
       parseBtn.setEnabled(true);
       rewriteCB.setEnabled(true);
       mltBtn.setEnabled(true);
@@ -207,14 +219,18 @@ public class SearchPanelProvider implements Provider<JPanel> {
 
       TableUtil.setupTable(resultsTable, ListSelectionModel.SINGLE_SELECTION, new SearchResultsTableModel(), null, 50, 100);
       populateResults(results);
+
+      messageBroker.clearStatusMessage();
     }
 
     void nextPage(ActionEvent e) {
       searchModel.nextPage().ifPresent(this::populateResults);
+      messageBroker.clearStatusMessage();
     }
 
     void prevPage(ActionEvent e) {
       searchModel.prevPage().ifPresent(this::populateResults);
+      messageBroker.clearStatusMessage();
     }
 
     void execMLTSearch(ActionEvent e) {
@@ -240,6 +256,8 @@ public class SearchPanelProvider implements Provider<JPanel> {
 
       TableUtil.setupTable(resultsTable, ListSelectionModel.SINGLE_SELECTION, new SearchResultsTableModel(), null, 50, 100);
       populateResults(results);
+
+      messageBroker.clearStatusMessage();
     }
 
     private Query parse(boolean rewrite) {
@@ -272,7 +290,8 @@ public class SearchPanelProvider implements Provider<JPanel> {
         resultsTable.setModel(new SearchResultsTableModel(res));
         resultsTable.getColumnModel().getColumn(SearchResultsTableModel.Column.DOCID.getIndex()).setPreferredWidth(50);
         resultsTable.getColumnModel().getColumn(SearchResultsTableModel.Column.SCORE.getIndex()).setPreferredWidth(100);
-        resultsTable.getColumnModel().getColumn(SearchResultsTableModel.Column.VALUE.getIndex()).setPreferredWidth(800);
+        resultsTable.getColumnModel().getColumn(SearchResultsTableModel.Column.VALUE.getIndex()).setPreferredWidth(2000);
+        resultsTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
       } else {
         startLbl.setText("0");
         endLbl.setText("0");
@@ -347,7 +366,7 @@ public class SearchPanelProvider implements Provider<JPanel> {
       });
       operatorRegistry.get(SortPaneProvider.SortTabOperator.class).ifPresent(operator -> {
         operator.setSearchModel(searchModel);
-        operator.setSortableFields(searchModel.getFieldNames());
+        operator.setSortableFields(searchModel.getSortableFieldNames());
       });
       operatorRegistry.get(FieldValuesPaneProvider.FieldValuesTabOperator.class).ifPresent(operator -> {
         operator.setFields(searchModel.getFieldNames());

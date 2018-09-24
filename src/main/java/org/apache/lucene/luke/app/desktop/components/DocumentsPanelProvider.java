@@ -150,6 +150,7 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
         firstTermDocBtn.setEnabled(false);
       }
       nextTermDocBtn.setEnabled(false);
+      messageBroker.clearStatusMessage();
     }
 
     public void showNextTerm() {
@@ -171,7 +172,6 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
         firstTermDocBtn.setEnabled(false);
       }
       nextTermDocBtn.setEnabled(false);
-
       messageBroker.clearStatusMessage();
     }
 
@@ -196,7 +196,6 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
         firstTermDocBtn.setEnabled(false);
       }
       nextTermDocBtn.setEnabled(false);
-
       messageBroker.clearStatusMessage();
     }
 
@@ -267,7 +266,8 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
       documentTable.getColumnModel().getColumn(DocumentTableModel.Column.FLAGS.getIndex()).setMaxWidth(240);
       documentTable.getColumnModel().getColumn(DocumentTableModel.Column.NORM.getIndex()).setMinWidth(80);
       documentTable.getColumnModel().getColumn(DocumentTableModel.Column.NORM.getIndex()).setMaxWidth(80);
-      documentTable.getColumnModel().getColumn(DocumentTableModel.Column.VALUE.getIndex()).setPreferredWidth(500);
+      documentTable.getColumnModel().getColumn(DocumentTableModel.Column.VALUE.getIndex()).setPreferredWidth(1000);
+      documentTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 
       TableCellRenderer renderer = new HelpHeaderRenderer(
           "About Flags", "Format: IdfpoNPSB#txxVDtxxxxTx/x",
@@ -314,6 +314,7 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
             factory.setField(field);
             factory.setTvEntries(tvEntries);
           });
+      messageBroker.clearStatusMessage();
     }
 
     public void showDocValuesDialog() {
