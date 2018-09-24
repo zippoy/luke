@@ -1,1 +1,1 @@
-start javaw -jar .\target\luke-javafx-with-deps.jar
+start javaw -jar .\target\luke-swing-with-deps.jar

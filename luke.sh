@@ -1,11 +1,11 @@
 #!/bin/bash
 
 if [[ -d `echo $LUKE_PATH` ]]; then
-  java -jar $LUKE_PATH/target/luke-javafx-with-deps.jar
+  java -jar $LUKE_PATH/target/luke-swing-with-deps.jar
 else
   echo "Unable to find the LUKE_PATH environnement variable..."
   echo "Assuming you're running from the root folder of luke..."
-  nohup java -jar target/luke-javafx-with-deps.jar > /dev/null 2>&1 &
+  nohup java -jar target/luke-swing-with-deps.jar > /dev/null 2>&1 &
 fi
 #
 # In order to start luke with custom components (a custom analyzer class extending org.apache.lucene.analysis.Analyzer or a custom Codec) run:
