@@ -37,11 +37,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class MLTPaneProvider implements Provider<JScrollPane> {
 
   private final Listeners listeners;
+
+  private final JLabel analyzerLbl = new JLabel(StandardAnalyzer.class.getName());
 
   private final JFormattedTextField maxDocFreqFTF = new JFormattedTextField();
 
@@ -57,9 +58,12 @@ public class MLTPaneProvider implements Provider<JScrollPane> {
 
   private MLTConfig config = new MLTConfig.Builder().build();
 
-  private Analyzer analyzer = new StandardAnalyzer();
-
   class MLTTabOperatorImpl implements MLTTabOperator {
+
+    @Override
+    public void setAnalyzer(Analyzer analyzer) {
+      analyzerLbl.setText(analyzer.getClass().getName());
+    }
 
     @Override
     public void setFields(Collection<String> fields) {
@@ -125,10 +129,6 @@ public class MLTPaneProvider implements Provider<JScrollPane> {
     operatorRegistry.register(MLTTabOperator.class, new MLTTabOperatorImpl());
   }
 
-  public void setAnalyzer(Analyzer analyzer) {
-    this.analyzer = analyzer;
-  }
-
   @Override
   public JScrollPane get() {
     JPanel panel = new JPanel();
@@ -180,7 +180,6 @@ public class MLTPaneProvider implements Provider<JScrollPane> {
 
     panel.add(new JLabel(MessageUtils.getLocalizedMessage("search_mlt.label.analyzer")));
 
-    JLabel analyzerLbl = new JLabel(analyzer.getClass().getName());
     panel.add(analyzerLbl);
 
     JLabel changeLbl = new JLabel(MessageUtils.getLocalizedMessage("search_mlt.hyperlink.change"));
@@ -217,6 +216,7 @@ public class MLTPaneProvider implements Provider<JScrollPane> {
   }
 
   public interface MLTTabOperator extends ComponentOperatorRegistry.ComponentOperator {
+    void setAnalyzer(Analyzer analyzer);
     void setFields(Collection<String> fields);
     MLTConfig getConfig();
   }

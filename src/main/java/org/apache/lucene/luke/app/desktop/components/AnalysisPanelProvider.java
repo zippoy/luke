@@ -3,11 +3,15 @@ package org.apache.lucene.luke.app.desktop.components;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.name.Named;
+import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.luke.app.desktop.MessageBroker;
 import org.apache.lucene.luke.app.desktop.components.dialog.analysis.TokenAttributeDialogFactory;
+import org.apache.lucene.luke.app.desktop.components.dialog.documents.AddDocumentDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.fragments.analysis.CustomAnalyzerPanelProvider;
 import org.apache.lucene.luke.app.desktop.components.fragments.analysis.PresetAnalyzerPanelProvider;
+import org.apache.lucene.luke.app.desktop.components.fragments.search.AnalyzerPaneProvider;
+import org.apache.lucene.luke.app.desktop.components.fragments.search.MLTPaneProvider;
 import org.apache.lucene.luke.app.desktop.components.util.DialogOpener;
 import org.apache.lucene.luke.app.desktop.components.util.TableUtil;
 import org.apache.lucene.luke.app.desktop.util.ImageUtils;
@@ -83,12 +87,24 @@ public class AnalysisPanelProvider implements Provider<JPanel> {
     public void setAnalyzerByType(String analyzerType) {
       analysisModel.createAnalyzerFromClassName(analyzerType);
       analyzerNameLbl.setText(analysisModel.currentAnalyzer().getClass().getName());
+      operatorRegistry.get(AnalyzerPaneProvider.AnalyzerTabOperator.class).ifPresent(operator ->
+          operator.setAnalyzer(analysisModel.currentAnalyzer()));
+      operatorRegistry.get(MLTPaneProvider.MLTTabOperator.class).ifPresent(operator ->
+          operator.setAnalyzer(analysisModel.currentAnalyzer()));
+      operatorRegistry.get(AddDocumentDialogFactory.AddDocumentDialogOperator.class).ifPresent(operator ->
+          operator.setAnalyzer(analysisModel.currentAnalyzer()));
     }
 
     @Override
     public void setAnalyzerByCustomConfiguration(CustomAnalyzerConfig config) {
       analysisModel.buildCustomAnalyzer(config);
       analyzerNameLbl.setText(analysisModel.currentAnalyzer().getClass().getName());
+      operatorRegistry.get(AnalyzerPaneProvider.AnalyzerTabOperator.class).ifPresent(operator ->
+          operator.setAnalyzer(analysisModel.currentAnalyzer()));
+      operatorRegistry.get(MLTPaneProvider.MLTTabOperator.class).ifPresent(operator ->
+          operator.setAnalyzer(analysisModel.currentAnalyzer()));
+      operatorRegistry.get(AddDocumentDialogFactory.AddDocumentDialogOperator.class).ifPresent(operator ->
+          operator.setAnalyzer(analysisModel.currentAnalyzer()));
     }
 
     @Override
@@ -99,6 +115,11 @@ public class AnalysisPanelProvider implements Provider<JPanel> {
         operator.setAvailableTokenizerFactories(analysisModel.getAvailableTokenizerFactories());
         operator.setAvailableTokenFilterFactories(analysisModel.getAvailableTokenFilterFactories());
       });
+    }
+
+    @Override
+    public Analyzer getCurrentAnalyzer() {
+      return analysisModel.currentAnalyzer();
     }
   }
 
@@ -290,6 +311,7 @@ public class AnalysisPanelProvider implements Provider<JPanel> {
     void setAnalyzerByType(String analyzerType);
     void setAnalyzerByCustomConfiguration(CustomAnalyzerConfig config);
     void addExternalJars(List<String> jarFiles);
+    Analyzer getCurrentAnalyzer();
   }
 
 }

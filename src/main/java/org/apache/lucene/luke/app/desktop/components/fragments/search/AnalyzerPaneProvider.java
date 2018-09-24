@@ -3,15 +3,16 @@ package org.apache.lucene.luke.app.desktop.components.fragments.search;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.custom.CustomAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.luke.app.desktop.components.ComponentOperatorRegistry;
 import org.apache.lucene.luke.app.desktop.components.TabbedPaneProvider;
 import org.apache.lucene.luke.app.desktop.components.util.FontUtil;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 
-import javax.annotation.Nonnull;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.DefaultListModel;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -28,12 +29,11 @@ import java.awt.Insets;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-
 public class AnalyzerPaneProvider implements Provider<JScrollPane> {
 
   private final TabbedPaneProvider.TabSwitcherProxy tabSwitcher;
 
-  private final JLabel analyzerNameLbl = new JLabel();
+  private final JLabel analyzerNameLbl = new JLabel(StandardAnalyzer.class.getName());
 
   private final JList<String> charFilterList = new JList<>();
 
@@ -41,14 +41,43 @@ public class AnalyzerPaneProvider implements Provider<JScrollPane> {
 
   private final JList<String> tokenFilterList = new JList<>();
 
-  private Analyzer analyzer = new StandardAnalyzer();
-
   class AnalyzerTabOperatorImpl implements AnalyzerTabOperator {
 
     @Override
-    public Analyzer getCurrentAnalyzer() {
-      return analyzer;
+    public void setAnalyzer(Analyzer analyzer) {
+      analyzerNameLbl.setText(analyzer.getClass().getName());
+
+      if (analyzer instanceof CustomAnalyzer) {
+        CustomAnalyzer customAnalyzer = (CustomAnalyzer) analyzer;
+
+        DefaultListModel<String> charFilterListModel = new DefaultListModel<>();
+        customAnalyzer.getCharFilterFactories().stream()
+            .map(f -> f.getClass().getSimpleName())
+            .forEach(charFilterListModel::addElement);
+        charFilterList.setModel(charFilterListModel);
+
+        tokenizerTF.setText(customAnalyzer.getTokenizerFactory().getClass().getSimpleName());
+
+        DefaultListModel<String> tokenFilterListModel = new DefaultListModel<>();
+        customAnalyzer.getTokenFilterFactories().stream()
+            .map(f -> f.getClass().getSimpleName())
+            .forEach(tokenFilterListModel::addElement);
+        tokenFilterList.setModel(tokenFilterListModel);
+
+        charFilterList.setBackground(Color.white);
+        tokenizerTF.setBackground(Color.white);
+        tokenFilterList.setBackground(Color.white);
+      } else {
+        charFilterList.setModel(new DefaultListModel<>());
+        tokenizerTF.setText("");
+        tokenFilterList.setModel(new DefaultListModel<>());
+
+        charFilterList.setBackground(Color.lightGray);
+        tokenizerTF.setBackground(Color.lightGray);
+        tokenFilterList.setBackground(Color.lightGray);
+      }
     }
+
   }
 
   @Inject
@@ -57,10 +86,6 @@ public class AnalyzerPaneProvider implements Provider<JScrollPane> {
     this.tabSwitcher = tabSwitcher;
 
     operatorRegistry.register(AnalyzerTabOperator.class, new AnalyzerTabOperatorImpl());
-  }
-
-  public void setAnalyzer(@Nonnull Analyzer analyzer) {
-    this.analyzer = analyzer;
   }
 
   @Override
@@ -82,7 +107,6 @@ public class AnalyzerPaneProvider implements Provider<JScrollPane> {
 
     panel.add(new JLabel(MessageUtils.getLocalizedMessage("search_analyzer.label.name")));
 
-    analyzerNameLbl.setText(analyzer.getClass().getName());
     panel.add(analyzerNameLbl);
 
     JLabel changeLbl = new JLabel(MessageUtils.getLocalizedMessage("search_analyzer.hyperlink.change"));
@@ -154,6 +178,6 @@ public class AnalyzerPaneProvider implements Provider<JScrollPane> {
   }
 
   public interface AnalyzerTabOperator extends ComponentOperatorRegistry.ComponentOperator {
-    Analyzer getCurrentAnalyzer();
+    void setAnalyzer(Analyzer analyzer);
   }
 }

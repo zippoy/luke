@@ -21,6 +21,7 @@ import org.apache.lucene.luke.app.IndexHandler;
 import org.apache.lucene.luke.app.IndexObserver;
 import org.apache.lucene.luke.app.LukeState;
 import org.apache.lucene.luke.app.desktop.MessageBroker;
+import org.apache.lucene.luke.app.desktop.components.AnalysisPanelProvider;
 import org.apache.lucene.luke.app.desktop.components.ComponentOperatorRegistry;
 import org.apache.lucene.luke.app.desktop.components.DocumentsPanelProvider;
 import org.apache.lucene.luke.app.desktop.components.TabbedPaneProvider;
@@ -78,7 +79,7 @@ public class AddDocumentDialogFactory implements DialogOpener.DialogFactory {
 
   private final AddDocumentDialogListeners listeners;
 
-  private final JLabel analyzerNameLbl = new JLabel();
+  private final JLabel analyzerNameLbl = new JLabel(StandardAnalyzer.class.getName());
 
   private final JTable fieldsTable = new JTable();
 
@@ -106,10 +107,6 @@ public class AddDocumentDialogFactory implements DialogOpener.DialogFactory {
 
   private JDialog dialog;
 
-  private Analyzer currentAnalyzer = new StandardAnalyzer();
-
-  private String analyzerName = "org.apache.lucene.analysis.standard.StandardAnalyzer";
-
   public class Controller {
 
     public List<NewField> getNewFieldList() {
@@ -118,7 +115,10 @@ public class AddDocumentDialogFactory implements DialogOpener.DialogFactory {
 
     public void addDocument(Document doc) {
       try {
-        toolsModel.addDocument(doc, currentAnalyzer);
+        Analyzer analyzer = operatorRegistry.get(AnalysisPanelProvider.AnalysisPanelOperator.class)
+            .map(AnalysisPanelProvider.AnalysisPanelOperator::getCurrentAnalyzer)
+            .orElse(new StandardAnalyzer());
+        toolsModel.addDocument(doc, analyzer);
         indexHandler.reOpen();
         operatorRegistry.get(DocumentsPanelProvider.DocumentsTabOperator.class).ifPresent(DocumentsPanelProvider.DocumentsTabOperator::displayLatestDoc);
         tabSwitcher.switchTab(TabbedPaneProvider.Tab.DOCUMENTS);
@@ -152,6 +152,15 @@ public class AddDocumentDialogFactory implements DialogOpener.DialogFactory {
     }
   }
 
+  class AddDocumentOperatorImpl implements AddDocumentDialogOperator {
+
+    @Override
+    public void setAnalyzer(Analyzer analyzer) {
+      analyzerNameLbl.setText(analyzer.getClass().getName());
+    }
+
+  }
+
   @Inject
   public AddDocumentDialogFactory(IndexOptionsDialogFactory indexOptionsDialogFactory, HelpDialogFactory helpDialogFactory,
                                   IndexHandler indexHandler, IndexToolsFactory toolsFactory,
@@ -165,12 +174,9 @@ public class AddDocumentDialogFactory implements DialogOpener.DialogFactory {
     this.operatorRegistry = operatorRegistry;
     this.listeners = new AddDocumentDialogListeners(new Controller());
 
+    operatorRegistry.register(AddDocumentDialogOperator.class, new AddDocumentOperatorImpl());
     indexHandler.addObserver(new Observer());
     newFieldList = IntStream.range(0, ROW_COUNT).mapToObj(i -> NewField.newInstance()).collect(Collectors.toList());
-  }
-
-  public void setAnalyzerName(String analyzerName) {
-    this.analyzerName = analyzerName;
   }
 
   @Override
@@ -197,7 +203,6 @@ public class AddDocumentDialogFactory implements DialogOpener.DialogFactory {
 
     JPanel analyzerHeader = new JPanel(new FlowLayout(FlowLayout.LEADING, 10, 10));
     analyzerHeader.add(new JLabel(MessageUtils.getLocalizedMessage("add_document.label.analyzer")));
-    analyzerNameLbl.setText(analyzerName);
     analyzerHeader.add(analyzerNameLbl);
     JLabel changeLbl = new JLabel(MessageUtils.getLocalizedMessage("add_document.hyperlink.change"));
     changeLbl.addMouseListener(new MouseAdapter() {
@@ -324,18 +329,9 @@ public class AddDocumentDialogFactory implements DialogOpener.DialogFactory {
       StoredField.class, Field.class
   };
 
-  @SuppressWarnings("unchecked")
-  private static List<Class<? extends Field>> presetFields() {
-    final Class[] presetFieldClasses = new Class[]{
-        TextField.class, StringField.class,
-        IntPoint.class, LongPoint.class, FloatPoint.class, DoublePoint.class,
-        SortedDocValuesField.class, SortedSetDocValuesField.class,
-        NumericDocValuesField.class, SortedNumericDocValuesField.class,
-        StoredField.class, Field.class
-    };
-    return Arrays.asList(presetFieldClasses);
+  public interface AddDocumentDialogOperator extends ComponentOperatorRegistry.ComponentOperator {
+    void setAnalyzer(Analyzer analyzer);
   }
-
 
 }
 

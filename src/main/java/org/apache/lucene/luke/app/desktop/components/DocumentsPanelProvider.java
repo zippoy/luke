@@ -252,7 +252,6 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
 
     public void showLatestDoc() {
       int docid = documentsModel.getMaxDoc() - 1;
-      //docNumSpnr.setValue(docid);
       showDoc(docid);
     }
 
@@ -669,15 +668,13 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
 
     JPanel right = new JPanel(new FlowLayout(FlowLayout.TRAILING, 10, 2));
     mltBtn.setText(MessageUtils.getLocalizedMessage("documents.button.mlt"));
-    mltBtn.setIcon(ImageUtils.createImageIcon("/img/icon_heart_alt.png", 20, 20));
-    mltBtn.setFont(new Font(mltBtn.getFont().getFontName(), Font.PLAIN, 15));
-    mltBtn.setMargin(new Insets(5, 5, 5, 5));
+    mltBtn.setIcon(ImageUtils.createImageIcon("/img/icon_heart_alt.png", 15, 15));
+    mltBtn.setMargin(new Insets(3, 5, 3, 5));
     mltBtn.addActionListener(listeners.getMltSearchBtnListener());
     right.add(mltBtn);
     addDocBtn.setText(MessageUtils.getLocalizedMessage("documents.button.add"));
-    addDocBtn.setIcon(ImageUtils.createImageIcon("/img/icon_plus-box.png", 20, 20));
-    addDocBtn.setFont(new Font(addDocBtn.getFont().getFontName(), Font.PLAIN, 15));
-    addDocBtn.setMargin(new Insets(5, 5, 5, 5));
+    addDocBtn.setIcon(ImageUtils.createImageIcon("/img/icon_plus-box.png", 15, 15));
+    addDocBtn.setMargin(new Insets(3, 5, 3, 5));
     addDocBtn.addActionListener(listeners.getAddDocBtnListener());
     right.add(addDocBtn);
     panel.add(right);

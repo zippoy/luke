@@ -13,7 +13,6 @@ import org.apache.lucene.luke.app.LukeState;
 import org.apache.lucene.luke.app.desktop.MessageBroker;
 import org.apache.lucene.luke.app.desktop.components.dialog.ConfirmDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.search.ExplainDialogProvider;
-import org.apache.lucene.luke.app.desktop.components.fragments.search.AnalyzerPaneProvider;
 import org.apache.lucene.luke.app.desktop.components.fragments.search.FieldValuesPaneProvider;
 import org.apache.lucene.luke.app.desktop.components.fragments.search.MLTPaneProvider;
 import org.apache.lucene.luke.app.desktop.components.fragments.search.QueryParserPaneProvider;
@@ -230,8 +229,8 @@ public class SearchPanelProvider implements Provider<JPanel> {
       MLTConfig mltConfig = operatorRegistry.get(MLTPaneProvider.MLTTabOperator.class)
           .map(MLTPaneProvider.MLTTabOperator::getConfig)
           .orElse(new MLTConfig.Builder().build());
-      Analyzer analyzer = operatorRegistry.get(AnalyzerPaneProvider.AnalyzerTabOperator.class)
-          .map(AnalyzerPaneProvider.AnalyzerTabOperator::getCurrentAnalyzer)
+      Analyzer analyzer = operatorRegistry.get(AnalysisPanelProvider.AnalysisPanelOperator.class)
+          .map(AnalysisPanelProvider.AnalysisPanelOperator::getCurrentAnalyzer)
           .orElse(new StandardAnalyzer());
       Query query = searchModel.mltQuery(docNum, mltConfig, analyzer);
       Set<String> fieldsToLoad = operatorRegistry.get(FieldValuesPaneProvider.FieldValuesTabOperator.class)
@@ -251,8 +250,8 @@ public class SearchPanelProvider implements Provider<JPanel> {
       QueryParserConfig config = operatorRegistry.get(QueryParserPaneProvider.QueryParserTabOperator.class)
           .map(QueryParserPaneProvider.QueryParserTabOperator::getConfig)
           .orElse(new QueryParserConfig.Builder().build());
-      Analyzer analyzer = operatorRegistry.get(AnalyzerPaneProvider.AnalyzerTabOperator.class)
-          .map(AnalyzerPaneProvider.AnalyzerTabOperator::getCurrentAnalyzer)
+      Analyzer analyzer = operatorRegistry.get(AnalysisPanelProvider.AnalysisPanelOperator.class)
+          .map(AnalysisPanelProvider.AnalysisPanelOperator::getCurrentAnalyzer)
           .orElse(new StandardAnalyzer());
       return searchModel.parseQuery(expr, df, analyzer, config, rewrite);
     }
@@ -400,6 +399,7 @@ public class SearchPanelProvider implements Provider<JPanel> {
     public void mltSearch(int docNum) {
       mltDocFTF.setValue(docNum);
       listeners.doMLTSearch();
+      tabbedPane.setSelectedIndex(Tab.MLT.index());
     }
   }
 
@@ -667,6 +667,20 @@ public class SearchPanelProvider implements Provider<JPanel> {
   public interface SearchTabOperator extends ComponentOperatorRegistry.ComponentOperator {
     void searchByTerm(String field, String term);
     void mltSearch(int docNum);
+  }
+
+  public enum Tab {
+    QPARSER(0), ANALYZER(1), SIMILARITY(2), SORT(3), VALUES(4), MLT(5);
+
+    private int tabIdx;
+
+    Tab(int tabIdx) {
+      this.tabIdx = tabIdx;
+    }
+
+    int index() {
+      return tabIdx;
+    }
   }
 
 }
