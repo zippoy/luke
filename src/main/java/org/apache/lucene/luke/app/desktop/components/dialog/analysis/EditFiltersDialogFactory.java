@@ -4,9 +4,9 @@ import com.google.inject.Inject;
 import org.apache.lucene.luke.app.desktop.components.ComponentOperatorRegistry;
 import org.apache.lucene.luke.app.desktop.components.TableColumnInfo;
 import org.apache.lucene.luke.app.desktop.components.fragments.analysis.CustomAnalyzerPanelProvider;
-import org.apache.lucene.luke.app.desktop.components.util.DialogOpener;
-import org.apache.lucene.luke.app.desktop.components.util.TableUtil;
-import org.apache.lucene.luke.app.desktop.components.util.lang.Callable;
+import org.apache.lucene.luke.app.desktop.util.DialogOpener;
+import org.apache.lucene.luke.app.desktop.util.TableUtil;
+import org.apache.lucene.luke.app.desktop.util.lang.Callable;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 
 import javax.swing.BorderFactory;

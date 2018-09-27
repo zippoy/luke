@@ -12,8 +12,8 @@ import org.apache.lucene.luke.app.desktop.components.fragments.analysis.CustomAn
 import org.apache.lucene.luke.app.desktop.components.fragments.analysis.PresetAnalyzerPanelProvider;
 import org.apache.lucene.luke.app.desktop.components.fragments.search.AnalyzerPaneProvider;
 import org.apache.lucene.luke.app.desktop.components.fragments.search.MLTPaneProvider;
-import org.apache.lucene.luke.app.desktop.components.util.DialogOpener;
-import org.apache.lucene.luke.app.desktop.components.util.TableUtil;
+import org.apache.lucene.luke.app.desktop.util.DialogOpener;
+import org.apache.lucene.luke.app.desktop.util.TableUtil;
 import org.apache.lucene.luke.app.desktop.util.ImageUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 import org.apache.lucene.luke.models.analysis.Analysis;

@@ -8,10 +8,13 @@ import org.apache.lucene.luke.app.IndexHandler;
 import org.apache.lucene.luke.app.IndexObserver;
 import org.apache.lucene.luke.app.LukeState;
 import org.apache.lucene.luke.app.desktop.Preferences;
-import org.apache.lucene.luke.app.desktop.listeners.MenuBarListeners;
+import org.apache.lucene.luke.app.desktop.components.dialog.menubar.OpenIndexDialogFactory;
+import org.apache.lucene.luke.app.desktop.components.dialog.menubar.OptimizeIndexDialogFactory;
+import org.apache.lucene.luke.app.desktop.util.DialogOpener;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 
 import javax.swing.*;
+import java.awt.event.ActionEvent;
 
 public class MenuBarProvider implements Provider<JMenuBar> {
 
@@ -21,7 +24,7 @@ public class MenuBarProvider implements Provider<JMenuBar> {
 
   private final IndexHandler indexHandler;
 
-  private final MenuBarListeners listeners;
+  private final OptimizeIndexDialogFactory optimizeIndexDialogFactory;
 
   private final JMenuItem openIndexMItem = new JMenuItem();
 
@@ -45,23 +48,40 @@ public class MenuBarProvider implements Provider<JMenuBar> {
 
   private final JMenuItem aboutMItem = new JMenuItem();
 
-  public class Controller {
+  private final ListenerFunctions listeners = new ListenerFunctions();
 
-    public void reopen() {
+  private String indexPath;
+
+  class ListenerFunctions {
+
+    void showOpenIndexDialog(ActionEvent e){
+      OpenIndexDialogFactory.showOpenIndexDialog();
+    }
+
+    void reopenIndex(ActionEvent e) {
       indexHandler.reOpen();
     }
 
-    public void close() {
-      directoryHandler.close();
-      indexHandler.close();
+    void closeIndex(ActionEvent e) {
+      close();
     }
 
-    public void exit() {
+    void exit(ActionEvent e) {
       close();
       System.exit(0);
     }
 
-    private Controller() {}
+    private void close() {
+      directoryHandler.close();
+      indexHandler.close();
+    }
+
+    void showOptimizeIndexDialog(ActionEvent e) {
+      new DialogOpener<>(optimizeIndexDialogFactory).open("Optimize index", 600, 600,
+          factory -> {
+
+          });
+    }
   }
 
   public class Observer implements IndexObserver, DirectoryObserver {
@@ -71,15 +91,13 @@ public class MenuBarProvider implements Provider<JMenuBar> {
       reopenIndexMItem.setEnabled(false);
       closeIndexMItem.setEnabled(false);
       optimizeIndexMItem.setEnabled(false);
-      checkIndexMItem.setEnabled(false);
+      checkIndexMItem.setEnabled(true);
+      indexPath = "";
     }
 
     @Override
     public void closeDirectory() {
-      reopenIndexMItem.setEnabled(false);
-      closeIndexMItem.setEnabled(false);
-      optimizeIndexMItem.setEnabled(false);
-      checkIndexMItem.setEnabled(false);
+      close();
     }
 
     @Override
@@ -92,25 +110,32 @@ public class MenuBarProvider implements Provider<JMenuBar> {
       if (state.hasDirectoryReader()) {
         checkIndexMItem.setEnabled(true);
       }
+      indexPath = state.getIndexPath();
     }
 
     @Override
     public void closeIndex() {
+      close();
+    }
+
+    private void close() {
       reopenIndexMItem.setEnabled(false);
       closeIndexMItem.setEnabled(false);
       optimizeIndexMItem.setEnabled(false);
       checkIndexMItem.setEnabled(false);
+      indexPath = "";
     }
 
     private Observer() {}
   }
 
   @Inject
-  public MenuBarProvider(Preferences prefs, DirectoryHandler directoryHandler, IndexHandler indexHandler) {
+  public MenuBarProvider(Preferences prefs, DirectoryHandler directoryHandler, IndexHandler indexHandler,
+                         OptimizeIndexDialogFactory optimizeIndexDialogFactory) {
     this.prefs = prefs;
     this.directoryHandler = directoryHandler;
     this.indexHandler = indexHandler;
-    this.listeners = new MenuBarListeners(new Controller());
+    this.optimizeIndexDialogFactory = optimizeIndexDialogFactory;
 
     Observer observer = new Observer();
     directoryHandler.addObserver(observer);
@@ -131,17 +156,17 @@ public class MenuBarProvider implements Provider<JMenuBar> {
     JMenu fileMenu = new JMenu(MessageUtils.getLocalizedMessage("menu.file"));
 
     openIndexMItem.setText(MessageUtils.getLocalizedMessage("menu.item.open_index"));
-    openIndexMItem.addActionListener(listeners.getOpenIndexMItemListener());
+    openIndexMItem.addActionListener(listeners::showOpenIndexDialog);
     fileMenu.add(openIndexMItem);
 
     reopenIndexMItem.setText(MessageUtils.getLocalizedMessage("menu.item.reopen_index"));
     reopenIndexMItem.setEnabled(false);
-    reopenIndexMItem.addActionListener(listeners.getReopenIndexMItemListener());
+    reopenIndexMItem.addActionListener(listeners::reopenIndex);
     fileMenu.add(reopenIndexMItem);
 
     closeIndexMItem.setText(MessageUtils.getLocalizedMessage("menu.item.close_index"));
     closeIndexMItem.setEnabled(false);
-    closeIndexMItem.addActionListener(listeners.getCloseIndexMItemListener());
+    closeIndexMItem.addActionListener(listeners::closeIndex);
     fileMenu.add(closeIndexMItem);
 
     fileMenu.addSeparator();
@@ -162,7 +187,7 @@ public class MenuBarProvider implements Provider<JMenuBar> {
     fileMenu.addSeparator();
 
     exitMItem.setText(MessageUtils.getLocalizedMessage("menu.item.exit"));
-    exitMItem.addActionListener(listeners.getExitMItemListener());
+    exitMItem.addActionListener(listeners::exit);
     fileMenu.add(exitMItem);
 
     return fileMenu;
@@ -172,6 +197,7 @@ public class MenuBarProvider implements Provider<JMenuBar> {
     JMenu toolsMenu = new JMenu(MessageUtils.getLocalizedMessage("menu.tools"));
     optimizeIndexMItem.setText(MessageUtils.getLocalizedMessage("menu.item.optimize"));
     optimizeIndexMItem.setEnabled(false);
+    optimizeIndexMItem.addActionListener(listeners::showOptimizeIndexDialog);
     toolsMenu.add(optimizeIndexMItem);
     checkIndexMItem.setText(MessageUtils.getLocalizedMessage("menu.item.check_index"));
     checkIndexMItem.setEnabled(false);

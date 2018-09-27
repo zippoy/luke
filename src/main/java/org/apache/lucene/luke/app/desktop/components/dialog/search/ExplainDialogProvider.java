@@ -1,13 +1,12 @@
 package org.apache.lucene.luke.app.desktop.components.dialog.search;
 
-import org.apache.lucene.luke.app.desktop.components.util.DialogOpener;
+import org.apache.lucene.luke.app.desktop.util.DialogOpener;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 import org.apache.lucene.search.Explanation;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;

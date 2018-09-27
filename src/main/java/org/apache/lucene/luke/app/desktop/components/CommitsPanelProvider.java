@@ -8,7 +8,7 @@ import org.apache.lucene.luke.app.DirectoryObserver;
 import org.apache.lucene.luke.app.IndexHandler;
 import org.apache.lucene.luke.app.IndexObserver;
 import org.apache.lucene.luke.app.LukeState;
-import org.apache.lucene.luke.app.desktop.components.util.TableUtil;
+import org.apache.lucene.luke.app.desktop.util.TableUtil;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 import org.apache.lucene.luke.models.commits.Commit;
 import org.apache.lucene.luke.models.commits.Commits;

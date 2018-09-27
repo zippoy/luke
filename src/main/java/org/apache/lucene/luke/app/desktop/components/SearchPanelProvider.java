@@ -18,8 +18,8 @@ import org.apache.lucene.luke.app.desktop.components.fragments.search.MLTPanePro
 import org.apache.lucene.luke.app.desktop.components.fragments.search.QueryParserPaneProvider;
 import org.apache.lucene.luke.app.desktop.components.fragments.search.SimilarityPaneProvider;
 import org.apache.lucene.luke.app.desktop.components.fragments.search.SortPaneProvider;
-import org.apache.lucene.luke.app.desktop.components.util.DialogOpener;
-import org.apache.lucene.luke.app.desktop.components.util.TableUtil;
+import org.apache.lucene.luke.app.desktop.util.DialogOpener;
+import org.apache.lucene.luke.app.desktop.util.TableUtil;
 import org.apache.lucene.luke.app.desktop.util.ImageUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 import org.apache.lucene.luke.models.LukeException;

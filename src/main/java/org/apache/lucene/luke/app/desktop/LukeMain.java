@@ -19,7 +19,6 @@ package org.apache.lucene.luke.app.desktop;
 
 import com.google.inject.Injector;
 import org.apache.lucene.luke.app.desktop.components.dialog.menubar.OpenIndexDialogFactory;
-import org.apache.lucene.luke.app.desktop.components.dialog.menubar.OpenIndexDialogProvider;
 
 import javax.swing.JFrame;
 

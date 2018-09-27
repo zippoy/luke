@@ -1,6 +1,6 @@
 package org.apache.lucene.luke.app.desktop.components.dialog.documents;
 
-import org.apache.lucene.luke.app.desktop.components.util.DialogOpener;
+import org.apache.lucene.luke.app.desktop.util.DialogOpener;
 import org.apache.lucene.luke.app.desktop.listeners.dialog.documents.DocValuesDialogListeners;
 import org.apache.lucene.luke.app.desktop.util.ImageUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
@@ -15,7 +15,6 @@ import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;

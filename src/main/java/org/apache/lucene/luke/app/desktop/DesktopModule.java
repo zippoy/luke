@@ -28,9 +28,8 @@ import org.apache.lucene.luke.app.desktop.components.dialog.documents.DocValuesD
 import org.apache.lucene.luke.app.desktop.components.dialog.documents.IndexOptionsDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.documents.StoredValueDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.documents.TermVectorDialogFactory;
-import org.apache.lucene.luke.app.desktop.components.dialog.menubar.CheckIndexDialogProvider;
 import org.apache.lucene.luke.app.desktop.components.dialog.menubar.OpenIndexDialogFactory;
-import org.apache.lucene.luke.app.desktop.components.dialog.menubar.OpenIndexDialogProvider;
+import org.apache.lucene.luke.app.desktop.components.dialog.menubar.OptimizeIndexDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.fragments.analysis.CustomAnalyzerPanelProvider;
 import org.apache.lucene.luke.app.desktop.components.fragments.analysis.PresetAnalyzerPanelProvider;
 import org.apache.lucene.luke.app.desktop.components.fragments.search.AnalyzerPaneProvider;
@@ -39,9 +38,9 @@ import org.apache.lucene.luke.app.desktop.components.fragments.search.MLTPanePro
 import org.apache.lucene.luke.app.desktop.components.fragments.search.QueryParserPaneProvider;
 import org.apache.lucene.luke.app.desktop.components.fragments.search.SimilarityPaneProvider;
 import org.apache.lucene.luke.app.desktop.components.fragments.search.SortPaneProvider;
+import org.apache.lucene.luke.models.tools.IndexTools;
 import org.apache.lucene.luke.models.tools.IndexToolsFactory;
 
-import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
 import javax.swing.JPanel;
@@ -89,9 +88,6 @@ public class DesktopModule extends AbstractModule {
 
     bind(JFrame.class).toProvider(LukeWindowProvider.class);
 
-    bind(JDialog.class).annotatedWith(Names.named("menubar_openindex")).toProvider(OpenIndexDialogProvider.class);
-    bind(JDialog.class).annotatedWith(Names.named("menubar_checkidx")).toProvider(CheckIndexDialogProvider.class);
-
     bind(OpenIndexDialogFactory.class).toInstance(new OpenIndexDialogFactory());
     bind(IndexOptionsDialogFactory.class).toInstance(new IndexOptionsDialogFactory());
     bind(TermVectorDialogFactory.class).toInstance(new TermVectorDialogFactory());
@@ -100,6 +96,13 @@ public class DesktopModule extends AbstractModule {
     bind(TokenAttributeDialogFactory.class).toInstance(new TokenAttributeDialogFactory());
     bind(HelpDialogFactory.class).toInstance(new HelpDialogFactory());
     bind(ConfirmDialogFactory.class).toInstance(new ConfirmDialogFactory());
+  }
+
+  @Provides
+  @Singleton
+  public OptimizeIndexDialogFactory provideOptimizeIndexDialogFactory(
+      IndexToolsFactory indexToolsFactory, IndexHandler indexHandler) {
+    return new OptimizeIndexDialogFactory(indexToolsFactory, indexHandler);
   }
 
   @Provides

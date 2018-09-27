@@ -7,7 +7,7 @@ import org.apache.lucene.analysis.custom.CustomAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.luke.app.desktop.components.ComponentOperatorRegistry;
 import org.apache.lucene.luke.app.desktop.components.TabbedPaneProvider;
-import org.apache.lucene.luke.app.desktop.components.util.FontUtil;
+import org.apache.lucene.luke.app.desktop.util.FontUtil;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 
 import javax.swing.BorderFactory;

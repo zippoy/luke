@@ -14,11 +14,11 @@ import org.apache.lucene.luke.app.desktop.components.dialog.documents.AddDocumen
 import org.apache.lucene.luke.app.desktop.components.dialog.documents.DocValuesDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.documents.StoredValueDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.documents.TermVectorDialogFactory;
-import org.apache.lucene.luke.app.desktop.components.util.DialogOpener;
-import org.apache.lucene.luke.app.desktop.components.util.StyleConstants;
-import org.apache.lucene.luke.app.desktop.components.util.TableUtil;
+import org.apache.lucene.luke.app.desktop.util.DialogOpener;
+import org.apache.lucene.luke.app.desktop.util.StyleConstants;
+import org.apache.lucene.luke.app.desktop.util.TableUtil;
 import org.apache.lucene.luke.app.desktop.listeners.DocumentsPanelListeners;
-import org.apache.lucene.luke.app.desktop.components.util.HelpHeaderRenderer;
+import org.apache.lucene.luke.app.desktop.util.HelpHeaderRenderer;
 import org.apache.lucene.luke.app.desktop.util.ImageUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 import org.apache.lucene.luke.models.documents.DocValues;
@@ -51,7 +51,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -229,7 +228,6 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
       }
       int curIdx = Integer.parseInt(termDocIdxTF.getText());
       termDocIdxTF.setText(String.valueOf(curIdx + 1));
-      //docNumSpnr.setValue(doc);
       showDoc(doc);
 
       List<TermPosting> postings = documentsModel.getTermPositions();
@@ -259,7 +257,7 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
 
       List<DocumentField> doc = documentsModel.getDocumentFields(docid);
       documentTable.setModel(new DocumentTableModel(doc));
-      documentTable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
+      //documentTable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
       documentTable.setFont(StyleConstants.FONT_MONOSPACE_LARGE);
       documentTable.getColumnModel().getColumn(DocumentTableModel.Column.FIELD.getIndex()).setPreferredWidth(150);
       documentTable.getColumnModel().getColumn(DocumentTableModel.Column.FLAGS.getIndex()).setMinWidth(240);
@@ -274,7 +272,6 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
           createFlagsHelpDialog(),
           helpDialogFactory);
       documentTable.getColumnModel().getColumn(DocumentTableModel.Column.FLAGS.getIndex()).setHeaderRenderer(renderer);
-
       messageBroker.clearStatusMessage();
     }
 
@@ -639,16 +636,34 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
 
     panel.add(browseDocsPanel, BorderLayout.PAGE_START);
 
-    TableUtil.setupTable(documentTable, ListSelectionModel.SINGLE_SELECTION, new DocumentTableModel(), listeners.getDocumentTableListener());
+    TableUtil.setupTable(documentTable, ListSelectionModel.SINGLE_SELECTION, new DocumentTableModel(), listeners.getDocumentTableListener(), 150, 240, 80);
     JPanel flagsHeader = new JPanel(new FlowLayout(FlowLayout.CENTER));
     flagsHeader.add(new JLabel("Flags"));
     flagsHeader.add(new JLabel("Help"));
     documentTable.getColumnModel().getColumn(DocumentTableModel.Column.FLAGS.getIndex()).setHeaderValue(flagsHeader);
+
     JScrollPane scrollPane = new JScrollPane(documentTable);
     panel.add(scrollPane, BorderLayout.CENTER);
 
     return panel;
   }
+
+  private JComponent createFlagsHelpDialog() {
+    String[] values = new String[]{
+        "I - index options(docs, frequencies, positions, offsets)",
+        "N - norms",
+        "P - payloads",
+        "S - stored",
+        "B - binary stored values",
+        "#txx - numeric stored values(type, precision)",
+        "V - term vectors",
+        "Dtxxxxx - doc values(type)",
+        "Tx/x - point values(num bytes/dimension)"
+    };
+    JList<String> list = new JList<>(values);
+    return new JScrollPane(list);
+  }
+
 
   private JPanel createBrowseDocsBar() {
     JPanel panel = new JPanel(new GridLayout(1, 2));

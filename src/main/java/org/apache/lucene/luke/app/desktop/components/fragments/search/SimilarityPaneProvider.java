@@ -3,9 +3,8 @@ package org.apache.lucene.luke.app.desktop.components.fragments.search;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import org.apache.lucene.luke.app.desktop.components.ComponentOperatorRegistry;
-import org.apache.lucene.luke.app.desktop.components.util.StyleConstants;
+import org.apache.lucene.luke.app.desktop.util.StyleConstants;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
-import org.apache.lucene.luke.models.LukeException;
 import org.apache.lucene.luke.models.search.SimilarityConfig;
 
 import javax.swing.BorderFactory;
@@ -15,15 +14,11 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextField;
-import javax.swing.UIManager;
-import javax.swing.plaf.ColorUIResource;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 public class SimilarityPaneProvider implements Provider<JScrollPane> {
 
