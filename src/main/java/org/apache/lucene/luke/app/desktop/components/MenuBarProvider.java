@@ -8,6 +8,7 @@ import org.apache.lucene.luke.app.IndexHandler;
 import org.apache.lucene.luke.app.IndexObserver;
 import org.apache.lucene.luke.app.LukeState;
 import org.apache.lucene.luke.app.desktop.Preferences;
+import org.apache.lucene.luke.app.desktop.components.dialog.menubar.CheckIndexDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.menubar.OpenIndexDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.menubar.OptimizeIndexDialogFactory;
 import org.apache.lucene.luke.app.desktop.util.DialogOpener;
@@ -25,6 +26,8 @@ public class MenuBarProvider implements Provider<JMenuBar> {
   private final IndexHandler indexHandler;
 
   private final OptimizeIndexDialogFactory optimizeIndexDialogFactory;
+
+  private final CheckIndexDialogFactory checkIndexDialogFactory;
 
   private final JMenuItem openIndexMItem = new JMenuItem();
 
@@ -78,9 +81,12 @@ public class MenuBarProvider implements Provider<JMenuBar> {
 
     void showOptimizeIndexDialog(ActionEvent e) {
       new DialogOpener<>(optimizeIndexDialogFactory).open("Optimize index", 600, 600,
-          factory -> {
+          factory -> {});
+    }
 
-          });
+    void showCheckIndexDialog(ActionEvent e) {
+      new DialogOpener<>(checkIndexDialogFactory).open("Check index", 600, 600,
+          factory -> {});
     }
   }
 
@@ -131,11 +137,13 @@ public class MenuBarProvider implements Provider<JMenuBar> {
 
   @Inject
   public MenuBarProvider(Preferences prefs, DirectoryHandler directoryHandler, IndexHandler indexHandler,
-                         OptimizeIndexDialogFactory optimizeIndexDialogFactory) {
+                         OptimizeIndexDialogFactory optimizeIndexDialogFactory,
+                         CheckIndexDialogFactory checkIndexDialogFactory) {
     this.prefs = prefs;
     this.directoryHandler = directoryHandler;
     this.indexHandler = indexHandler;
     this.optimizeIndexDialogFactory = optimizeIndexDialogFactory;
+    this.checkIndexDialogFactory = checkIndexDialogFactory;
 
     Observer observer = new Observer();
     directoryHandler.addObserver(observer);
@@ -201,6 +209,7 @@ public class MenuBarProvider implements Provider<JMenuBar> {
     toolsMenu.add(optimizeIndexMItem);
     checkIndexMItem.setText(MessageUtils.getLocalizedMessage("menu.item.check_index"));
     checkIndexMItem.setEnabled(false);
+    checkIndexMItem.addActionListener(listeners::showCheckIndexDialog);
     toolsMenu.add(checkIndexMItem);
     return toolsMenu;
   }

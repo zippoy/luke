@@ -227,6 +227,7 @@ public class AddDocumentDialogFactory implements DialogOpener.DialogFactory {
 
     JPanel tableFooter = new JPanel(new FlowLayout(FlowLayout.TRAILING, 10, 5));
     addBtn.setText(MessageUtils.getLocalizedMessage("add_document.button.add"));
+    addBtn.setEnabled(true);
     addBtn.addActionListener(listeners.getAddBtnListener());
     tableFooter.add(addBtn);
     closeBtn.setText(MessageUtils.getLocalizedMessage("button.cancel"));

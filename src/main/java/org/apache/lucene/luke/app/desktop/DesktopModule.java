@@ -6,6 +6,7 @@ import com.google.inject.Injector;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.name.Names;
+import org.apache.lucene.luke.app.DirectoryHandler;
 import org.apache.lucene.luke.app.IndexHandler;
 import org.apache.lucene.luke.app.LukeModule;
 import org.apache.lucene.luke.app.desktop.components.AnalysisPanelProvider;
@@ -28,6 +29,7 @@ import org.apache.lucene.luke.app.desktop.components.dialog.documents.DocValuesD
 import org.apache.lucene.luke.app.desktop.components.dialog.documents.IndexOptionsDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.documents.StoredValueDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.documents.TermVectorDialogFactory;
+import org.apache.lucene.luke.app.desktop.components.dialog.menubar.CheckIndexDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.menubar.OpenIndexDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.menubar.OptimizeIndexDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.fragments.analysis.CustomAnalyzerPanelProvider;
@@ -103,6 +105,13 @@ public class DesktopModule extends AbstractModule {
   public OptimizeIndexDialogFactory provideOptimizeIndexDialogFactory(
       IndexToolsFactory indexToolsFactory, IndexHandler indexHandler) {
     return new OptimizeIndexDialogFactory(indexToolsFactory, indexHandler);
+  }
+
+  @Provides
+  @Singleton
+  public CheckIndexDialogFactory provideCheckIndexDialogFactory(
+      IndexToolsFactory indexToolsFactory, IndexHandler indexHandler, DirectoryHandler directoryHandler) {
+    return new CheckIndexDialogFactory(indexToolsFactory, indexHandler, directoryHandler);
   }
 
   @Provides
