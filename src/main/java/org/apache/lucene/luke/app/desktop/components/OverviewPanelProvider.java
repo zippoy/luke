@@ -8,7 +8,6 @@ import org.apache.lucene.luke.app.LukeState;
 import org.apache.lucene.luke.app.desktop.MessageBroker;
 import org.apache.lucene.luke.app.desktop.util.StyleConstants;
 import org.apache.lucene.luke.app.desktop.util.TableUtil;
-import org.apache.lucene.luke.app.desktop.listeners.OverviewPanelListeners;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 import org.apache.lucene.luke.models.overview.Overview;
 import org.apache.lucene.luke.models.overview.OverviewFactory;
@@ -19,7 +18,9 @@ import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JSplitPane;
@@ -38,6 +39,9 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -51,7 +55,9 @@ public class OverviewPanelProvider implements Provider<JPanel> {
 
   private final OverviewFactory overviewFactory;
 
-  private final OverviewPanelListeners listeners;
+  private final ComponentOperatorRegistry operatorRegistry;
+
+  private final TabbedPaneProvider.TabSwitcherProxy tabSwitcher;
 
   private final MessageBroker messageBroker;
 
@@ -87,51 +93,79 @@ public class OverviewPanelProvider implements Provider<JPanel> {
 
   private final JTable topTermsTable = new JTable();
 
-  public class Controller {
+  private final ListenerFunctions listeners = new ListenerFunctions();
 
-    public Optional<String> getCurrentTermCountsField() {
-      int row = termCountsTable.getSelectedRow();
-      if (row < 0) {
-        return Optional.empty();
-      }
-      if (row >= termCountsTable.getRowCount()) {
-        return Optional.empty();
-      }
-      return Optional.of((String)termCountsTable.getModel().getValueAt(row, 0));
-    }
+  private Overview overviewModel;
 
-    public String getSelectedField() {
-      return selectedField.getText();
-    }
+  class ListenerFunctions {
 
-    public void setSelectedField(String field) {
+    void selectField(MouseEvent e) {
+      String field = getSelectedField();
       selectedField.setText(field);
-    }
-
-    public void enableShowTopTermBtn() {
       showTopTermsBtn.setEnabled(true);
     }
 
-    public Integer getNumTopTerms() {
-      return (Integer)numTopTermsSpnr.getModel().getValue();
-    }
+    void showTopTerms(ActionEvent e) {
+      String field = getSelectedField();
+      int numTerms = (int)numTopTermsSpnr.getModel().getValue();
+      List<TermStats> termStats = overviewModel.getTopTerms(field, numTerms);
 
-    public void updateTopTerms(List<TermStats> termStats, int numTerms) {
+      // update top terms table
       topTermsTable.setModel(new TopTermsTableModel(termStats, numTerms));
       topTermsTable.getColumnModel().getColumn(TopTermsTableModel.Column.RANK.getIndex()).setMaxWidth(50);
       topTermsTable.getColumnModel().getColumn(TopTermsTableModel.Column.FREQ.getIndex()).setMaxWidth(80);
       messageBroker.clearStatusMessage();
     }
 
-    public String getSelectedTerm() {
-      int row = topTermsTable.getSelectedRow();
-      if (row < 0) {
-        throw new IllegalStateException("Term is not selected.");
+    void showTopTermsContextMenu(MouseEvent e) {
+      if (e.isPopupTrigger()) {
+        JPopupMenu popup = new JPopupMenu();
+
+        JMenuItem item1 = new JMenuItem(MessageUtils.getLocalizedMessage("overview.toptermtable.menu.item1"));
+        item1.addActionListener(this::browseByTerm);
+        popup.add(item1);
+
+        JMenuItem item2 = new JMenuItem(MessageUtils.getLocalizedMessage("overview.toptermtable.menu.item2"));
+        item2.addActionListener(this::searchByTerm);
+        popup.add(item2);
+
+        popup.show(e.getComponent(), e.getX(), e.getY());
       }
-      return (String)topTermsTable.getModel().getValueAt(row, TopTermsTableModel.Column.TEXT.getIndex());
     }
 
-    private Controller() {}
+    void browseByTerm(ActionEvent e) {
+      String field = getSelectedField();
+      String term = getSelectedTerm();
+      operatorRegistry.get(DocumentsPanelProvider.DocumentsTabOperator.class).ifPresent(operator -> {
+        operator.browseTerm(field, term);
+        tabSwitcher.switchTab(TabbedPaneProvider.Tab.DOCUMENTS);
+      });
+    }
+
+    void searchByTerm(ActionEvent e) {
+      String field = getSelectedField();
+      String term = getSelectedTerm();
+      operatorRegistry.get(SearchPanelProvider.SearchTabOperator.class).ifPresent(operator -> {
+        operator.searchByTerm(field, term);
+        tabSwitcher.switchTab(TabbedPaneProvider.Tab.SEARCH);
+      });
+    }
+
+    private String getSelectedField() {
+      int row = termCountsTable.getSelectedRow();
+      if (row < 0 || row >= termCountsTable.getRowCount()) {
+        throw new IllegalStateException("Field is not selected.");
+      }
+      return (String)termCountsTable.getModel().getValueAt(row, TermCountsTableModel.Column.NAME.getIndex());
+    }
+
+    private String getSelectedTerm() {
+      int rowTerm = topTermsTable.getSelectedRow();
+      if (rowTerm < 0 || rowTerm >= topTermsTable.getRowCount()) {
+        throw new IllegalStateException("Term is not selected.");
+      }
+      return (String)topTermsTable.getModel().getValueAt(rowTerm, TopTermsTableModel.Column.TEXT.getIndex());
+    }
 
   }
 
@@ -139,8 +173,7 @@ public class OverviewPanelProvider implements Provider<JPanel> {
 
     @Override
     public void openIndex(LukeState state) {
-      Overview overviewModel = overviewFactory.newInstance(state.getIndexReader(), state.getIndexPath());
-      listeners.setOverviewModel(overviewModel);
+      overviewModel = overviewFactory.newInstance(state.getIndexReader(), state.getIndexPath());
 
       indexPathLbl.setText(overviewModel.getIndexPath());
       indexPathLbl.setToolTipText(overviewModel.getIndexPath());
@@ -172,7 +205,12 @@ public class OverviewPanelProvider implements Provider<JPanel> {
       topTermsTable.getColumnModel().getColumn(TopTermsTableModel.Column.RANK.getIndex()).setMaxWidth(50);
       topTermsTable.getColumnModel().getColumn(TopTermsTableModel.Column.FREQ.getIndex()).setMaxWidth(80);
       topTermsTable.getColumnModel().setColumnMargin(StyleConstants.TABLE_COLUMN_MARGIN_DEFAULT);
-      topTermsTable.addMouseListener(listeners.getTopTermsTableListener());
+      topTermsTable.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mousePressed(MouseEvent e) {
+          listeners.showTopTermsContextMenu(e);
+        }
+      });
     }
 
     @Override
@@ -209,7 +247,8 @@ public class OverviewPanelProvider implements Provider<JPanel> {
       TabbedPaneProvider.TabSwitcherProxy tabSwitcher) {
     this.overviewFactory = overviewFactory;
     this.messageBroker = messageBroker;
-    this.listeners = new OverviewPanelListeners(new Controller(), operatorRegistry, tabSwitcher);
+    this.operatorRegistry = operatorRegistry;
+    this.tabSwitcher = tabSwitcher;
 
     indexHandler.addObserver(new Observer());
   }
@@ -358,7 +397,12 @@ public class OverviewPanelProvider implements Provider<JPanel> {
     label.setBorder(BorderFactory.createEmptyBorder(0, 0, 5, 0));
     panel.add(label, BorderLayout.PAGE_START);
 
-    TableUtil.setupTable(termCountsTable, ListSelectionModel.SINGLE_SELECTION, new TermCountsTableModel(), listeners.getTermCountsTableListener());
+    TableUtil.setupTable(termCountsTable, ListSelectionModel.SINGLE_SELECTION, new TermCountsTableModel(), new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        listeners.selectField(e);
+      }
+    });
     JScrollPane scrollPane = new JScrollPane(termCountsTable);
     panel.add(scrollPane, BorderLayout.CENTER);
 
@@ -389,7 +433,7 @@ public class OverviewPanelProvider implements Provider<JPanel> {
     showTopTermsBtn.setText(MessageUtils.getLocalizedMessage("overview.button.show_terms"));
     showTopTermsBtn.setPreferredSize(new Dimension(170, 40));
     showTopTermsBtn.setFont(StyleConstants.BUTTON_FONT_LARGE);
-    showTopTermsBtn.addActionListener(listeners.getShowTopTermsBtnListener());
+    showTopTermsBtn.addActionListener(listeners::showTopTerms);
     showTopTermsBtn.setEnabled(false);
     JPanel innerPanel3 = new JPanel(new FlowLayout(FlowLayout.LEADING));
     innerPanel3.add(showTopTermsBtn);
@@ -410,7 +454,7 @@ public class OverviewPanelProvider implements Provider<JPanel> {
     label.setBorder(BorderFactory.createEmptyBorder(0, 0, 5, 0));
     termsPanel.add(label, BorderLayout.PAGE_START);
 
-    TableUtil.setupTable(topTermsTable, ListSelectionModel.SINGLE_SELECTION, new TopTermsTableModel(), listeners.getTermCountsTableListener());
+    TableUtil.setupTable(topTermsTable, ListSelectionModel.SINGLE_SELECTION, new TopTermsTableModel(), null);
     JScrollPane scrollPane = new JScrollPane(topTermsTable);
     termsPanel.add(scrollPane, BorderLayout.CENTER);
 

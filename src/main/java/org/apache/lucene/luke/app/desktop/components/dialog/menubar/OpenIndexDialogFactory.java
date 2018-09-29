@@ -6,9 +6,9 @@ import org.apache.lucene.luke.app.IndexHandler;
 import org.apache.lucene.luke.app.desktop.DesktopModule;
 import org.apache.lucene.luke.app.desktop.Preferences;
 import org.apache.lucene.luke.app.desktop.util.DialogOpener;
-import org.apache.lucene.luke.app.desktop.listeners.dialog.menubar.OpenIndexDialogListeners;
 import org.apache.lucene.luke.app.desktop.util.ImageUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
+import org.apache.lucene.luke.models.LukeException;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.MMapDirectory;
 import org.reflections.Reflections;
@@ -16,6 +16,8 @@ import org.reflections.scanners.SubTypesScanner;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 import org.reflections.util.FilterBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -24,7 +26,9 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JSeparator;
@@ -33,6 +37,9 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -40,13 +47,7 @@ import java.util.stream.Collectors;
 
 public class OpenIndexDialogFactory implements DialogOpener.DialogFactory {
 
-  private JDialog dialog;
-
-  private Controller controller = new Controller();
-
-  private OpenIndexDialogListeners listeners;
-
-  private Preferences prefs;
+  private static final Logger logger = LoggerFactory.getLogger(OpenIndexDialogFactory.class);
 
   private final JComboBox<String> idxPathCombo = new JComboBox<>();
 
@@ -64,53 +65,100 @@ public class OpenIndexDialogFactory implements DialogOpener.DialogFactory {
 
   private final JRadioButton keepAllCommitsRB = new JRadioButton();
 
-  public class Controller {
+  private final ListenerFunctions listeners = new ListenerFunctions();
 
-    public JDialog getDialog() {
-      return dialog;
+  private JDialog dialog;
+
+  private DirectoryHandler directoryHandler;
+
+  private IndexHandler indexHandler;
+
+  private Preferences prefs;
+
+  class ListenerFunctions {
+
+    void browseDirectory(ActionEvent e) {
+      JFileChooser fc = new JFileChooser();
+      fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+      int retVal = fc.showOpenDialog(dialog);
+      if (retVal == JFileChooser.APPROVE_OPTION) {
+        File dir = fc.getSelectedFile();
+        idxPathCombo.insertItemAt(dir.getAbsolutePath(), 0);
+        idxPathCombo.setSelectedIndex(0);
+      }
     }
 
-    public void addIndexPath(String path) {
-      idxPathCombo.insertItemAt(path, 0);
-      idxPathCombo.setSelectedIndex(0);
+    void toggleReadOnly(ActionEvent e) {
+      setWriterConfigEnabled(!isReadOnly());
     }
 
-    public String getSelectedIndexPath() {
-      return (String) idxPathCombo.getSelectedItem();
-    }
-
-    public String getSelectedDirImpl() {
-      return (String) dirImplCombo.getSelectedItem();
-    }
-
-    public boolean isNoReader() {
-      return noReaderCB.isSelected();
-    }
-
-    public boolean isReadOnly() {
-      return readOnlyCB.isSelected();
-    }
-
-    public boolean useCompound() {
-      return useCompoundCB.isSelected();
-    }
-
-    public boolean keepAllCommits() {
-      return keepAllCommitsRB.isSelected();
-    }
-
-    public void setWriterConfigEnabled(boolean enable) {
+    private void setWriterConfigEnabled(boolean enable) {
       useCompoundCB.setEnabled(enable);
       keepLastCommitRB.setEnabled(enable);
       keepAllCommitsRB.setEnabled(enable);
     }
 
-    private Controller() {}
+    void openIndexOrDirectory(ActionEvent e) {
+      try {
+        if (directoryHandler.directoryOpened()) {
+          directoryHandler.close();
+        }
+        if (indexHandler.indexOpened()) {
+          indexHandler.close();
+        }
+
+        String selectedPath = (String)idxPathCombo.getSelectedItem();
+        String dirImplClazz = (String)dirImplCombo.getSelectedItem();
+        if (selectedPath == null || selectedPath.length() == 0) {
+          String msg = MessageUtils.getLocalizedMessage("openindex.message.index_path_not_selected");
+          logger.error(msg);
+        } else if (isNoReader()) {
+          directoryHandler.open(selectedPath, dirImplClazz);
+        } else {
+          indexHandler.open(selectedPath, dirImplClazz, isReadOnly(), useCompound(), keepAllCommits());
+        }
+        addHistory(selectedPath);
+        prefs.setIndexOpenerPrefs(
+            isReadOnly(), dirImplClazz,
+            isNoReader(), useCompound(), keepAllCommits());
+        closeDialog();
+      } catch (LukeException ex) {
+        JOptionPane.showMessageDialog(dialog, ex.getMessage(), "Invalid index path", JOptionPane.ERROR_MESSAGE);
+      } catch (Throwable cause) {
+        JOptionPane.showMessageDialog(dialog, MessageUtils.getLocalizedMessage("message.error.unknown"), "Unknown Error", JOptionPane.ERROR_MESSAGE);
+        logger.error(cause.getMessage(), cause);
+      }
+    }
+
+    private boolean isNoReader() {
+      return noReaderCB.isSelected();
+    }
+
+    private boolean isReadOnly() {
+      return readOnlyCB.isSelected();
+    }
+
+    private boolean useCompound() {
+      return useCompoundCB.isSelected();
+    }
+
+    private boolean keepAllCommits() {
+      return keepAllCommitsRB.isSelected();
+    }
+
+    private void closeDialog() {
+      dialog.dispose();
+    }
+
+    private void addHistory(String indexPath) throws IOException {
+      prefs.addHistory(indexPath);
+    }
 
   }
 
-  public void init(DirectoryHandler directoryHandler, IndexHandler indexHandler, Preferences prefs) {
-    this.listeners = new OpenIndexDialogListeners(controller, directoryHandler, indexHandler, prefs);
+  private void init(DirectoryHandler directoryHandler, IndexHandler indexHandler, Preferences prefs) {
+    this.directoryHandler = directoryHandler;
+    this.indexHandler = indexHandler;
     this.prefs = prefs;
   }
 
@@ -152,7 +200,7 @@ public class OpenIndexDialogFactory implements DialogOpener.DialogFactory {
     browseBtn.setText(MessageUtils.getLocalizedMessage("button.browse"));
     browseBtn.setIcon(ImageUtils.createImageIcon("/img/icon_folder-open_alt.png", 20, 20));
     browseBtn.setPreferredSize(new Dimension(120, 35));
-    browseBtn.addActionListener(listeners.getBrowseBtnListener());
+    browseBtn.addActionListener(listeners::browseDirectory);
     idxPath.add(browseBtn);
 
     panel.add(idxPath);
@@ -160,7 +208,7 @@ public class OpenIndexDialogFactory implements DialogOpener.DialogFactory {
     JPanel readOnly = new JPanel(new FlowLayout(FlowLayout.LEADING));
     readOnlyCB.setText(MessageUtils.getLocalizedMessage("openindex.checkbox.readonly"));
     readOnlyCB.setSelected(prefs.isReadOnly());
-    readOnlyCB.addActionListener(listeners.getReadOnlyCBListener());
+    readOnlyCB.addActionListener(listeners::toggleReadOnly);
     readOnly.add(readOnlyCB);
     JLabel roIconLB = new JLabel(ImageUtils.createImageIcon("/img/icon_lock.png", 12, 12));
     readOnly.add(roIconLB);
@@ -246,11 +294,11 @@ public class OpenIndexDialogFactory implements DialogOpener.DialogFactory {
     panel.setBorder(BorderFactory.createEmptyBorder(3, 3, 10, 20));
 
     JButton okBtn = new JButton(MessageUtils.getLocalizedMessage("button.ok"));
-    okBtn.addActionListener(listeners.getOkBtnListener());
+    okBtn.addActionListener(listeners::openIndexOrDirectory);
     panel.add(okBtn);
 
     JButton cancelBtn = new JButton(MessageUtils.getLocalizedMessage("button.cancel"));
-    cancelBtn.addActionListener(listeners.getCancelBtnListener());
+    cancelBtn.addActionListener(e -> dialog.dispose());
     panel.add(cancelBtn);
 
     return panel;

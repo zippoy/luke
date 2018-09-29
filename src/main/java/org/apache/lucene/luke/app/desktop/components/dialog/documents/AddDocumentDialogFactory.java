@@ -1,6 +1,6 @@
 package org.apache.lucene.luke.app.desktop.components.dialog.documents;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.base.Strings;
 import com.google.inject.Inject;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -17,6 +17,8 @@ import org.apache.lucene.document.SortedSetDocValuesField;
 import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
+import org.apache.lucene.index.IndexableField;
+import org.apache.lucene.index.IndexableFieldType;
 import org.apache.lucene.luke.app.IndexHandler;
 import org.apache.lucene.luke.app.IndexObserver;
 import org.apache.lucene.luke.app.LukeState;
@@ -29,13 +31,14 @@ import org.apache.lucene.luke.app.desktop.components.dialog.HelpDialogFactory;
 import org.apache.lucene.luke.app.desktop.util.DialogOpener;
 import org.apache.lucene.luke.app.desktop.util.FontUtil;
 import org.apache.lucene.luke.app.desktop.util.HelpHeaderRenderer;
+import org.apache.lucene.luke.app.desktop.util.NumericUtils;
 import org.apache.lucene.luke.app.desktop.util.TableUtil;
 import org.apache.lucene.luke.app.desktop.dto.documents.NewField;
-import org.apache.lucene.luke.app.desktop.listeners.dialog.documents.AddDocumentDialogListeners;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 import org.apache.lucene.luke.models.LukeException;
 import org.apache.lucene.luke.models.tools.IndexTools;
 import org.apache.lucene.luke.models.tools.IndexToolsFactory;
+import org.apache.lucene.util.BytesRef;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -62,8 +65,10 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.Window;
+import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.lang.reflect.Constructor;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -72,8 +77,6 @@ import java.util.stream.IntStream;
 public class AddDocumentDialogFactory implements DialogOpener.DialogFactory {
 
   private final static int ROW_COUNT = 50;
-
-  private final AddDocumentDialogListeners listeners;
 
   private final JLabel analyzerNameLbl = new JLabel(StandardAnalyzer.class.getName());
 
@@ -99,17 +102,86 @@ public class AddDocumentDialogFactory implements DialogOpener.DialogFactory {
 
   private final ComponentOperatorRegistry operatorRegistry;
 
+  private final ListenerFunctions listeners = new ListenerFunctions();
+
   private IndexTools toolsModel;
 
   private JDialog dialog;
 
-  public class Controller {
+  class ListenerFunctions {
 
-    public List<NewField> getNewFieldList() {
-      return ImmutableList.copyOf(newFieldList);
+    void addDocument(ActionEvent e) {
+      List<NewField> validFields = newFieldList.stream()
+          .filter(nf -> !nf.isDeleted())
+          .filter(nf -> !Strings.isNullOrEmpty(nf.getName()))
+          .filter(nf -> !Strings.isNullOrEmpty(nf.getValue()))
+          .collect(Collectors.toList());
+      if (validFields.isEmpty()) {
+        infoTA.setText("Please add one or more fields. Name and Value are both required.");
+        return;
+      }
+
+      Document doc = new Document();
+      try {
+        for (NewField nf : validFields) {
+          doc.add(toIndexableField(nf));
+          System.out.println(doc);
+        }
+      } catch (NumberFormatException ex) {
+        //logger.error(ex.getMessage(), e);
+        throw new LukeException("Invalid value: " + ex.getMessage(), ex);
+      } catch (Exception ex) {
+        //logger.error(ex.getMessage(), e);
+        throw new LukeException(ex.getMessage(), ex);
+      }
+
+      addDocument(doc);
     }
 
-    public void addDocument(Document doc) {
+    @SuppressWarnings("unchecked")
+    private IndexableField toIndexableField(NewField nf) throws Exception {
+      if (nf.getType().equals(TextField.class) || nf.getType().equals(StringField.class)) {
+        Field.Store store = nf.isStored() ? Field.Store.YES : Field.Store.NO;
+        Constructor<IndexableField> constr = nf.getType().getConstructor(String.class, String.class, Field.Store.class);
+        return constr.newInstance(nf.getName(), nf.getValue(), store);
+      } else if (nf.getType().equals(IntPoint.class)) {
+        Constructor<IndexableField> constr = nf.getType().getConstructor(String.class, int[].class);
+        int[] values = NumericUtils.convertToIntArray(nf.getValue(), false);
+        return constr.newInstance(nf.getName(), values);
+      } else if (nf.getType().equals(LongPoint.class)) {
+        Constructor<IndexableField> constr = nf.getType().getConstructor(String.class, long[].class);
+        long[] values = NumericUtils.convertToLongArray(nf.getValue(), false);
+        return constr.newInstance(nf.getName(), values);
+      } else if (nf.getType().equals(FloatPoint.class)) {
+        Constructor<IndexableField> constr = nf.getType().getConstructor(String.class, float[].class);
+        float[] values = NumericUtils.convertToFloatArray(nf.getValue(), false);
+        return constr.newInstance(nf.getName(), values);
+      } else if (nf.getType().equals(DoublePoint.class)) {
+        Constructor<IndexableField> constr = nf.getType().getConstructor(String.class, double[].class);
+        double[] values = NumericUtils.convertToDoubleArray(nf.getValue(), false);
+        return constr.newInstance(nf.getName(), values);
+      } else if (nf.getType().equals(SortedDocValuesField.class) ||
+          nf.getType().equals(SortedSetDocValuesField.class)) {
+        Constructor<IndexableField> constr = nf.getType().getConstructor(String.class, BytesRef.class);
+        return constr.newInstance(nf.getName(), new BytesRef(nf.getValue()));
+      } else if (nf.getType().equals(NumericDocValuesField.class) ||
+          nf.getType().equals(SortedNumericDocValuesField.class)) {
+        Constructor<IndexableField> constr = nf.getType().getConstructor(String.class, long.class);
+        long value = NumericUtils.tryConvertToLongValue(nf.getValue());
+        return constr.newInstance(nf.getName(), value);
+      } else if (nf.getType().equals(StoredField.class)) {
+        Constructor<IndexableField> constr = nf.getType().getConstructor(String.class, String.class);
+        return constr.newInstance(nf.getName(), nf.getValue());
+      } else if (nf.getType().equals(Field.class)) {
+        Constructor<IndexableField> constr = nf.getType().getConstructor(String.class, String.class, IndexableFieldType.class);
+        return constr.newInstance(nf.getName(), nf.getValue(), nf.getFieldType());
+      } else {
+        // TODO: unknown field
+        return new StringField(nf.getName(), nf.getValue(), Field.Store.YES);
+      }
+    }
+
+    private void addDocument(Document doc) {
       try {
         Analyzer analyzer = operatorRegistry.get(AnalysisPanelProvider.AnalysisPanelOperator.class)
             .map(AnalysisPanelProvider.AnalysisPanelOperator::getCurrentAnalyzer)
@@ -130,9 +202,6 @@ public class AddDocumentDialogFactory implements DialogOpener.DialogFactory {
       }
     }
 
-    public void setInfo(String text) {
-      infoTA.setText(text);
-    }
   }
 
   public class Observer implements IndexObserver {
@@ -144,7 +213,7 @@ public class AddDocumentDialogFactory implements DialogOpener.DialogFactory {
 
     @Override
     public void closeIndex() {
-
+      toolsModel = null;
     }
   }
 
@@ -168,7 +237,6 @@ public class AddDocumentDialogFactory implements DialogOpener.DialogFactory {
     this.toolsFactory = toolsFactory;
     this.tabSwitcher = tabSwitcher;
     this.operatorRegistry = operatorRegistry;
-    this.listeners = new AddDocumentDialogListeners(new Controller());
 
     operatorRegistry.register(AddDocumentDialogOperator.class, new AddDocumentOperatorImpl());
     indexHandler.addObserver(new Observer());
@@ -228,7 +296,7 @@ public class AddDocumentDialogFactory implements DialogOpener.DialogFactory {
     JPanel tableFooter = new JPanel(new FlowLayout(FlowLayout.TRAILING, 10, 5));
     addBtn.setText(MessageUtils.getLocalizedMessage("add_document.button.add"));
     addBtn.setEnabled(true);
-    addBtn.addActionListener(listeners.getAddBtnListener());
+    addBtn.addActionListener(listeners::addDocument);
     tableFooter.add(addBtn);
     closeBtn.setText(MessageUtils.getLocalizedMessage("button.cancel"));
     closeBtn.addActionListener(e -> dialog.dispose());
