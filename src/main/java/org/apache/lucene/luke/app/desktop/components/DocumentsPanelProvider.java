@@ -351,7 +351,6 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
       messageBroker.clearStatusMessage();
     }
 
-
   }
 
   public class Observer implements IndexObserver {
@@ -394,6 +393,11 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
 
   class DocumentsTabOperatorImpl implements DocumentsTabOperator {
 
+    private final TableCellRenderer tableHeaderRenderer =
+        new HelpHeaderRenderer(
+            "About Flags", "Format: IdfpoNPSB#txxVDtxxxxTx/x",
+            createFlagsHelpDialog(), helpDialogFactory);
+
     @Override
     public void browseTerm(String field, String term) {
       fieldsCombo.setSelectedItem(field);
@@ -423,12 +427,8 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
       documentTable.getColumnModel().getColumn(DocumentTableModel.Column.NORM.getIndex()).setMaxWidth(80);
       documentTable.getColumnModel().getColumn(DocumentTableModel.Column.VALUE.getIndex()).setPreferredWidth(1000);
       documentTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+      documentTable.getColumnModel().getColumn(DocumentTableModel.Column.FLAGS.getIndex()).setHeaderRenderer(tableHeaderRenderer);
 
-      TableCellRenderer renderer = new HelpHeaderRenderer(
-          "About Flags", "Format: IdfpoNPSB#txxVDtxxxxTx/x",
-          createFlagsHelpDialog(),
-          helpDialogFactory);
-      documentTable.getColumnModel().getColumn(DocumentTableModel.Column.FLAGS.getIndex()).setHeaderRenderer(renderer);
       messageBroker.clearStatusMessage();
     }
 
