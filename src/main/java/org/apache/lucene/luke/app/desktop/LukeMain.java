@@ -25,6 +25,7 @@ import org.apache.lucene.luke.app.desktop.util.TextAreaAppender;
 
 import javax.swing.JFrame;
 import javax.swing.JTextArea;
+import javax.swing.UIManager;
 
 import static org.apache.lucene.luke.app.desktop.util.ExceptionHandler.handle;
 
@@ -58,7 +59,11 @@ public class LukeMain {
     OpenIndexDialogFactory.showOpenIndexDialog();
   }
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws Exception {
+
+    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+
     javax.swing.SwingUtilities.invokeLater(LukeMain::createAndShowGUI);
+
   }
 }
