@@ -18,9 +18,13 @@
 package org.apache.lucene.luke.app.desktop;
 
 import com.google.inject.Injector;
+import com.google.inject.Key;
+import com.google.inject.name.Names;
 import org.apache.lucene.luke.app.desktop.components.dialog.menubar.OpenIndexDialogFactory;
+import org.apache.lucene.luke.app.desktop.util.TextAreaAppender;
 
 import javax.swing.JFrame;
+import javax.swing.JTextArea;
 
 import static org.apache.lucene.luke.app.desktop.util.ExceptionHandler.handle;
 
@@ -35,13 +39,17 @@ public class LukeMain {
   private static void createAndShowGUI() {
     Injector injector = DesktopModule.getIngector();
 
+    // uncaught error handler
     MessageBroker messageBroker = injector.getInstance(MessageBroker.class);
     Thread.setDefaultUncaughtExceptionHandler((thread, cause) ->
         handle(cause, messageBroker)
     );
 
-    frame = injector.getInstance(JFrame.class);
+    // prepare log4j appender for Logs tab.
+    JTextArea textArea = injector.getInstance(Key.get(JTextArea.class, Names.named("log_area")));
+    TextAreaAppender.setTextArea(textArea);
 
+    frame = injector.getInstance(JFrame.class);
     frame.setLocation(200, 100);
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     frame.pack();

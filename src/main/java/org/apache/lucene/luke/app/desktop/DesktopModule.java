@@ -48,6 +48,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JTextArea;
 
 
 public class DesktopModule extends AbstractModule {
@@ -69,6 +70,8 @@ public class DesktopModule extends AbstractModule {
     bind(MessageBroker.class).toInstance(new MessageBroker());
 
     bind(JMenuBar.class).toProvider(MenuBarProvider.class);
+
+    bind(JTextArea.class).annotatedWith(Names.named("log_area")).toInstance(new JTextArea());
 
     bind(JPanel.class).annotatedWith(Names.named("overview")).toProvider(OverviewPanelProvider.class);
     bind(JPanel.class).annotatedWith(Names.named("documents")).toProvider(DocumentsPanelProvider.class);
