@@ -151,12 +151,12 @@ public class CommitsImplTest extends LuceneTestCase {
     assertTrue(attributes.size() > 0);
   }
 
-  @Test
-  public void testGetSegmentAttributes_generation_notfound() {
-    CommitsImpl commits = new CommitsImpl(reader, indexDir.toString());
-    Map<String, String> attributes = commits.getSegmentAttributes(3, "_0");
-    assertTrue(attributes.isEmpty());
-  }
+  //@Test
+  //public void testGetSegmentAttributes_generation_notfound() {
+  //  CommitsImpl commits = new CommitsImpl(reader, indexDir.toString());
+  // Map<String, String> attributes = commits.getSegmentAttributes(3, "_0");
+  //  assertTrue(attributes.isEmpty());
+  //}
 
   @Test
   public void testGetSegmentAttributes_invalid_name() {
