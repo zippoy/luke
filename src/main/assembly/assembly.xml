@@ -8,7 +8,7 @@
     <includeBaseDirectory>false</includeBaseDirectory>
     <fileSets>
         <fileSet>
-            <outputDirectory>luke-${lucene.version}</outputDirectory>
+            <outputDirectory>luke-swing-${lucene.version}</outputDirectory>
             <includes>
                 <include>luke.sh</include>
                 <include>luke.bat</include>
@@ -16,9 +16,9 @@
         </fileSet>
         <fileSet>
             <directory>target</directory>
-            <outputDirectory>luke-${lucene.version}/target</outputDirectory>
+            <outputDirectory>luke-swing-${lucene.version}/target</outputDirectory>
             <includes>
-                <include>luke-javafx-with-deps.jar</include>
+                <include>luke-swing-with-deps.jar</include>
             </includes>
         </fileSet>
     </fileSets>
