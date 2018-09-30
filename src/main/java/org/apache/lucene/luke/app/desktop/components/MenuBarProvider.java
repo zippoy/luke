@@ -8,11 +8,13 @@ import org.apache.lucene.luke.app.IndexHandler;
 import org.apache.lucene.luke.app.IndexObserver;
 import org.apache.lucene.luke.app.LukeState;
 import org.apache.lucene.luke.app.desktop.Preferences;
+import org.apache.lucene.luke.app.desktop.components.dialog.menubar.AboutDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.menubar.CheckIndexDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.menubar.OpenIndexDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.menubar.OptimizeIndexDialogFactory;
 import org.apache.lucene.luke.app.desktop.util.DialogOpener;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
+import org.apache.lucene.util.Version;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -28,6 +30,8 @@ public class MenuBarProvider implements Provider<JMenuBar> {
   private final OptimizeIndexDialogFactory optimizeIndexDialogFactory;
 
   private final CheckIndexDialogFactory checkIndexDialogFactory;
+
+  private final AboutDialogFactory aboutDialogFactory;
 
   private final JMenuItem openIndexMItem = new JMenuItem();
 
@@ -88,6 +92,12 @@ public class MenuBarProvider implements Provider<JMenuBar> {
       new DialogOpener<>(checkIndexDialogFactory).open("Check index", 600, 600,
           factory -> {});
     }
+
+    void showAboutDialog(ActionEvent e) {
+      final String title = "About Luke v" + Version.LATEST.toString();
+      new DialogOpener<>(aboutDialogFactory).open(title, 800, 480,
+          factory -> {});
+    }
   }
 
   public class Observer implements IndexObserver, DirectoryObserver {
@@ -138,12 +148,14 @@ public class MenuBarProvider implements Provider<JMenuBar> {
   @Inject
   public MenuBarProvider(Preferences prefs, DirectoryHandler directoryHandler, IndexHandler indexHandler,
                          OptimizeIndexDialogFactory optimizeIndexDialogFactory,
-                         CheckIndexDialogFactory checkIndexDialogFactory) {
+                         CheckIndexDialogFactory checkIndexDialogFactory,
+                         AboutDialogFactory aboutDialogFactory) {
     this.prefs = prefs;
     this.directoryHandler = directoryHandler;
     this.indexHandler = indexHandler;
     this.optimizeIndexDialogFactory = optimizeIndexDialogFactory;
     this.checkIndexDialogFactory = checkIndexDialogFactory;
+    this.aboutDialogFactory = aboutDialogFactory;
 
     Observer observer = new Observer();
     directoryHandler.addObserver(observer);
@@ -217,6 +229,7 @@ public class MenuBarProvider implements Provider<JMenuBar> {
   private JMenu createHelpMenu() {
     JMenu helpMenu = new JMenu(MessageUtils.getLocalizedMessage("menu.help"));
     aboutMItem.setText(MessageUtils.getLocalizedMessage("menu.item.about"));
+    aboutMItem.addActionListener(listeners::showAboutDialog);
     helpMenu.add(aboutMItem);
     return helpMenu;
   }

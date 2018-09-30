@@ -20,5 +20,18 @@ public class ImageUtils {
     }
   }
 
+  public static ImageIcon createImageIcon(String path) {
+    return createImageIcon(path, "");
+  }
+
+  public static ImageIcon createImageIcon(String path, String description) {
+    java.net.URL imgURL = ImageUtils.class.getResource(path);
+    if (imgURL != null) {
+      return new ImageIcon(imgURL, description);
+    } else {
+      return null;
+    }
+  }
+
   private ImageUtils() {}
 }

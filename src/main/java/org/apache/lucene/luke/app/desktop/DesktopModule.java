@@ -29,6 +29,7 @@ import org.apache.lucene.luke.app.desktop.components.dialog.documents.DocValuesD
 import org.apache.lucene.luke.app.desktop.components.dialog.documents.IndexOptionsDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.documents.StoredValueDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.documents.TermVectorDialogFactory;
+import org.apache.lucene.luke.app.desktop.components.dialog.menubar.AboutDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.menubar.CheckIndexDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.menubar.OpenIndexDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.menubar.OptimizeIndexDialogFactory;
@@ -99,6 +100,7 @@ public class DesktopModule extends AbstractModule {
     bind(DocValuesDialogFactory.class).toInstance(new DocValuesDialogFactory());
     bind(StoredValueDialogFactory.class).toInstance(new StoredValueDialogFactory());
     bind(TokenAttributeDialogFactory.class).toInstance(new TokenAttributeDialogFactory());
+    bind(AboutDialogFactory.class).toInstance(new AboutDialogFactory());
     bind(HelpDialogFactory.class).toInstance(new HelpDialogFactory());
     bind(ConfirmDialogFactory.class).toInstance(new ConfirmDialogFactory());
   }
