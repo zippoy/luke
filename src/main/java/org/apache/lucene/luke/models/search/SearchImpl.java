@@ -159,11 +159,11 @@ public final class SearchImpl extends LukeModel implements Search {
         break;
     }
 
+    parser.setSplitOnWhitespace(config.isSplitOnWhitespace());
     parser.setAutoGenerateMultiTermSynonymsPhraseQuery(config.isAutoGenerateMultiTermSynonymsPhraseQuery());
     parser.setAutoGeneratePhraseQueries(config.isAutoGeneratePhraseQueries());
     parser.setEnablePositionIncrements(config.isEnablePositionIncrements());
     parser.setAllowLeadingWildcard(config.isAllowLeadingWildcard());
-    parser.setSplitOnWhitespace(config.isSplitOnWhitespace());
     parser.setDateResolution(config.getDateResolution());
     parser.setFuzzyMinSim(config.getFuzzyMinSim());
     parser.setFuzzyPrefixLength(config.getFuzzyPrefixLength());
