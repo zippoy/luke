@@ -1,11 +1,11 @@
-[![TravisCI](https://api.travis-ci.org/mocobeta/luke.svg?branch=master)](https://travis-ci.org/mocobeta/luke)
+[![TravisCI](https://api.travis-ci.org/mocobeta/luke.svg?branch=luke-swing)](https://travis-ci.org/mocobeta/luke)
 
 luke
 ====
 
-![Luke, the Lucene Toolbox Project](src/main/resources/img/luke-logo.gif) + ![JavaFX](javafx.gif)
+![Luke, the Lucene Toolbox Project](src/main/resources/img/luke-logo.gif) + Swing ![Java](java_logo.png)
 
-Luke atop JavaFX.
+Luke atop Swing.
 
 Luke is the GUI tool for introspecting your Lucene / Solr / Elasticsearch index. It allows:
 
@@ -43,14 +43,14 @@ Brief project history
 * The project has been ported to Lucene trunk (marked as 5.0 at the time) by Dmitry Kan
 * The project has been back-ported to Lucene 4.3 by sonarname, who later decided not to continue supporting the project
 * There are updates to the (non-mavenized) project done by [tarzanek](https://github.com/tarzanek/luke)
-* The UI (and some of core components) has been re-implemented on top of JavaFX by [Tomoko Uchida](https://github.com/mocobeta).
+* The UI (and core components) has been re-implemented on top of JavaFX / Swing by [Tomoko Uchida](https://github.com/mocobeta).
 
 This project's goal
 ====
 
 0. Keep the project mavenized (compatible with Apache Lucene and Solr style)
 1. To port the thinlet UI to an ASL compliant license framework so that it can be contributed back to Apache Lucene.
-   Current work is done with JavaFX.
+   Current work is done with Swing.
 2. Maintain a single point of trust for the development and updates of the tool. That said,
    everyone is welcome to join.
 
@@ -62,7 +62,7 @@ Committers
 System Requirements
 ====
 
-Java 8+ and JavaFX runtime are required.
+JDK8+ is required.
 
 Launching luke
 ====
