@@ -39,6 +39,8 @@ import org.apache.lucene.luke.models.LukeException;
 import org.apache.lucene.luke.models.tools.IndexTools;
 import org.apache.lucene.luke.models.tools.IndexToolsFactory;
 import org.apache.lucene.util.BytesRef;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -76,6 +78,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class AddDocumentDialogFactory implements DialogOpener.DialogFactory {
+
+  private final static Logger logger = LoggerFactory.getLogger(AddDocumentDialogFactory.class);
 
   private final static int ROW_COUNT = 50;
 
@@ -124,17 +128,17 @@ public class AddDocumentDialogFactory implements DialogOpener.DialogFactory {
       try {
         for (NewField nf : validFields) {
           doc.add(toIndexableField(nf));
-          System.out.println(doc);
         }
       } catch (NumberFormatException ex) {
-        //logger.error(ex.getMessage(), e);
+        logger.error(ex.getMessage(), e);
         throw new LukeException("Invalid value: " + ex.getMessage(), ex);
       } catch (Exception ex) {
-        //logger.error(ex.getMessage(), e);
+        logger.error(ex.getMessage(), e);
         throw new LukeException(ex.getMessage(), ex);
       }
 
       addDocument(doc);
+      logger.info("Added document: {}", doc.toString());
     }
 
     @SuppressWarnings("unchecked")
