@@ -296,7 +296,6 @@ public class AnalysisPanelProvider implements Provider<JPanel> {
         listeners.showAttributeValues(e);
       }
     }, 150, 800);
-    tokensTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
     inner2.add(new JScrollPane(tokensTable), BorderLayout.CENTER);
 
     JPanel panel = new JPanel(new BorderLayout());

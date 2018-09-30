@@ -16,6 +16,7 @@ import java.awt.Color;
 import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.datatransfer.Clipboard;
@@ -71,6 +72,7 @@ public class StoredValueDialogFactory implements DialogOpener.DialogFactory {
 
     JButton copyBtn = new JButton(MessageUtils.getLocalizedMessage("button.copy"),
         ImageUtils.createImageIcon("/img/icon_clipboard.png", 20, 20));
+    copyBtn.setMargin(new Insets(3, 3, 3, 3));
     copyBtn.addActionListener(e -> {
       Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
       StringSelection selection = new StringSelection(value);
@@ -79,6 +81,7 @@ public class StoredValueDialogFactory implements DialogOpener.DialogFactory {
     footer.add(copyBtn);
 
     JButton closeBtn = new JButton(MessageUtils.getLocalizedMessage("button.close"));
+    closeBtn.setMargin(new Insets(3, 3, 3, 3));
     closeBtn.addActionListener(e -> dialog.dispose());
     footer.add(closeBtn);
     panel.add(footer, BorderLayout.PAGE_END);

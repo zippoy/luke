@@ -120,6 +120,8 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
 
   private final JTable documentTable = new JTable();
 
+  private final JPopupMenu documentContextMenu = new JPopupMenu();
+
   private final ListenerFunctions listeners = new ListenerFunctions();
 
   private Documents documentsModel;
@@ -186,23 +188,7 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
     }
 
     void showFirstTermDoc(ActionEvent e) {
-      int docid = documentsModel.firstTermDoc().orElse(-1);
-      if (docid < 0) {
-        nextTermDocBtn.setEnabled(false);
-        messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("documents.termdocs.message.not_available"));
-        return;
-      }
-      termDocIdxTF.setText(String.valueOf(1));
-      operatorRegistry.get(DocumentsTabOperator.class).ifPresent(operator -> operator.displayDoc(docid));
-
-      List<TermPosting> postings = documentsModel.getTermPositions();
-      posTable.setModel(new PosTableModel(postings));
-      posTable.getColumnModel().getColumn(PosTableModel.Column.POSITION.getIndex()).setPreferredWidth(80);
-      posTable.getColumnModel().getColumn(PosTableModel.Column.OFFSETS.getIndex()).setPreferredWidth(120);
-      posTable.getColumnModel().getColumn(PosTableModel.Column.PAYLOAD.getIndex()).setPreferredWidth(170);
-
-      nextTermDocBtn.setEnabled(true);
-      messageBroker.clearStatusMessage();
+      operatorRegistry.get(DocumentsTabOperator.class).ifPresent(DocumentsTabOperator::showFirstTermDoc);
     }
 
     void showNextTermDoc(ActionEvent e) {
@@ -259,30 +245,12 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
     }
 
     void showDocumentContextMenu(MouseEvent e) {
-      if (e.isPopupTrigger()) {
-        JPopupMenu popup = new JPopupMenu();
-
-        // show term vector
-        JMenuItem item1 = new JMenuItem(MessageUtils.getLocalizedMessage("documents.doctable.menu.item1"));
-        item1.addActionListener(this::showTermVectorDialog);
-        popup.add(item1);
-
-        // show doc values
-        JMenuItem item2 = new JMenuItem(MessageUtils.getLocalizedMessage("documents.doctable.menu.item2"));
-        item2.addActionListener(this::showDocValuesDialog);
-        popup.add(item2);
-
-        // show stored value
-        JMenuItem item3 = new JMenuItem(MessageUtils.getLocalizedMessage("documents.doctable.menu.item3"));
-        item3.addActionListener(this::showStoredValueDialog);
-        popup.add(item3);
-
-        // copy stored value to clipboard
-        JMenuItem item4 = new JMenuItem(MessageUtils.getLocalizedMessage("documents.doctable.menu.item4"));
-        item4.addActionListener(this::copyStoredValue);
-        popup.add(item4);
-
-        popup.show(e.getComponent(), e.getX(), e.getY());
+      if (e.getClickCount() == 2 && !e.isConsumed()) {
+        int row = documentTable.rowAtPoint(e.getPoint());
+        if (row != documentTable.getSelectedRow()) {
+          documentTable.changeSelection(row, documentTable.getSelectedColumn(), false, false);
+        }
+        documentContextMenu.show(e.getComponent(), e.getX(), e.getY());
       }
     }
 
@@ -403,6 +371,7 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
       fieldsCombo.setSelectedItem(field);
       termTF.setText(term);
       seekNextTerm();
+      showFirstTermDoc();
     }
 
     @Override
@@ -425,8 +394,7 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
       documentTable.getColumnModel().getColumn(DocumentTableModel.Column.FLAGS.getIndex()).setMaxWidth(240);
       documentTable.getColumnModel().getColumn(DocumentTableModel.Column.NORM.getIndex()).setMinWidth(80);
       documentTable.getColumnModel().getColumn(DocumentTableModel.Column.NORM.getIndex()).setMaxWidth(80);
-      documentTable.getColumnModel().getColumn(DocumentTableModel.Column.VALUE.getIndex()).setPreferredWidth(1000);
-      documentTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+      documentTable.getColumnModel().getColumn(DocumentTableModel.Column.VALUE.getIndex()).setPreferredWidth(500);
       documentTable.getColumnModel().getColumn(DocumentTableModel.Column.FLAGS.getIndex()).setHeaderRenderer(tableHeaderRenderer);
 
       messageBroker.clearStatusMessage();
@@ -454,6 +422,27 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
         firstTermDocBtn.setEnabled(false);
       }
       nextTermDocBtn.setEnabled(false);
+      messageBroker.clearStatusMessage();
+    }
+
+    @Override
+    public void showFirstTermDoc() {
+      int docid = documentsModel.firstTermDoc().orElse(-1);
+      if (docid < 0) {
+        nextTermDocBtn.setEnabled(false);
+        messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("documents.termdocs.message.not_available"));
+        return;
+      }
+      termDocIdxTF.setText(String.valueOf(1));
+      operatorRegistry.get(DocumentsTabOperator.class).ifPresent(operator -> operator.displayDoc(docid));
+
+      List<TermPosting> postings = documentsModel.getTermPositions();
+      posTable.setModel(new PosTableModel(postings));
+      posTable.getColumnModel().getColumn(PosTableModel.Column.POSITION.getIndex()).setPreferredWidth(80);
+      posTable.getColumnModel().getColumn(PosTableModel.Column.OFFSETS.getIndex()).setPreferredWidth(120);
+      posTable.getColumnModel().getColumn(PosTableModel.Column.PAYLOAD.getIndex()).setPreferredWidth(170);
+
+      nextTermDocBtn.setEnabled(true);
       messageBroker.clearStatusMessage();
     }
 
@@ -492,6 +481,9 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
     JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, createUpperPanel(), createLowerPanel());
     splitPane.setDividerLocation(0.4);
     panel.add(splitPane);
+
+    setUpDocumentContextMenu();
+
     return panel;
   }
 
@@ -570,6 +562,11 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
     center.add(nextTermBtn, c);
 
     panel.add(center, BorderLayout.CENTER);
+
+    JPanel footer = new JPanel(new FlowLayout(FlowLayout.LEADING, 20, 5));
+    JLabel hintLbl = new JLabel(MessageUtils.getLocalizedMessage("documents.label.browse_terms_hint"));
+    footer.add(hintLbl);
+    panel.add(footer, BorderLayout.PAGE_END);
 
     return panel;
   }
@@ -667,11 +664,7 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
 
     TableUtil.setupTable(documentTable, ListSelectionModel.SINGLE_SELECTION, new DocumentTableModel(), new MouseAdapter() {
       @Override
-      public void mousePressed(MouseEvent e) {
-        listeners.showDocumentContextMenu(e);
-      }
-      @Override
-      public void mouseReleased(MouseEvent e) {
+      public void mouseClicked(MouseEvent e) {
         listeners.showDocumentContextMenu(e);
       }
     }, 150, 240, 80);
@@ -681,6 +674,7 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
     documentTable.getColumnModel().getColumn(DocumentTableModel.Column.FLAGS.getIndex()).setHeaderValue(flagsHeader);
 
     JScrollPane scrollPane = new JScrollPane(documentTable);
+    scrollPane.getHorizontalScrollBar().setAutoscrolls(false);
     panel.add(scrollPane, BorderLayout.CENTER);
 
     return panel;
@@ -736,11 +730,34 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
     return panel;
   }
 
+  private void setUpDocumentContextMenu() {
+    // show term vector
+    JMenuItem item1 = new JMenuItem(MessageUtils.getLocalizedMessage("documents.doctable.menu.item1"));
+    item1.addActionListener(listeners::showTermVectorDialog);
+    documentContextMenu.add(item1);
+
+    // show doc values
+    JMenuItem item2 = new JMenuItem(MessageUtils.getLocalizedMessage("documents.doctable.menu.item2"));
+    item2.addActionListener(listeners::showDocValuesDialog);
+    documentContextMenu.add(item2);
+
+    // show stored value
+    JMenuItem item3 = new JMenuItem(MessageUtils.getLocalizedMessage("documents.doctable.menu.item3"));
+    item3.addActionListener(listeners::showStoredValueDialog);
+    documentContextMenu.add(item3);
+
+    // copy stored value to clipboard
+    JMenuItem item4 = new JMenuItem(MessageUtils.getLocalizedMessage("documents.doctable.menu.item4"));
+    item4.addActionListener(listeners::copyStoredValue);
+    documentContextMenu.add(item4);
+  }
+
   public interface DocumentsTabOperator extends ComponentOperatorRegistry.ComponentOperator {
     void browseTerm(String field, String term);
     void displayLatestDoc();
     void displayDoc(int donid);
     void seekNextTerm();
+    void showFirstTermDoc();
   }
 
 }

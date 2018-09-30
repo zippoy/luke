@@ -290,8 +290,7 @@ public class SearchPanelProvider implements Provider<JPanel> {
         resultsTable.setModel(new SearchResultsTableModel(res));
         resultsTable.getColumnModel().getColumn(SearchResultsTableModel.Column.DOCID.getIndex()).setPreferredWidth(50);
         resultsTable.getColumnModel().getColumn(SearchResultsTableModel.Column.SCORE.getIndex()).setPreferredWidth(100);
-        resultsTable.getColumnModel().getColumn(SearchResultsTableModel.Column.VALUE.getIndex()).setPreferredWidth(2000);
-        resultsTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        resultsTable.getColumnModel().getColumn(SearchResultsTableModel.Column.VALUE.getIndex()).setPreferredWidth(800);
       } else {
         startLbl.setText("0");
         endLbl.setText("0");
@@ -319,12 +318,12 @@ public class SearchPanelProvider implements Provider<JPanel> {
     }
 
     void showContextMenuInResultsTable(MouseEvent e) {
-      if (e.isPopupTrigger()) {
-        createResultsTablePopup().show(e.getComponent(), e.getX(), e.getY());
+      if (e.getClickCount() == 2 && !e.isConsumed()) {
+        createResultsContextMenuPopup().show(e.getComponent(), e.getX(), e.getY());
       }
     }
 
-    private JPopupMenu createResultsTablePopup() {
+    private JPopupMenu createResultsContextMenuPopup() {
       JPopupMenu popup = new JPopupMenu();
 
       // show explanation
@@ -620,9 +619,10 @@ public class SearchPanelProvider implements Provider<JPanel> {
     JLabel label = new JLabel(MessageUtils.getLocalizedMessage("search.label.results"),
         ImageUtils.createImageIcon("/img/icon_table.png", 20, 20),
         JLabel.LEFT);
+    label.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 0));
     panel.add(label);
 
-    JPanel resultsInfo = new JPanel(new FlowLayout());
+    JPanel resultsInfo = new JPanel(new FlowLayout(FlowLayout.TRAILING));
 
     JLabel totalLabel = new JLabel(MessageUtils.getLocalizedMessage("search.label.total"));
     resultsInfo.add(totalLabel);
@@ -631,7 +631,7 @@ public class SearchPanelProvider implements Provider<JPanel> {
     resultsInfo.add(totalHitsLbl);
 
     prevBtn.setIcon(ImageUtils.createImageIcon("/img/arrow_triangle-left.png", 20, 20));
-    prevBtn.setMargin(new Insets(5, 5,5, 5));
+    prevBtn.setMargin(new Insets(3, 3,3, 3));
     prevBtn.setEnabled(false);
     prevBtn.addActionListener(listeners::prevPage);
     resultsInfo.add(prevBtn);
@@ -645,7 +645,7 @@ public class SearchPanelProvider implements Provider<JPanel> {
     resultsInfo.add(endLbl);
 
     nextBtn.setIcon(ImageUtils.createImageIcon("/img/arrow_triangle-right.png", 20, 20));
-    nextBtn.setMargin(new Insets(5, 5, 5, 5));
+    nextBtn.setMargin(new Insets(3, 3, 3, 3));
     nextBtn.setEnabled(false);
     nextBtn.addActionListener(listeners::nextPage);
     resultsInfo.add(nextBtn);
@@ -656,8 +656,7 @@ public class SearchPanelProvider implements Provider<JPanel> {
 
     delBtn.setText(MessageUtils.getLocalizedMessage("search.button.del_all"));
     delBtn.setIcon(ImageUtils.createImageIcon("/img/icon_trash.png", 20, 20));
-    delBtn.setFont(new Font(delBtn.getFont().getFontName(), Font.PLAIN, 15));
-    delBtn.setMargin(new Insets(5, 5, 5, 5));
+    delBtn.setMargin(new Insets(3, 3, 3, 3));
     delBtn.setEnabled(false);
     delBtn.addActionListener(listeners::confirmDeletion);
     resultsInfo.add(delBtn);
@@ -668,7 +667,11 @@ public class SearchPanelProvider implements Provider<JPanel> {
   }
 
   private JPanel createSearchResultsTablePane() {
-    JPanel panel = new JPanel(new GridLayout(1, 1));
+    JPanel panel = new JPanel(new BorderLayout());
+
+    JPanel note = new JPanel(new FlowLayout(FlowLayout.LEADING, 5, 2));
+    note.add(new JLabel(MessageUtils.getLocalizedMessage("search.label.results.note")));
+    panel.add(note, BorderLayout.PAGE_START);
 
     MouseListener mouseListener = new MouseAdapter() {
       @Override
@@ -678,7 +681,7 @@ public class SearchPanelProvider implements Provider<JPanel> {
     };
     TableUtil.setupTable(resultsTable, ListSelectionModel.SINGLE_SELECTION, new SearchResultsTableModel(), mouseListener, 50, 100);
     JScrollPane scrollPane = new JScrollPane(resultsTable);
-    panel.add(scrollPane);
+    panel.add(scrollPane, BorderLayout.CENTER);
 
     return panel;
   }

@@ -19,6 +19,7 @@ import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Insets;
 import java.awt.Window;
 import java.util.List;
 import java.util.Map;
@@ -62,6 +63,7 @@ public class TermVectorDialogFactory implements DialogOpener.DialogFactory {
 
     JPanel footer = new JPanel(new FlowLayout(FlowLayout.TRAILING, 0, 10));
     JButton closeBtn = new JButton(MessageUtils.getLocalizedMessage("button.close"));
+    closeBtn.setMargin(new Insets(3, 3, 3, 3));
     closeBtn.addActionListener(e -> dialog.dispose());
     footer.add(closeBtn);
     panel.add(footer, BorderLayout.PAGE_END);

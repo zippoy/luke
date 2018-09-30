@@ -64,6 +64,7 @@ import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
+import java.awt.Insets;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
@@ -78,22 +79,6 @@ public class AddDocumentDialogFactory implements DialogOpener.DialogFactory {
 
   private final static int ROW_COUNT = 50;
 
-  private final JLabel analyzerNameLbl = new JLabel(StandardAnalyzer.class.getName());
-
-  private final JTable fieldsTable = new JTable();
-
-  private final List<NewField> newFieldList;
-
-  private final JButton addBtn = new JButton();
-
-  private final JButton closeBtn = new JButton();
-
-  private final JTextArea infoTA = new JTextArea();
-
-  private final IndexOptionsDialogFactory indexOptionsDialogFactory;
-
-  private final HelpDialogFactory helpDialogFactory;
-
   private final IndexHandler indexHandler;
 
   private final IndexToolsFactory toolsFactory;
@@ -102,7 +87,21 @@ public class AddDocumentDialogFactory implements DialogOpener.DialogFactory {
 
   private final ComponentOperatorRegistry operatorRegistry;
 
+  private final IndexOptionsDialogFactory indexOptionsDialogFactory;
+
+  private final HelpDialogFactory helpDialogFactory;
+
   private final ListenerFunctions listeners = new ListenerFunctions();
+
+  private final JLabel analyzerNameLbl = new JLabel(StandardAnalyzer.class.getName());
+
+  private final List<NewField> newFieldList;
+
+  private final JButton addBtn = new JButton();
+
+  private final JButton closeBtn = new JButton();
+
+  private final JTextArea infoTA = new JTextArea();
 
   private IndexTools toolsModel;
 
@@ -231,16 +230,17 @@ public class AddDocumentDialogFactory implements DialogOpener.DialogFactory {
                                   IndexHandler indexHandler, IndexToolsFactory toolsFactory,
                                   TabbedPaneProvider.TabSwitcherProxy tabSwitcher,
                                   ComponentOperatorRegistry operatorRegistry) {
-    this.indexOptionsDialogFactory = indexOptionsDialogFactory;
-    this.helpDialogFactory = helpDialogFactory;
     this.indexHandler = indexHandler;
     this.toolsFactory = toolsFactory;
     this.tabSwitcher = tabSwitcher;
     this.operatorRegistry = operatorRegistry;
+    this.indexOptionsDialogFactory = indexOptionsDialogFactory;
+    this.helpDialogFactory = helpDialogFactory;
+    this.newFieldList = IntStream.range(0, ROW_COUNT).mapToObj(i -> NewField.newInstance()).collect(Collectors.toList());
 
     operatorRegistry.register(AddDocumentDialogOperator.class, new AddDocumentOperatorImpl());
     indexHandler.addObserver(new Observer());
-    newFieldList = IntStream.range(0, ROW_COUNT).mapToObj(i -> NewField.newInstance()).collect(Collectors.toList());
+
   }
 
   @Override
@@ -295,11 +295,19 @@ public class AddDocumentDialogFactory implements DialogOpener.DialogFactory {
 
     JPanel tableFooter = new JPanel(new FlowLayout(FlowLayout.TRAILING, 10, 5));
     addBtn.setText(MessageUtils.getLocalizedMessage("add_document.button.add"));
+    addBtn.setMargin(new Insets(3, 3, 3, 3));
     addBtn.setEnabled(true);
-    addBtn.addActionListener(listeners::addDocument);
+    if (addBtn.getActionListeners().length == 0) {
+      // TODO: need refactoring
+      // avoid adding multiple listeners
+      addBtn.addActionListener(listeners::addDocument);
+    }
     tableFooter.add(addBtn);
     closeBtn.setText(MessageUtils.getLocalizedMessage("button.cancel"));
-    closeBtn.addActionListener(e -> dialog.dispose());
+    closeBtn.setMargin(new Insets(3, 3, 3, 3));
+    if (closeBtn.getActionListeners().length == 0) {
+      closeBtn.addActionListener(e -> dialog.dispose());
+    }
     tableFooter.add(closeBtn);
     panel.add(tableFooter, BorderLayout.PAGE_END);
 
@@ -307,6 +315,7 @@ public class AddDocumentDialogFactory implements DialogOpener.DialogFactory {
   }
 
   private JTable fieldsTable() {
+    JTable fieldsTable = new JTable();
     TableUtil.setupTable(fieldsTable, ListSelectionModel.SINGLE_SELECTION, new FieldsTableModel(newFieldList), null, 30, 150, 120, 80);
     fieldsTable.setShowGrid(true);
     JComboBox<Class> typesCombo = new JComboBox<>(presetFieldClasses);
@@ -315,13 +324,12 @@ public class AddDocumentDialogFactory implements DialogOpener.DialogFactory {
     for (int i = 0; i < fieldsTable.getModel().getRowCount(); i++) {
       fieldsTable.getModel().setValueAt(TextField.class, i, FieldsTableModel.Column.TYPE.getIndex());
     }
-    TableCellRenderer renderer = new HelpHeaderRenderer(
-        "About Type", "Select Field Class:",
-        createTypeHelpDialog(),
-        helpDialogFactory);
-    fieldsTable.getColumnModel().getColumn(FieldsTableModel.Column.TYPE.getIndex()).setHeaderRenderer(renderer);
+    fieldsTable.getColumnModel().getColumn(FieldsTableModel.Column.TYPE.getIndex()).setHeaderRenderer(
+        new HelpHeaderRenderer(
+            "About Type", "Select Field Class:",
+            createTypeHelpDialog(), helpDialogFactory, dialog));
     fieldsTable.getColumnModel().getColumn(FieldsTableModel.Column.TYPE.getIndex()).setCellRenderer(new TypeCellRenderer());
-    fieldsTable.getColumnModel().getColumn(FieldsTableModel.Column.OPTIONS.getIndex()).setCellRenderer(new OptionsCellRenderer(indexOptionsDialogFactory, newFieldList));
+    fieldsTable.getColumnModel().getColumn(FieldsTableModel.Column.OPTIONS.getIndex()).setCellRenderer(new OptionsCellRenderer(dialog, indexOptionsDialogFactory, newFieldList));
     return fieldsTable;
   }
 
@@ -521,15 +529,18 @@ class TypeCellRenderer implements TableCellRenderer {
 
 class OptionsCellRenderer implements TableCellRenderer {
 
-  private JTable table;
-
-  private final JPanel panel = new JPanel();
+  private JDialog dialog;
 
   private final IndexOptionsDialogFactory indexOptionsDialogFactory;
 
   private final List<NewField> newFieldList;
 
-  public OptionsCellRenderer(IndexOptionsDialogFactory indexOptionsDialogFactory, List<NewField> newFieldList) {
+  private final JPanel panel = new JPanel();
+
+  private JTable table;
+
+  public OptionsCellRenderer(JDialog dialog, IndexOptionsDialogFactory indexOptionsDialogFactory, List<NewField> newFieldList) {
+    this.dialog = dialog;
     this.indexOptionsDialogFactory = indexOptionsDialogFactory;
     this.newFieldList = newFieldList;
   }
@@ -553,7 +564,7 @@ class OptionsCellRenderer implements TableCellRenderer {
             int col = table.columnAtPoint(e.getPoint());
             if (row >= 0 && col == FieldsTableModel.Column.OPTIONS.getIndex()) {
               String title = "Index options for:";
-              new DialogOpener<>(indexOptionsDialogFactory).open(title, 500, 500,
+              new DialogOpener<>(indexOptionsDialogFactory).open(dialog, title, 500, 500,
                   (factory) -> {
                     factory.setNewField(newFieldList.get(row));
                   });

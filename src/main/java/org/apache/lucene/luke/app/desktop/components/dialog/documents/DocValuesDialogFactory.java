@@ -23,6 +23,7 @@ import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.datatransfer.Clipboard;
@@ -94,56 +95,6 @@ public class DocValuesDialogFactory implements DialogOpener.DialogFactory {
     }
 
     private List<String> getAllVlues() {
-      List<String> values = new ArrayList<>();
-      for (int i = 0; i < valueList.getModel().getSize(); i++) {
-        values.add(valueList.getModel().getElementAt(i));
-      }
-      return values;
-    }
-  }
-
-  public class Controller {
-
-    public Decoder getSelectedDecoder() {
-      String decoderLabel = (String) decodersCombo.getSelectedItem();
-      return Decoder.fromLabel(decoderLabel);
-    }
-
-    public void changeDecoder(Decoder decoder) {
-      if (docValues.getNumericValues().isEmpty()) {
-        return;
-      }
-
-      DefaultListModel<String> values = new DefaultListModel<>();
-      switch (decoder) {
-        case LONG:
-          docValues.getNumericValues().stream()
-              .map(String::valueOf)
-              .forEach(values::addElement);
-          break;
-        case FLOAT:
-          docValues.getNumericValues().stream()
-              .mapToInt(Long::intValue)
-              .mapToObj(NumericUtils::sortableIntToFloat)
-              .map(String::valueOf)
-              .forEach(values::addElement);
-          break;
-        case DOUBLE:
-          docValues.getNumericValues().stream()
-              .map(NumericUtils::sortableLongToDouble)
-              .map(String::valueOf)
-              .forEach(values::addElement);
-          break;
-      }
-
-      valueList.setModel(values);
-    }
-
-    public List<String> selectedValues() {
-      return valueList.getSelectedValuesList();
-    }
-
-    public List<String> getAllVlues() {
       List<String> values = new ArrayList<>();
       for (int i = 0; i < valueList.getModel().getSize(); i++) {
         values.add(valueList.getModel().getElementAt(i));
@@ -249,10 +200,12 @@ public class DocValuesDialogFactory implements DialogOpener.DialogFactory {
 
     JButton copyBtn = new JButton(MessageUtils.getLocalizedMessage("button.copy"),
         ImageUtils.createImageIcon("/img/icon_clipboard.png", 20, 20));
+    copyBtn.setMargin(new Insets(3, 3, 3, 3));
     copyBtn.addActionListener(listeners::copyValues);
     footer.add(copyBtn);
 
     JButton closeBtn = new JButton(MessageUtils.getLocalizedMessage("button.close"));
+    closeBtn.setMargin(new Insets(3, 3, 3, 3));
     closeBtn.addActionListener(e -> dialog.dispose());
     footer.add(closeBtn);
 

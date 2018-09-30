@@ -1,8 +1,10 @@
 package org.apache.lucene.luke.app.desktop.util;
 
+import org.apache.lucene.luke.app.desktop.LukeMain;
 import org.apache.lucene.luke.app.desktop.components.dialog.HelpDialogFactory;
 
 import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTable;
@@ -13,6 +15,7 @@ import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Objects;
 
 /** Cell render class for table header with help dialog. */
 public class HelpHeaderRenderer implements TableCellRenderer {
@@ -29,11 +32,19 @@ public class HelpHeaderRenderer implements TableCellRenderer {
 
   private final String desc;
 
+  private final JDialog parent;
+
   public HelpHeaderRenderer(String title, String desc, JComponent helpContent, HelpDialogFactory helpDialogFactory) {
+    this(title, desc, helpContent, helpDialogFactory, null);
+  }
+
+  public HelpHeaderRenderer(String title, String desc, JComponent helpContent, HelpDialogFactory helpDialogFactory,
+                            JDialog parent) {
+    this.title = title;
     this.desc = desc;
     this.helpContent = helpContent;
     this.helpDialogFactory = helpDialogFactory;
-    this.title = title;
+    this.parent = parent;
   }
 
   @Override
@@ -81,11 +92,19 @@ public class HelpHeaderRenderer implements TableCellRenderer {
       int column = header.getTable().columnAtPoint(e.getPoint());
       if (column == this.column && e.getClickCount() == 1 && column != -1) {
         // only when the targeted column header is clicked, pop up the dialog
-        new DialogOpener<>(helpDialogFactory).open(title, 600, 350,
-            (factory) -> {
-              factory.setDesc(desc);
-              factory.setContent(helpContent);
-            });
+        if (Objects.nonNull(parent)) {
+          new DialogOpener<>(helpDialogFactory).open(parent, title, 600, 350,
+              (factory) -> {
+                factory.setDesc(desc);
+                factory.setContent(helpContent);
+              });
+        } else {
+          new DialogOpener<>(helpDialogFactory).open(title, 600, 350,
+              (factory) -> {
+                factory.setDesc(desc);
+                factory.setContent(helpContent);
+              });
+        }
       }
     }
 

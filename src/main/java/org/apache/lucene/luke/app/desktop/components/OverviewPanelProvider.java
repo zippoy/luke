@@ -93,6 +93,8 @@ public class OverviewPanelProvider implements Provider<JPanel> {
 
   private final JTable topTermsTable = new JTable();
 
+  private final JPopupMenu topTermsContextMenu = new JPopupMenu();
+
   private final ListenerFunctions listeners = new ListenerFunctions();
 
   private Overview overviewModel;
@@ -118,18 +120,12 @@ public class OverviewPanelProvider implements Provider<JPanel> {
     }
 
     void showTopTermsContextMenu(MouseEvent e) {
-      if (e.isPopupTrigger()) {
-        JPopupMenu popup = new JPopupMenu();
-
-        JMenuItem item1 = new JMenuItem(MessageUtils.getLocalizedMessage("overview.toptermtable.menu.item1"));
-        item1.addActionListener(this::browseByTerm);
-        popup.add(item1);
-
-        JMenuItem item2 = new JMenuItem(MessageUtils.getLocalizedMessage("overview.toptermtable.menu.item2"));
-        item2.addActionListener(this::searchByTerm);
-        popup.add(item2);
-
-        popup.show(e.getComponent(), e.getX(), e.getY());
+      if (e.getClickCount() == 2 && !e.isConsumed()) {
+        int row = topTermsTable.rowAtPoint(e.getPoint());
+        if (row != topTermsTable.getSelectedRow()) {
+          topTermsTable.changeSelection(row, topTermsTable.getSelectedColumn(), false, false);
+        }
+        topTermsContextMenu.show(e.getComponent(), e.getX(), e.getY());
       }
     }
 
@@ -205,12 +201,6 @@ public class OverviewPanelProvider implements Provider<JPanel> {
       topTermsTable.getColumnModel().getColumn(TopTermsTableModel.Column.RANK.getIndex()).setMaxWidth(50);
       topTermsTable.getColumnModel().getColumn(TopTermsTableModel.Column.FREQ.getIndex()).setMaxWidth(80);
       topTermsTable.getColumnModel().setColumnMargin(StyleConstants.TABLE_COLUMN_MARGIN_DEFAULT);
-      topTermsTable.addMouseListener(new MouseAdapter() {
-        @Override
-        public void mousePressed(MouseEvent e) {
-          listeners.showTopTermsContextMenu(e);
-        }
-      });
     }
 
     @Override
@@ -261,6 +251,9 @@ public class OverviewPanelProvider implements Provider<JPanel> {
     JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, createUpperPanel(), createLowerPanel());
     splitPane.setDividerLocation(0.4);
     panel.add(splitPane);
+
+    setUpTopTermsContextMenu();
+
     return panel;
   }
 
@@ -454,7 +447,12 @@ public class OverviewPanelProvider implements Provider<JPanel> {
     label.setBorder(BorderFactory.createEmptyBorder(0, 0, 5, 0));
     termsPanel.add(label, BorderLayout.PAGE_START);
 
-    TableUtil.setupTable(topTermsTable, ListSelectionModel.SINGLE_SELECTION, new TopTermsTableModel(), null);
+    TableUtil.setupTable(topTermsTable, ListSelectionModel.SINGLE_SELECTION, new TopTermsTableModel(), new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        listeners.showTopTermsContextMenu(e);
+      }
+    });
     JScrollPane scrollPane = new JScrollPane(topTermsTable);
     termsPanel.add(scrollPane, BorderLayout.CENTER);
 
@@ -464,6 +462,16 @@ public class OverviewPanelProvider implements Provider<JPanel> {
     panel.add(splitPane);
 
     return panel;
+  }
+
+  private void setUpTopTermsContextMenu() {
+    JMenuItem item1 = new JMenuItem(MessageUtils.getLocalizedMessage("overview.toptermtable.menu.item1"));
+    item1.addActionListener(listeners::browseByTerm);
+    topTermsContextMenu.add(item1);
+
+    JMenuItem item2 = new JMenuItem(MessageUtils.getLocalizedMessage("overview.toptermtable.menu.item2"));
+    item2.addActionListener(listeners::searchByTerm);
+    topTermsContextMenu.add(item2);
   }
 
 }

@@ -23,6 +23,7 @@ import javax.swing.JTextField;
 import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Insets;
 import java.awt.Window;
 import java.util.Arrays;
 
@@ -223,9 +224,11 @@ public class IndexOptionsDialogFactory implements DialogOpener.DialogFactory {
   private JPanel footer() {
     JPanel panel = new JPanel(new FlowLayout(FlowLayout.TRAILING));
     JButton okBtn = new JButton(MessageUtils.getLocalizedMessage("button.ok"));
+    okBtn.setMargin(new Insets(3,3, 3, 3));
     okBtn.addActionListener(e -> saveOptions());
     panel.add(okBtn);
     JButton cancelBtn = new JButton(MessageUtils.getLocalizedMessage("button.cancel"));
+    cancelBtn.setMargin(new Insets(3, 3, 3, 3));
     cancelBtn.addActionListener(e -> dialog.dispose());
     panel.add(cancelBtn);
 

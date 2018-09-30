@@ -1,6 +1,7 @@
 package org.apache.lucene.luke.app.desktop.components.dialog.search;
 
 import org.apache.lucene.luke.app.desktop.util.DialogOpener;
+import org.apache.lucene.luke.app.desktop.util.ImageUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 import org.apache.lucene.search.Explanation;
 
@@ -18,6 +19,7 @@ import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
+import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.datatransfer.Clipboard;
@@ -71,8 +73,9 @@ public class ExplainDialogProvider implements DialogOpener.DialogFactory {
 
     JPanel footer = new JPanel(new FlowLayout(FlowLayout.TRAILING, 5, 5));
 
-    JButton copyBtn = new JButton();
-    copyBtn.setText(MessageUtils.getLocalizedMessage("button.copy"));
+    JButton copyBtn = new JButton(MessageUtils.getLocalizedMessage("button.copy"),
+        ImageUtils.createImageIcon("/img/icon_clipboard.png", 20, 20));
+    copyBtn.setMargin(new Insets(3, 3, 3, 3));
     copyBtn.addActionListener(e -> {
       Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
       StringSelection selection = new StringSelection(explanationToString());
@@ -80,8 +83,8 @@ public class ExplainDialogProvider implements DialogOpener.DialogFactory {
     });
     footer.add(copyBtn);
 
-    JButton closeBtn = new JButton();
-    closeBtn.setText(MessageUtils.getLocalizedMessage("button.close"));
+    JButton closeBtn = new JButton(MessageUtils.getLocalizedMessage("button.close"));
+    closeBtn.setMargin(new Insets(3, 3,3, 3));
     closeBtn.addActionListener(e -> dialog.dispose());
     footer.add(closeBtn);
     panel.add(footer, BorderLayout.PAGE_END);
@@ -100,6 +103,10 @@ public class ExplainDialogProvider implements DialogOpener.DialogFactory {
     renderer.setClosedIcon(null);
     renderer.setLeafIcon(null);
     tree.setCellRenderer(renderer);
+    // expand all nodes
+    for (int row = 0; row < tree.getRowCount(); row++) {
+      tree.expandRow(row);
+    }
     return tree;
   }
 
@@ -117,7 +124,7 @@ public class ExplainDialogProvider implements DialogOpener.DialogFactory {
 
   private String explanationToString() {
     StringBuilder sb = new StringBuilder(format(explanation));
-    sb.append("\n");
+    sb.append(System.lineSeparator());
     traverseToCopy(sb, 1, explanation.getDetails());
     return sb.toString();
   }
