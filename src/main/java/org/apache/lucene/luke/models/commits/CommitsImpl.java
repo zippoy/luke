@@ -35,6 +35,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.TreeMap;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
@@ -73,8 +74,11 @@ public final class CommitsImpl extends LukeModel implements Commits {
   private Map<Long, IndexCommit> initCommitMap() {
     try {
       List<IndexCommit> indexCommits = DirectoryReader.listCommits(dir);
-      return indexCommits.stream()
-          .collect(Collectors.toMap(IndexCommit::getGeneration, UnaryOperator.identity()));
+      Map<Long, IndexCommit> map = new TreeMap<>();
+      for (IndexCommit ic : indexCommits) {
+        map.put(ic.getGeneration(), ic);
+      }
+      return map;
     } catch (IOException e) {
       throw new LukeException("Failed to get commits list.", e);
     }
