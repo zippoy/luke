@@ -1,4 +1,4 @@
-[![TravisCI](https://api.travis-ci.org/mocobeta/luke.svg?branch=luke-swing)](https://travis-ci.org/mocobeta/luke)
+[![TravisCI](https://api.travis-ci.org/DmitryKey/luke.svg?branch=luke-swing)](https://travis-ci.org/mocobeta/luke)
 
 luke
 ====
