@@ -11,6 +11,7 @@ import org.apache.lucene.luke.app.LukeState;
 import org.apache.lucene.luke.app.desktop.MessageBroker;
 import org.apache.lucene.luke.app.desktop.util.ImageUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
+import org.apache.lucene.util.Version;
 
 import javax.swing.BorderFactory;
 import javax.swing.JFrame;
@@ -29,6 +30,8 @@ import java.awt.GridLayout;
 
 
 public class LukeWindowProvider implements Provider<JFrame> {
+
+  private static final String WINDOW_TITLE = MessageUtils.getLocalizedMessage("window.title") + " - v" + Version.LATEST.toString();
 
   private final MessageBroker messageBroker;
 
@@ -131,7 +134,7 @@ public class LukeWindowProvider implements Provider<JFrame> {
 
   @Override
   public JFrame get() {
-    JFrame frame = new JFrame(MessageUtils.getLocalizedMessage("window.title"));
+    JFrame frame = new JFrame(WINDOW_TITLE);
     frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
     frame.setJMenuBar(menuBar);

@@ -199,6 +199,7 @@ public class OptimizeIndexDialogFactory implements DialogOpener.DialogFactory {
     panel.add(header, BorderLayout.PAGE_START);
 
     logArea.setText("");
+    logArea.setEditable(false);
     panel.add(new JScrollPane(logArea), BorderLayout.CENTER);
 
     return panel;
