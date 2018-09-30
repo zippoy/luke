@@ -37,8 +37,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.FileSystems;
@@ -83,8 +83,11 @@ public final class AnalysisImpl implements Analysis {
         throw new LukeException(String.format("Invalid jar file path: %s", jarFile));
       }
       try {
-        urls.add(path.toUri().toURL());
-      } catch (MalformedURLException e) {
+        URL url = path.toUri().toURL();
+        urls.add(url);
+        // add url to system class loader
+        addURLToSystemClassLoader(url);
+      } catch (IOException e) {
         throw new LukeException(e.getMessage(), e);
       }
     }
@@ -95,6 +98,21 @@ public final class AnalysisImpl implements Analysis {
     CharFilterFactory.reloadCharFilters(classLoader);
     TokenizerFactory.reloadTokenizers(classLoader);
     TokenFilterFactory.reloadTokenFilters(classLoader);
+  }
+
+  private static final Class[] parameters = new Class[]{URL.class};
+  private void addURLToSystemClassLoader(URL url) throws IOException {
+    URLClassLoader sysloader = (URLClassLoader) ClassLoader.getSystemClassLoader();
+    Class sysclass = URLClassLoader.class;
+
+    try {
+      Method method = sysclass.getDeclaredMethod("addURL", parameters);
+      method.setAccessible(true);
+      method.invoke(sysloader, url);
+    } catch (Throwable t) {
+      t.printStackTrace();
+      throw new IOException("Error, could not add URL to system classloader");
+    }
   }
 
   @Override

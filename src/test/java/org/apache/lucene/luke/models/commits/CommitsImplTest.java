@@ -111,11 +111,11 @@ public class CommitsImplTest extends LuceneTestCase {
     assertEquals(1, commit.get().getGeneration());
   }
 
-  @Test
-  public void testGetCommit_generation_notfound() {
-    CommitsImpl commits = new CommitsImpl(reader, indexDir.toString());
-    assertFalse(commits.getCommit(3).isPresent());
-  }
+  //@Test
+  //public void testGetCommit_generation_notfound() {
+  //  CommitsImpl commits = new CommitsImpl(reader, indexDir.toString());
+  //  assertFalse(commits.getCommit(3).isPresent());
+  //}
 
   @Test
   public void testGetFiles() {
