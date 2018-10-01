@@ -157,14 +157,8 @@ public class CheckIndexController implements DialogWindowController {
       msg = "ERROR: Can't check - tool out-of-date";
     } else {
       StringBuilder sb = new StringBuilder("BAD:");
-      if (status.cantOpenSegments) {
-        sb.append(" Can't open segmengs.");
-      }
       if (status.missingSegments) {
         sb.append(" Missing segments.");
-      }
-      if (status.missingSegmentVersion) {
-        sb.append(" Missing segment version.");
       }
       if (status.numBadSegments > 0) {
         sb.append(" numBadSegments=");
