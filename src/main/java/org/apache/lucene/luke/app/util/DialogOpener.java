@@ -50,7 +50,7 @@ public class DialogOpener<T> {
                     String... styleSheets)
       throws Exception {
     FXMLLoader loader = new FXMLLoader(DialogOpener.class.getResource(resourceName), MessageUtils.getBundle());
-    Injector injector = LukeModule.getIngector();
+    Injector injector = LukeModule.getInjector();
     loader.setControllerFactory(injector::getInstance);
 
     Parent root = loader.load();

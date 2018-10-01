@@ -33,7 +33,7 @@ public class LukeModule extends AbstractModule {
 
   private static final Injector injector = Guice.createInjector(new LukeModule());
 
-  public static Injector getIngector() {
+  public static Injector getInjector() {
     return injector;
   }
 
