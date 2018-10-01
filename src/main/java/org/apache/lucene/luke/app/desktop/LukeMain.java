@@ -61,7 +61,12 @@ public class LukeMain {
 
   public static void main(String[] args) throws Exception {
 
-    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+    String lookAndFeelClassName = UIManager.getSystemLookAndFeelClassName();
+    //if (!lookAndFeelClassName.contains("AquaLookAndFeel") && !lookAndFeelClassName.contains("PlasticXPLookAndFeel")) {
+      // may be running on linux platform
+      lookAndFeelClassName = "javax.swing.plaf.metal.MetalLookAndFeel";
+    //}
+    UIManager.setLookAndFeel(lookAndFeelClassName);
 
     javax.swing.SwingUtilities.invokeLater(LukeMain::createAndShowGUI);
 
