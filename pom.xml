@@ -6,7 +6,7 @@
 
     <groupId>luke</groupId>
     <artifactId>luke-swing</artifactId>
-    <version>7.4.0</version>
+    <version>7.5.0</version>
 
     <prerequisites>
         <maven>3.0</maven>
@@ -25,6 +25,7 @@
         <junit.version>4.10</junit.version>
         <mockito.version>2.6.2</mockito.version>
         <findbugs.version>3.0.1</findbugs.version>
+        <jgoodies.version>2.7.0</jgoodies.version>
 
         <maven-shade-plugin.version>3.0.0</maven-shade-plugin.version>
         <maven-assembly-plugin.version>3.0.0</maven-assembly-plugin.version>
@@ -192,7 +193,7 @@
         <dependency>
             <groupId>com.jgoodies</groupId>
             <artifactId>jgoodies-looks</artifactId>
-            <version>2.7.0</version>
+            <version>${jgoodies.version}</version>
         </dependency>
 
     </dependencies>
