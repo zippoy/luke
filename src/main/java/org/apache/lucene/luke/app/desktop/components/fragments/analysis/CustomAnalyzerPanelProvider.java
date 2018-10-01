@@ -466,8 +466,9 @@ public class CustomAnalyzerPanelProvider implements Provider<JPanel> {
     c.gridx = 0;
     c.gridy = 0;
     c.gridwidth = 1;
-    c.gridheight = 2;
+    c.gridheight = 1;
     c.weightx = 0.1;
+    c.weighty = 0.5;
     c.anchor = GridBagConstraints.CENTER;
     panel.add(cfLbl, c);
 
@@ -476,6 +477,7 @@ public class CustomAnalyzerPanelProvider implements Provider<JPanel> {
     c.gridwidth = 1;
     c.gridheight = 1;
     c.weightx = 0.1;
+    c.weighty = 0.5;
     c.anchor = GridBagConstraints.LINE_END;
     panel.add(new JLabel(MessageUtils.getLocalizedMessage("analysis_custom.label.selected")), c);
 
@@ -487,6 +489,7 @@ public class CustomAnalyzerPanelProvider implements Provider<JPanel> {
     c.gridwidth = 5;
     c.gridheight = 1;
     c.weightx = 0.5;
+    c.weighty = 0.5;
     c.anchor = GridBagConstraints.LINE_END;
     panel.add(selectedPanel, c);
 
@@ -501,12 +504,13 @@ public class CustomAnalyzerPanelProvider implements Provider<JPanel> {
     c.gridwidth = 1;
     c.gridheight = 1;
     c.weightx = 0.1;
+    c.weighty = 0.5;
     c.anchor = GridBagConstraints.CENTER;
     panel.add(cfEditBtn, c);
 
     JLabel cfAddLabel = new JLabel(
         MessageUtils.getLocalizedMessage("analysis_custom.label.add"),
-        ImageUtils.createImageIcon("/img/icon_plus.png", 20,20),
+        ImageUtils.createImageIcon("/img/icon_plus.png", 15,15),
         JLabel.LEFT);
     c.fill = GridBagConstraints.HORIZONTAL;
     c.gridx = 1;
@@ -514,6 +518,7 @@ public class CustomAnalyzerPanelProvider implements Provider<JPanel> {
     c.gridwidth = 1;
     c.gridheight = 1;
     c.weightx = 0.1;
+    c.weighty = 0.5;
     c.anchor = GridBagConstraints.LINE_END;
     panel.add(cfAddLabel, c);
 
@@ -522,13 +527,14 @@ public class CustomAnalyzerPanelProvider implements Provider<JPanel> {
     c.gridwidth = 5;
     c.gridheight = 1;
     c.weightx = 0.5;
+    c.weighty = 0.5;
     c.anchor = GridBagConstraints.LINE_END;
     panel.add(cfFactoryCombo, c);
 
     // separator
     sepc.gridx = 0;
     sepc.gridy = 3;
-    c.anchor = GridBagConstraints.LINE_START;
+    sepc.anchor = GridBagConstraints.LINE_START;
     panel.add(new JSeparator(JSeparator.HORIZONTAL), sepc);
 
     // tokenizer
@@ -539,6 +545,7 @@ public class CustomAnalyzerPanelProvider implements Provider<JPanel> {
     c.gridwidth = 1;
     c.gridheight = 2;
     c.weightx = 0.1;
+    c.weighty = 0.5;
     c.anchor = GridBagConstraints.CENTER;
     panel.add(tokLabel, c);
 
@@ -547,6 +554,7 @@ public class CustomAnalyzerPanelProvider implements Provider<JPanel> {
     c.gridwidth = 1;
     c.gridheight = 1;
     c.weightx = 0.1;
+    c.weighty = 0.5;
     c.anchor = GridBagConstraints.LINE_END;
     panel.add(new JLabel(MessageUtils.getLocalizedMessage("analysis_custom.label.selected")), c);
 
@@ -559,6 +567,7 @@ public class CustomAnalyzerPanelProvider implements Provider<JPanel> {
     c.gridwidth = 5;
     c.gridheight = 1;
     c.weightx = 0.5;
+    c.weighty = 0.5;
     c.anchor = GridBagConstraints.LINE_END;
     panel.add(selectedTokTF, c);
 
@@ -572,12 +581,13 @@ public class CustomAnalyzerPanelProvider implements Provider<JPanel> {
     c.gridwidth = 1;
     c.gridheight = 1;
     c.weightx = 0.1;
+    c.weighty = 0.5;
     c.anchor = GridBagConstraints.CENTER;
     panel.add(tokEditBtn, c);
 
     JLabel setTokLabel = new JLabel(
         MessageUtils.getLocalizedMessage("analysis_custom.label.set"),
-        ImageUtils.createImageIcon("/img/icon_pushpin_alt.png", 20,20),
+        ImageUtils.createImageIcon("/img/icon_pushpin_alt.png", 15,15),
         JLabel.LEFT);
     c.fill = GridBagConstraints.HORIZONTAL;
     c.gridx = 1;
@@ -585,6 +595,7 @@ public class CustomAnalyzerPanelProvider implements Provider<JPanel> {
     c.gridwidth = 1;
     c.gridheight = 1;
     c.weightx = 0.1;
+    c.weighty = 0.5;
     c.anchor = GridBagConstraints.LINE_END;
     panel.add(setTokLabel, c);
 
@@ -593,13 +604,14 @@ public class CustomAnalyzerPanelProvider implements Provider<JPanel> {
     c.gridwidth = 5;
     c.gridheight = 1;
     c.weightx = 0.5;
+    c.weighty = 0.5;
     c.anchor = GridBagConstraints.LINE_END;
     panel.add(tokFactoryCombo, c);
 
     // separator
     sepc.gridx = 0;
     sepc.gridy = 7;
-    c.anchor = GridBagConstraints.LINE_START;
+    sepc.anchor = GridBagConstraints.LINE_START;
     panel.add(new JSeparator(JSeparator.HORIZONTAL), sepc);
 
     // token filters
@@ -610,6 +622,7 @@ public class CustomAnalyzerPanelProvider implements Provider<JPanel> {
     c.gridwidth = 1;
     c.gridheight = 2;
     c.weightx = 0.1;
+    c.weighty = 0.5;
     c.anchor = GridBagConstraints.CENTER;
     panel.add(tfLbl, c);
 
@@ -618,6 +631,7 @@ public class CustomAnalyzerPanelProvider implements Provider<JPanel> {
     c.gridwidth = 1;
     c.gridheight = 1;
     c.weightx = 0.1;
+    c.weighty = 0.5;
     c.anchor = GridBagConstraints.LINE_END;
     panel.add(new JLabel(MessageUtils.getLocalizedMessage("analysis_custom.label.selected")), c);
 
@@ -629,6 +643,7 @@ public class CustomAnalyzerPanelProvider implements Provider<JPanel> {
     c.gridwidth = 5;
     c.gridheight = 1;
     c.weightx = 0.5;
+    c.weighty = 0.5;
     c.anchor = GridBagConstraints.LINE_END;
     panel.add(selectedTfPanel, c);
 
@@ -643,12 +658,13 @@ public class CustomAnalyzerPanelProvider implements Provider<JPanel> {
     c.gridwidth = 1;
     c.gridheight = 1;
     c.weightx = 0.1;
+    c.weighty = 0.5;
     c.anchor = GridBagConstraints.CENTER;
     panel.add(tfEditBtn, c);
 
     JLabel tfAddLabel = new JLabel(
         MessageUtils.getLocalizedMessage("analysis_custom.label.add"),
-        ImageUtils.createImageIcon("/img/icon_plus.png", 20,20),
+        ImageUtils.createImageIcon("/img/icon_plus.png", 15,15),
         JLabel.LEFT);
     c.fill = GridBagConstraints.HORIZONTAL;
     c.gridx = 1;
@@ -656,6 +672,7 @@ public class CustomAnalyzerPanelProvider implements Provider<JPanel> {
     c.gridwidth = 1;
     c.gridheight = 1;
     c.weightx = 0.1;
+    c.weighty = 0.5;
     c.anchor = GridBagConstraints.LINE_END;
     panel.add(tfAddLabel, c);
 
@@ -664,6 +681,7 @@ public class CustomAnalyzerPanelProvider implements Provider<JPanel> {
     c.gridwidth = 5;
     c.gridheight = 1;
     c.weightx = 0.5;
+    c.weighty = 0.5;
     c.anchor = GridBagConstraints.LINE_END;
     panel.add(tfFactoryCombo, c);
 
