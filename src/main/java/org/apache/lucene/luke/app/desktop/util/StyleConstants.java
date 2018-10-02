@@ -7,7 +7,7 @@ public class StyleConstants {
 
   public static Font BUTTON_FONT_LARGE = new Font("SanSerif", Font.PLAIN, 15);
 
-  public static Font FONT_MONOSPACE_LARGE = new Font("monospace", Font.PLAIN, 15);
+  public static Font FONT_MONOSPACE_LARGE = new Font("monospaced", Font.PLAIN, 12);
 
   public static Color LINK_COLOR = Color.decode("#0099ff");
 
