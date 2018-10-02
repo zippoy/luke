@@ -229,14 +229,12 @@ public class SearchController extends ChildTabController implements IndexObserve
 
   private void toggleTermQuery() {
     if (termQuery.isSelected()) {
-      settings.setDisable(true);
       parseBtn.setDisable(true);
       rewrite.setDisable(true);
       mltBtn.setDisable(true);
       mltDoc.setDisable(true);
       parsedQuery.setText("");
     } else {
-      settings.setDisable(false);
       parseBtn.setDisable(false);
       rewrite.setDisable(false);
       mltBtn.setDisable(false);
@@ -439,6 +437,8 @@ public class SearchController extends ChildTabController implements IndexObserve
 
   void mltSearch(int docNum) throws LukeException {
     mltDoc.setText(String.valueOf(docNum));
+    termQuery.setSelected(false);
+    toggleTermQuery();
     settings.setExpandedPane(mltPane);
     execMLTSearch();
   }
