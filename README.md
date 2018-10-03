@@ -1,4 +1,4 @@
-[![TravisCI](https://api.travis-ci.org/mocobeta/luke.svg?branch=luke-swing)](https://travis-ci.org/mocobeta/luke)
+[![TravisCI](https://api.travis-ci.org/DmitryKey/luke.svg?branch=luke-swing)](https://travis-ci.org/DmitryKey/luke)
 
 luke
 ====
@@ -13,6 +13,8 @@ Luke is the GUI tool for introspecting your Lucene / Solr / Elasticsearch index.
 * Searching in the index
 * Performing index maintenance: index health checking, index optimization (take a backup before running this!)
 * Testing your custom Lucene analyzers
+
+![Swing Luke](luke-swing.png)
  
 Recent Changes
 ====
