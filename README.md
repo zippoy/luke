@@ -65,6 +65,8 @@ System Requirements
 ====
 
 Java 8+ and JavaFX runtime are required.
+Here is the installation guide for Luke JavaFX edition. Please look through this guide before installing.
+https://github.com/DmitryKey/luke/wiki/Installation-Guide-for-Luke-7.5.0-JavaFX-edition
 
 Launching luke
 ====
