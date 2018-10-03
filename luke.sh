@@ -1,7 +1,7 @@
 #!/bin/bash
 
-if [[ -n "$PATH_TO_FX11" ]]; then
-  JAVA_OPTIONS="$JAVA_OPTIONS --module-path $PATH_TO_FX11 --add-modules=javafx.controls,javafx.fxml"
+if [[ -n "$JFX_HOME" ]]; then
+  JAVA_OPTIONS="$JAVA_OPTIONS --module-path $JFX_HOME/lib --add-modules=javafx.controls,javafx.fxml"
 fi
 
 if [[ -d `echo $LUKE_PATH` ]]; then
