@@ -13,7 +13,9 @@ Luke is the GUI tool for introspecting your Lucene / Solr / Elasticsearch index.
 * Searching in the index
 * Performing index maintenance: index health checking, index optimization (take a backup before running this!)
 * Testing your custom Lucene analyzers
- 
+
+![Luke JavaFX ed](luke-javafx.png)
+
 Recent Changes
 ====
 See [CHANGES.txt](CHANGES.txt)

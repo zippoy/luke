@@ -1,3 +1,11 @@
+* Upgrade to 7.5.0
+Upgrade to Lucene 7.5.0.
+Fixed in this release:
+
+- Fixed start scripts for working with JavaFX 11.
+- Added Korian Analyzer module (nori)
+- Fixed trivial UI bugs.
+
 * Upgrade to 7.4.0
 Upgrade to Lucene 7.4.0.
 
