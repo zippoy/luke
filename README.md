@@ -20,6 +20,18 @@ System Requirements
 ====
 
 JDK8+ is required.
+
+Launching luke
+====
+From source code
+
+1. Clone the repository.
+2. Run `mvn install` from the project directory. (Make sure you have Java and Maven installed before doing this)
+3. Use [luke.sh](luke.sh) or [luke.bat](luke.bat) for launching luke from the command line based on the OS you are in.
+
+Using a release
+
+[releases](https://github.com/DmitryKey/luke/releases) page contains stable releases of luke. Download the respective release, unpack and run a shell or batch scripts (or directly with java -jar if you prefer it that way).
  
 Recent Changes
 ====
@@ -65,18 +77,6 @@ Committers
 ====
 * [Dmitry Kan](https://github.com/DmitryKey)
 * [Tomoko Uchida](https://github.com/mocobeta)
-
-Launching luke
-====
-From source code
-
-1. Clone the repository.
-2. Run `mvn install` from the project directory. (Make sure you have Java and Maven installed before doing this)
-3. Use [luke.sh](luke.sh) or [luke.bat](luke.bat) for launching luke from the command line based on the OS you are in.
-
-Using a release
-
-[releases](https://github.com/DmitryKey/luke/releases) page contains stable releases of luke. Download the respective release, unpack and run a shell or batch scripts (or directly with java -jar if you prefer it that way).
 
 Documentation
 ====
