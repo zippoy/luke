@@ -126,7 +126,6 @@ Donation
 If you enjoy using luke you can consider buying us a cup of tea / coffee :)
 [![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=KGDNEW86SALLY)
 
-=======
 Credits
 ===
 We would like to express our gratitude to JetBrains for their support of luke with awesome suit of IDEs, in particular: Intellij IDEA.
