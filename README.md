@@ -120,3 +120,9 @@ Licensing
 ===
 
 This software is distributed under [ALv2](http://www.apache.org/licenses/LICENSE-2.0.html), and includes [The Elegant Icon Font](https://www.elegantthemes.com/blog/resources/elegant-icon-font) which is licensed under the [MIT](https://opensource.org/licenses/MIT).
+
+Credits
+===
+We would like to express our gratitude to JetBrains for their support of luke with awesome suit of IDEs, in particular: Intellij IDEA.
+
+Thank you! ![JetBrains](docs/img/jetbrains.svg)
