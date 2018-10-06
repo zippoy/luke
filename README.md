@@ -1,7 +1,7 @@
 Important Notice
 =========================
 
-**[luke-thinlet](https://github.com/DmitryKey/luke/blob/luke-thinlet/README.md) branch holds Thinlet version. From version 7.3.1, the main branch is running JavaFX (later, it was switched to Swing) version luke and Thinlet version is not maintained/updated. Please do not create issues or send pull requests to this branch.**
+**This branch holds (legacy) Thinlet version Luke. From version 7.3.1, the main branch is running JavaFX (later, it was switched to Swing) version luke and Thinlet version is not maintained/updated. Please do not create issues or send pull requests to this branch.**
 
 luke (legacy Thinlet UI)
 =========================
