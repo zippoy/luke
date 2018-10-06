@@ -109,7 +109,7 @@ and download luke for that from the [releases](https://github.com/DmitryKey/luke
 Where is (legacy) Thinlet version luke?
 ====
 
-[luke-thinlet](https://github.com/DmitryKey/luke/blob/luke-thinlet/README.md) branch holds Thinlet version. From version 7.3.1, the main branch is running JavaFX (later, it was switched to Swing) version luke and Thinlet version is not maintained/updated.
+[luke-thinlet](https://github.com/DmitryKey/luke/blob/luke-thinlet/README.md) branch holds Thinlet version. From version 7.3.1, the main branch is running JavaFX (later, it was switched to Swing) version luke and Thinlet version is not maintained/updated. Please do not create issues or send pull requests to this branch.
 
 Where is luke 4.4.0 ?
 ===
