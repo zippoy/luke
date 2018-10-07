@@ -3,7 +3,7 @@ Upgrade to Lucene 7.5.0.
 Fixed in this release:
 
 - Re-implemented UIs with Swing. See the related issue #109.
-- Added Korian Analyzer module (nori)
+- Added Korean Analyzer module (nori)
 
 * Upgrade to 7.4.0
 Upgrade to Lucene 7.4.0.
