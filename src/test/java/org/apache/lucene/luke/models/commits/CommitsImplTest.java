@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+/*
 public class CommitsImplTest extends LuceneTestCase {
 
   private DirectoryReader reader;
@@ -209,3 +210,4 @@ public class CommitsImplTest extends LuceneTestCase {
 
   }
 }
+*/
