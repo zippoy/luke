@@ -353,6 +353,7 @@
 						<panel gap="4" weightx="1" halign="fill">
 							<label font="bold" text="Results:"/>
 							<label font="10" text="  (Hint: Double-click on results to display all fields)" weightx="1" halign="fill"/>
+							<button text="Edit columns" tooltip="Select and re-order columns" action="editColumns"/>
 							<separator/>
 							<button text="Explain" icon="/img/info.gif" tooltip="Explain selected result" action="explainResult(sTable)"/>
                                                         <separator/>
