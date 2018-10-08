@@ -1,3 +1,8 @@
+* Point release 7.2.0.1
+
+Changes:
+https://github.com/DmitryKey/luke/issues/112
+
 * Upgrade to 7.2.0
 Fixed in this release:
 
