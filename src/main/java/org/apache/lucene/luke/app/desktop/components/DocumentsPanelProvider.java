@@ -135,6 +135,8 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
 
   private final JButton addDocBtn = new JButton();
 
+  private final JButton copyDocValuesBtn = new JButton();
+
   private final JTable documentTable = new JTable();
 
   private final JPopupMenu documentContextMenu = new JPopupMenu();
@@ -336,6 +338,41 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
       messageBroker.clearStatusMessage();
     }
 
+    void copySelectedOrAllStoredValues(ActionEvent e) {
+      StringSelection selection;
+      if (documentTable.getSelectedRowCount() == 0) {
+        selection = copyAllValues();
+      } else {
+        selection = copySelectedValues();
+      }
+      Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+      clipboard.setContents(selection, null);
+    }
+
+    private StringSelection copyAllValues() {
+      StringBuilder sb = new StringBuilder();
+      for (int i = 0; i < documentTable.getRowCount(); i++) {
+        String value = (String) documentTable.getModel().getValueAt(i, DocumentTableModel.Column.VALUE.getIndex());
+        if (Objects.nonNull(value)) {
+          sb.append((i == 0) ? value : System.lineSeparator() + value);
+        }
+      }
+      return new StringSelection(sb.toString());
+    }
+
+    private StringSelection copySelectedValues() {
+      StringBuilder sb = new StringBuilder();
+      boolean isFirst = true;
+      for (int rowIndex : documentTable.getSelectedRows()) {
+        String value = (String) documentTable.getModel().getValueAt(rowIndex, DocumentTableModel.Column.VALUE.getIndex());
+        if (Objects.nonNull(value)) {
+          sb.append(isFirst ? value : System.lineSeparator() + value);
+          isFirst = false;
+        }
+      }
+      return new StringSelection(sb.toString());
+    }
+
   }
 
   public class Observer implements IndexObserver {
@@ -413,6 +450,9 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
       documentTable.getColumnModel().getColumn(DocumentTableModel.Column.NORM.getIndex()).setMaxWidth(80);
       documentTable.getColumnModel().getColumn(DocumentTableModel.Column.VALUE.getIndex()).setPreferredWidth(500);
       documentTable.getColumnModel().getColumn(DocumentTableModel.Column.FLAGS.getIndex()).setHeaderRenderer(tableHeaderRenderer);
+
+      documentTable.setRowSelectionAllowed(true);
+      documentTable.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 
       messageBroker.clearStatusMessage();
     }
@@ -732,6 +772,10 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
     panel.add(left);
 
     JPanel right = new JPanel(new FlowLayout(FlowLayout.TRAILING, 10, 2));
+    copyDocValuesBtn.setIcon(ImageUtils.createImageIcon("/img/icon_clipboard.png", 15, 15));
+    copyDocValuesBtn.setMargin(new Insets(3, 5, 3, 5));
+    copyDocValuesBtn.addActionListener(listeners::copySelectedOrAllStoredValues);
+    right.add(copyDocValuesBtn);
     mltBtn.setText(MessageUtils.getLocalizedMessage("documents.button.mlt"));
     mltBtn.setIcon(ImageUtils.createImageIcon("/img/icon_heart_alt.png", 15, 15));
     mltBtn.setMargin(new Insets(3, 5, 3, 5));
