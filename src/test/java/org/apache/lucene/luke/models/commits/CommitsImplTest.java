@@ -22,7 +22,6 @@ import org.apache.lucene.codecs.Codec;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.NoDeletionPolicy;
 import org.apache.lucene.index.RandomIndexWriter;
@@ -38,7 +37,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-/*
+// See: https://github.com/DmitryKey/luke/issues/111
+@LuceneTestCase.SuppressCodecs({
+    "Asserting",
+    "DummyCompressingStoredFields", "HighCompressionCompressingStoredFields", "FastCompressingStoredFields", "FastDecompressionCompressingStoredFields"
+})
 public class CommitsImplTest extends LuceneTestCase {
 
   private DirectoryReader reader;
@@ -112,11 +115,11 @@ public class CommitsImplTest extends LuceneTestCase {
     assertEquals(1, commit.get().getGeneration());
   }
 
-  //@Test
-  //public void testGetCommit_generation_notfound() {
-  //  CommitsImpl commits = new CommitsImpl(reader, indexDir.toString());
-  //  assertFalse(commits.getCommit(3).isPresent());
-  //}
+  @Test
+  public void testGetCommit_generation_notfound() {
+    CommitsImpl commits = new CommitsImpl(reader, indexDir.toString());
+    assertFalse(commits.getCommit(10).isPresent());
+  }
 
   @Test
   public void testGetFiles() {
@@ -126,11 +129,11 @@ public class CommitsImplTest extends LuceneTestCase {
     assertTrue(files.stream().anyMatch(file -> file.getFileName().equals("segments_1")));
   }
 
-  //@Test
-  //public void testGetFiles_generation_notfound() {
-  //  CommitsImpl commits = new CommitsImpl(reader, indexDir.toString());
-  //  assertTrue(commits.getFiles(10).isEmpty());
-  //}
+  @Test
+  public void testGetFiles_generation_notfound() {
+    CommitsImpl commits = new CommitsImpl(reader, indexDir.toString());
+    assertTrue(commits.getFiles(10).isEmpty());
+  }
 
   @Test
   public void testGetSegments() {
@@ -139,11 +142,11 @@ public class CommitsImplTest extends LuceneTestCase {
     assertTrue(segments.size() > 0);
   }
 
-  //@Test
-  //public void testGetSegments_generation_notfound() {
-  //  CommitsImpl commits = new CommitsImpl(reader, indexDir.toString());
-  //  assertTrue(commits.getSegments(3).isEmpty());
-  //}
+  @Test
+  public void testGetSegments_generation_notfound() {
+    CommitsImpl commits = new CommitsImpl(reader, indexDir.toString());
+    assertTrue(commits.getSegments(10).isEmpty());
+  }
 
   @Test
   public void testGetSegmentAttributes() {
@@ -166,7 +169,6 @@ public class CommitsImplTest extends LuceneTestCase {
     assertTrue(attributes.isEmpty());
   }
 
-
   @Test
   public void testGetSegmentDiagnostics() {
     CommitsImpl commits = new CommitsImpl(reader, indexDir.toString());
@@ -177,7 +179,7 @@ public class CommitsImplTest extends LuceneTestCase {
   @Test
   public void testGetSegmentDiagnostics_generation_notfound() {
     CommitsImpl commits = new CommitsImpl(reader, indexDir.toString());
-    assertTrue(commits.getSegmentDiagnostics(3, "_0").isEmpty());
+    assertTrue(commits.getSegmentDiagnostics(10, "_0").isEmpty());
   }
 
 
@@ -198,7 +200,7 @@ public class CommitsImplTest extends LuceneTestCase {
   @Test
   public void testSegmentCodec_generation_notfound() {
     CommitsImpl commits = new CommitsImpl(reader, indexDir.toString());
-    Optional<Codec> codec = commits.getSegmentCodec(3, "_0");
+    Optional<Codec> codec = commits.getSegmentCodec(10, "_0");
     assertFalse(codec.isPresent());
   }
 
@@ -210,4 +212,3 @@ public class CommitsImplTest extends LuceneTestCase {
 
   }
 }
-*/
