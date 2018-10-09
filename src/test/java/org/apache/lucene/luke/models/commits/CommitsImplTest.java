@@ -18,13 +18,16 @@
 package org.apache.lucene.luke.models.commits;
 
 import org.apache.lucene.codecs.Codec;
+import org.apache.lucene.util.LuceneTestCase;
 import org.junit.Test;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-
+@LuceneTestCase.SuppressCodecs({
+    "Asserting"
+})
 public class CommitsImplTest extends CommitsTestBase {
 
   @Test
