@@ -50,7 +50,7 @@ public class CommitsImplTest extends CommitsTestBase {
   @Test
   public void testGetCommit_generation_notfound() {
     CommitsImpl commits = new CommitsImpl(reader, indexDir.toString());
-    assertFalse(commits.getCommit(3).isPresent());
+    assertFalse(commits.getCommit(10).isPresent());
   }
 
   @Test
@@ -77,7 +77,7 @@ public class CommitsImplTest extends CommitsTestBase {
   @Test
   public void testGetSegments_generation_notfound() {
     CommitsImpl commits = new CommitsImpl(reader, indexDir.toString());
-    assertTrue(commits.getSegments(3).isEmpty());
+    assertTrue(commits.getSegments(10).isEmpty());
   }
 
   @Test
@@ -90,7 +90,7 @@ public class CommitsImplTest extends CommitsTestBase {
   @Test
   public void testGetSegmentDiagnostics_generation_notfound() {
     CommitsImpl commits = new CommitsImpl(reader, indexDir.toString());
-    assertTrue(commits.getSegmentDiagnostics(3, "_0").isEmpty());
+    assertTrue(commits.getSegmentDiagnostics(10, "_0").isEmpty());
   }
 
 
@@ -111,7 +111,7 @@ public class CommitsImplTest extends CommitsTestBase {
   @Test
   public void testSegmentCodec_generation_notfound() {
     CommitsImpl commits = new CommitsImpl(reader, indexDir.toString());
-    Optional<Codec> codec = commits.getSegmentCodec(3, "_0");
+    Optional<Codec> codec = commits.getSegmentCodec(10, "_0");
     assertFalse(codec.isPresent());
   }
 
