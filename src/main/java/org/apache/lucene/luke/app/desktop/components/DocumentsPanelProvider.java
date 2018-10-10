@@ -135,6 +135,8 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
 
   private final JButton addDocBtn = new JButton();
 
+  private final JButton copyDocValuesBtn = new JButton();
+
   private final JTable documentTable = new JTable();
 
   private final JPopupMenu documentContextMenu = new JPopupMenu();
@@ -334,6 +336,42 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
       StringSelection selection = new StringSelection(value);
       clipboard.setContents(selection, null);
       messageBroker.clearStatusMessage();
+    }
+
+    void copySelectedOrAllStoredValues(ActionEvent e) {
+      StringSelection selection;
+      if (documentTable.getSelectedRowCount() == 0) {
+        selection = copyAllValues();
+      } else {
+        selection = copySelectedValues();
+      }
+      Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+      clipboard.setContents(selection, null);
+      messageBroker.clearStatusMessage();
+    }
+
+    private StringSelection copyAllValues() {
+      StringBuilder sb = new StringBuilder();
+      for (int i = 0; i < documentTable.getRowCount(); i++) {
+        String value = (String) documentTable.getModel().getValueAt(i, DocumentTableModel.Column.VALUE.getIndex());
+        if (Objects.nonNull(value)) {
+          sb.append((i == 0) ? value : System.lineSeparator() + value);
+        }
+      }
+      return new StringSelection(sb.toString());
+    }
+
+    private StringSelection copySelectedValues() {
+      StringBuilder sb = new StringBuilder();
+      boolean isFirst = true;
+      for (int rowIndex : documentTable.getSelectedRows()) {
+        String value = (String) documentTable.getModel().getValueAt(rowIndex, DocumentTableModel.Column.VALUE.getIndex());
+        if (Objects.nonNull(value)) {
+          sb.append(isFirst ? value : System.lineSeparator() + value);
+          isFirst = false;
+        }
+      }
+      return new StringSelection(sb.toString());
     }
 
   }
@@ -673,13 +711,17 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
     browseDocsPanel.setLayout(new BoxLayout(browseDocsPanel, BoxLayout.PAGE_AXIS));
     browseDocsPanel.add(createBrowseDocsBar());
 
-    JPanel browseDocsNote = new JPanel(new FlowLayout(FlowLayout.LEADING));
-    browseDocsNote.add(new JLabel(MessageUtils.getLocalizedMessage("documents.label.doc_table_note")));
-    browseDocsPanel.add(browseDocsNote);
+    JPanel browseDocsNote1 = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    browseDocsNote1.add(new JLabel(MessageUtils.getLocalizedMessage("documents.label.doc_table_note1")));
+    browseDocsPanel.add(browseDocsNote1);
+
+    JPanel browseDocsNote2 = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    browseDocsNote2.add(new JLabel(MessageUtils.getLocalizedMessage("documents.label.doc_table_note2")));
+    browseDocsPanel.add(browseDocsNote2);
 
     panel.add(browseDocsPanel, BorderLayout.PAGE_START);
 
-    TableUtil.setupTable(documentTable, ListSelectionModel.SINGLE_SELECTION, new DocumentTableModel(), new MouseAdapter() {
+    TableUtil.setupTable(documentTable, ListSelectionModel.MULTIPLE_INTERVAL_SELECTION, new DocumentTableModel(), new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent e) {
         listeners.showDocumentContextMenu(e);
@@ -732,6 +774,11 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
     panel.add(left);
 
     JPanel right = new JPanel(new FlowLayout(FlowLayout.TRAILING, 10, 2));
+    copyDocValuesBtn.setText(MessageUtils.getLocalizedMessage("documents.buttont.copy_values"));
+    copyDocValuesBtn.setIcon(ImageUtils.createImageIcon("/img/icon_clipboard.png", 15, 15));
+    copyDocValuesBtn.setMargin(new Insets(3, 5, 3, 5));
+    copyDocValuesBtn.addActionListener(listeners::copySelectedOrAllStoredValues);
+    right.add(copyDocValuesBtn);
     mltBtn.setText(MessageUtils.getLocalizedMessage("documents.button.mlt"));
     mltBtn.setIcon(ImageUtils.createImageIcon("/img/icon_heart_alt.png", 15, 15));
     mltBtn.setMargin(new Insets(3, 5, 3, 5));
