@@ -347,6 +347,7 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
       }
       Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
       clipboard.setContents(selection, null);
+      messageBroker.clearStatusMessage();
     }
 
     private StringSelection copyAllValues() {
@@ -450,9 +451,6 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
       documentTable.getColumnModel().getColumn(DocumentTableModel.Column.NORM.getIndex()).setMaxWidth(80);
       documentTable.getColumnModel().getColumn(DocumentTableModel.Column.VALUE.getIndex()).setPreferredWidth(500);
       documentTable.getColumnModel().getColumn(DocumentTableModel.Column.FLAGS.getIndex()).setHeaderRenderer(tableHeaderRenderer);
-
-      documentTable.setRowSelectionAllowed(true);
-      documentTable.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 
       messageBroker.clearStatusMessage();
     }
@@ -713,13 +711,17 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
     browseDocsPanel.setLayout(new BoxLayout(browseDocsPanel, BoxLayout.PAGE_AXIS));
     browseDocsPanel.add(createBrowseDocsBar());
 
-    JPanel browseDocsNote = new JPanel(new FlowLayout(FlowLayout.LEADING));
-    browseDocsNote.add(new JLabel(MessageUtils.getLocalizedMessage("documents.label.doc_table_note")));
-    browseDocsPanel.add(browseDocsNote);
+    JPanel browseDocsNote1 = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    browseDocsNote1.add(new JLabel(MessageUtils.getLocalizedMessage("documents.label.doc_table_note1")));
+    browseDocsPanel.add(browseDocsNote1);
+
+    JPanel browseDocsNote2 = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    browseDocsNote2.add(new JLabel(MessageUtils.getLocalizedMessage("documents.label.doc_table_note2")));
+    browseDocsPanel.add(browseDocsNote2);
 
     panel.add(browseDocsPanel, BorderLayout.PAGE_START);
 
-    TableUtil.setupTable(documentTable, ListSelectionModel.SINGLE_SELECTION, new DocumentTableModel(), new MouseAdapter() {
+    TableUtil.setupTable(documentTable, ListSelectionModel.MULTIPLE_INTERVAL_SELECTION, new DocumentTableModel(), new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent e) {
         listeners.showDocumentContextMenu(e);
@@ -772,6 +774,7 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
     panel.add(left);
 
     JPanel right = new JPanel(new FlowLayout(FlowLayout.TRAILING, 10, 2));
+    copyDocValuesBtn.setText(MessageUtils.getLocalizedMessage("documents.buttont.copy_values"));
     copyDocValuesBtn.setIcon(ImageUtils.createImageIcon("/img/icon_clipboard.png", 15, 15));
     copyDocValuesBtn.setMargin(new Insets(3, 5, 3, 5));
     copyDocValuesBtn.addActionListener(listeners::copySelectedOrAllStoredValues);
