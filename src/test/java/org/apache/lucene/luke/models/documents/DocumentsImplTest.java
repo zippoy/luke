@@ -31,7 +31,10 @@ import java.util.List;
 
 
 // See: https://github.com/DmitryKey/luke/issues/133
-@LuceneTestCase.SuppressCodecs("Asserting")
+@LuceneTestCase.SuppressCodecs({
+    "Asserting"
+    //"FastDecompressionCompressingStoredFields"
+})
 public class DocumentsImplTest extends DocumentsTestBase {
 
   @Test
