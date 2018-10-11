@@ -23,12 +23,15 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.luke.models.LukeException;
 import org.apache.lucene.luke.util.IndexUtils;
 import org.apache.lucene.store.AlreadyClosedException;
+import org.apache.lucene.util.LuceneTestCase;
 import org.apache.lucene.util.NumericUtils;
 import org.junit.Test;
 
 import java.util.List;
 
 
+// See: https://github.com/DmitryKey/luke/issues/133
+@LuceneTestCase.SuppressCodecs("Asserting")
 public class DocumentsImplTest extends DocumentsTestBase {
 
   @Test
