@@ -20,7 +20,6 @@ package org.apache.lucene.luke.models.documents;
 import org.apache.lucene.index.DocValuesType;
 import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.index.Term;
-import org.apache.lucene.luke.models.LukeException;
 import org.apache.lucene.luke.util.IndexUtils;
 import org.apache.lucene.store.AlreadyClosedException;
 import org.apache.lucene.util.LuceneTestCase;
@@ -31,7 +30,10 @@ import java.util.List;
 
 
 // See: https://github.com/DmitryKey/luke/issues/133
-@LuceneTestCase.SuppressCodecs("Asserting")
+@LuceneTestCase.SuppressCodecs({
+    "Asserting",
+    "DummyCompressingStoredFields", "HighCompressionCompressingStoredFields", "FastCompressingStoredFields", "FastDecompressionCompressingStoredFields"
+})
 public class DocumentsImplTest extends DocumentsTestBase {
 
   @Test
