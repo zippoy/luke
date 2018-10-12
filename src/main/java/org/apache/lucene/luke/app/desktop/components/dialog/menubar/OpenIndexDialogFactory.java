@@ -140,7 +140,8 @@ public class OpenIndexDialogFactory implements DialogOpener.DialogFactory {
             isNoReader(), useCompound(), keepAllCommits());
         closeDialog();
       } catch (LukeException ex) {
-        JOptionPane.showMessageDialog(dialog, ex.getMessage(), "Invalid index path", JOptionPane.ERROR_MESSAGE);
+        String message = ex.getMessage() + System.lineSeparator() + "See Logs tab or log file for more details.";
+        JOptionPane.showMessageDialog(dialog, message, "Invalid index path", JOptionPane.ERROR_MESSAGE);
       } catch (Throwable cause) {
         JOptionPane.showMessageDialog(dialog, MessageUtils.getLocalizedMessage("message.error.unknown"), "Unknown Error", JOptionPane.ERROR_MESSAGE);
         logger.error(cause.getMessage(), cause);
