@@ -19,7 +19,7 @@ Luke is the GUI tool for introspecting your Lucene / Solr / Elasticsearch index.
 System Requirements
 ====
 
-JDK8+ is required.
+JDK8+ is required. Works fine on JDK11.
 
 Launching luke
 ====
