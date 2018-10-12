@@ -103,7 +103,7 @@ public final class IndexUtils {
           DirectoryReader dr = DirectoryReader.open(dir);
           readers.add(dr);
         } catch (IOException e) {
-          // skip
+          logger.warn(e.getMessage(), e);
         }
         return FileVisitResult.CONTINUE;
       }
@@ -158,6 +158,7 @@ public final class IndexUtils {
           dir = (Directory) constr.newInstance(path, null);
         }
       } catch (Exception e) {
+        logger.warn(e.getMessage(), e);
         throw new IllegalArgumentException("Invalid directory implementation class: " + dirImpl);
       }
     }

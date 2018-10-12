@@ -21,11 +21,15 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 import org.apache.lucene.luke.models.LukeException;
 import org.apache.lucene.luke.util.IndexUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class IndexHandler extends AbstractHandler<IndexObserver> {
+
+  private static Logger logger = LoggerFactory.getLogger(IndexHandler.class);
 
   private LukeStateImpl state;
 
@@ -55,6 +59,7 @@ public class IndexHandler extends AbstractHandler<IndexObserver> {
     try {
       reader = IndexUtils.openIndex(indexPath, dirImpl);
     } catch (Exception e) {
+      logger.error(e.getMessage(), e);
       throw new LukeException(MessageUtils.getLocalizedMessage("openindex.message.index_path_invalid", indexPath), e);
     }
 
