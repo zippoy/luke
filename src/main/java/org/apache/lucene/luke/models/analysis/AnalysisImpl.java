@@ -37,7 +37,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -47,10 +46,13 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public final class AnalysisImpl implements Analysis {
@@ -58,6 +60,12 @@ public final class AnalysisImpl implements Analysis {
   private static final Logger logger = LoggerFactory.getLogger(AnalysisImpl.class);
 
   private final List<Class<? extends Analyzer>> presetAnalyzerTypes;
+
+  private Map<String, String> tokenizerSPINameMap = new HashMap<>();
+
+  private Map<String, String> charFilterSPINameMap = new HashMap<>();
+
+  private Map<String, String> tokenFilterSPINameMap = new HashMap<>();
 
   private Analyzer analyzer;
 
@@ -85,8 +93,6 @@ public final class AnalysisImpl implements Analysis {
       try {
         URL url = path.toUri().toURL();
         urls.add(url);
-        // add url to system class loader
-        addURLToSystemClassLoader(url);
       } catch (IOException e) {
         throw new LukeException(e.getMessage(), e);
       }
@@ -100,21 +106,6 @@ public final class AnalysisImpl implements Analysis {
     TokenFilterFactory.reloadTokenFilters(classLoader);
   }
 
-  private static final Class[] parameters = new Class[]{URL.class};
-  private void addURLToSystemClassLoader(URL url) throws IOException {
-    URLClassLoader sysloader = (URLClassLoader) ClassLoader.getSystemClassLoader();
-    Class sysclass = URLClassLoader.class;
-
-    try {
-      Method method = sysclass.getDeclaredMethod("addURL", parameters);
-      method.setAccessible(true);
-      method.invoke(sysloader, url);
-    } catch (Throwable t) {
-      t.printStackTrace();
-      throw new IOException("Error, could not add URL to system classloader");
-    }
-  }
-
   @Override
   public Collection<Class<? extends Analyzer>> getPresetAnalyzerTypes() {
     return ImmutableList.copyOf(presetAnalyzerTypes);
@@ -122,26 +113,41 @@ public final class AnalysisImpl implements Analysis {
 
   @Override
   public Collection<Class<? extends CharFilterFactory>> getAvailableCharFilterFactories() {
-    return CharFilterFactory.availableCharFilters().stream()
-        .map(CharFilterFactory::lookupClass)
-        .sorted(Comparator.comparing(Class::getName))
-        .collect(Collectors.toList());
+    Map<Class<? extends CharFilterFactory>, String> nameMap = CharFilterFactory.availableCharFilters().stream()
+        .collect(Collectors.toMap(CharFilterFactory::lookupClass, Function.identity()));
+    charFilterSPINameMap = nameMap.keySet().stream().collect(Collectors.toMap(Class::getName, nameMap::get));
+    return nameMap.keySet().stream().sorted(Comparator.comparing(Class::getName)).collect(Collectors.toList());
+  }
+
+  @Override
+  public Optional<String> getCharFilterFactorySPIName(String className) {
+    return Optional.ofNullable(charFilterSPINameMap.get(className));
   }
 
   @Override
   public Collection<Class<? extends TokenizerFactory>> getAvailableTokenizerFactories() {
-    return TokenizerFactory.availableTokenizers().stream()
-        .map(TokenizerFactory::lookupClass)
-        .sorted(Comparator.comparing(Class::getName))
-        .collect(Collectors.toList());
+    Map<Class<? extends TokenizerFactory>, String> nameMap = TokenizerFactory.availableTokenizers().stream()
+        .collect(Collectors.toMap(TokenizerFactory::lookupClass, Function.identity()));
+    tokenizerSPINameMap = nameMap.keySet().stream().collect(Collectors.toMap(Class::getName, nameMap::get));
+    return nameMap.keySet().stream().sorted(Comparator.comparing(Class::getName)).collect(Collectors.toList());
+  }
+
+  @Override
+  public Optional<String> getTokenizerFactorySPIName(String className) {
+    return Optional.ofNullable(tokenizerSPINameMap.get(className));
   }
 
   @Override
   public Collection<Class<? extends TokenFilterFactory>> getAvailableTokenFilterFactories() {
-    return TokenFilterFactory.availableTokenFilters().stream()
-        .map(TokenFilterFactory::lookupClass)
-        .sorted(Comparator.comparing(Class::getName))
-        .collect(Collectors.toList());
+    Map<Class<? extends TokenFilterFactory>, String> nameMap = TokenFilterFactory.availableTokenFilters().stream()
+        .collect(Collectors.toMap(TokenFilterFactory::lookupClass, Function.identity()));
+    tokenFilterSPINameMap = nameMap.keySet().stream().collect(Collectors.toMap(Class::getName, nameMap::get));
+    return nameMap.keySet().stream().sorted(Comparator.comparing(Class::getName)).collect(Collectors.toList());
+  }
+
+  @Override
+  public Optional<String> getTokenFilterFactorySPIName(String className) {
+    return Optional.ofNullable(tokenFilterSPINameMap.get(className));
   }
 
   private <T> List<Class<? extends T>> getInstantiableSubTypesBuiltIn(Class<T> superType) {
@@ -215,17 +221,16 @@ public final class AnalysisImpl implements Analysis {
           .orElse(CustomAnalyzer.builder());
 
       // set tokenizer
-      builder.withTokenizer(Class.forName(config.getTokenizerConfig().getName()).asSubclass(TokenizerFactory.class),
-          config.getTokenizerConfig().getParams());
+      builder.withTokenizer(config.getTokenizerConfig().getName(), config.getTokenizerConfig().getParams());
 
       // add char filters
       for (CustomAnalyzerConfig.ComponentConfig cfConf : config.getCharFilterConfigs()) {
-        builder.addCharFilter(Class.forName(cfConf.getName()).asSubclass(CharFilterFactory.class), cfConf.getParams());
+        builder.addCharFilter(cfConf.getName(), cfConf.getParams());
       }
 
       // add token filters
       for (CustomAnalyzerConfig.ComponentConfig tfConf : config.getTokenFilterConfigs()) {
-        builder.addTokenFilter(Class.forName(tfConf.getName()).asSubclass(TokenFilterFactory.class), tfConf.getParams());
+        builder.addTokenFilter(tfConf.getName(), tfConf.getParams());
       }
 
       // build analyzer

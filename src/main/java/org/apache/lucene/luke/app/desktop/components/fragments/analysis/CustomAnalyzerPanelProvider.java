@@ -35,6 +35,8 @@ import org.apache.lucene.luke.app.desktop.util.ListUtil;
 import org.apache.lucene.luke.app.desktop.util.lang.Callable;
 import org.apache.lucene.luke.app.desktop.util.ImageUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
+import org.apache.lucene.luke.models.LukeException;
+import org.apache.lucene.luke.models.analysis.Analysis;
 import org.apache.lucene.luke.models.analysis.CustomAnalyzerConfig;
 
 import javax.swing.BorderFactory;
@@ -120,6 +122,8 @@ public class CustomAnalyzerPanelProvider implements Provider<JPanel> {
 
   private JPanel containerPanel;
 
+  private Analysis analysisModel;
+
   class ListenerFunctions {
 
     void chooseConfigDir(ActionEvent e) {
@@ -141,9 +145,10 @@ public class CustomAnalyzerPanelProvider implements Provider<JPanel> {
       int ret = fileChooser.showOpenDialog(containerPanel);
       if (ret == JFileChooser.APPROVE_OPTION) {
         File[] files = fileChooser.getSelectedFiles();
-        operatorRegistry.get(AnalysisPanelProvider.AnalysisPanelOperator.class).ifPresent(operator -> {
-            operator.addExternalJars(Arrays.stream(files).map(File::getAbsolutePath).collect(Collectors.toList()));
-        });
+        analysisModel.addExternalJars(Arrays.stream(files).map(File::getAbsolutePath).collect(Collectors.toList()));
+        operatorRegistry.get(CustomAnalyzerPanelOperator.class).ifPresent(operator ->
+          operator.resetAnalysisComponents()
+        );
         messageBroker.showStatusMessage("External jars were added.");
       }
     }
@@ -156,12 +161,17 @@ public class CustomAnalyzerPanelProvider implements Provider<JPanel> {
       List<String> tokenFilterFactories = ListUtil.getAllItems(selectedTfList);
       assert tokenFilterFactories.size() == tfParamsList.size();
 
+      String tokenizerName = analysisModel.getTokenizerFactorySPIName(selectedTokTF.getText()).orElseThrow(() -> new LukeException("No such tokenizer: " + selectedTokTF.getText()));
       CustomAnalyzerConfig.Builder builder =
-          new CustomAnalyzerConfig.Builder(selectedTokTF.getText(), tokParams).configDir(confDirTF.getText());
+          new CustomAnalyzerConfig.Builder(tokenizerName, tokParams).configDir(confDirTF.getText());
       IntStream.range(0, charFilterFactories.size()).forEach(i ->
-          builder.addCharFilterConfig(charFilterFactories.get(i), cfParamsList.get(i)));
+          analysisModel.getCharFilterFactorySPIName(charFilterFactories.get(i)).ifPresent(name ->
+              builder.addCharFilterConfig(name, cfParamsList.get(i))
+          ));
       IntStream.range(0, tokenFilterFactories.size()).forEach(i ->
-          builder.addTokenFilterConfig(tokenFilterFactories.get(i), tfParamsList.get(i)));
+          analysisModel.getTokenFilterFactorySPIName(tokenFilterFactories.get(i)).ifPresent(name ->
+              builder.addTokenFilterConfig(name, tfParamsList.get(i))
+          ));
       CustomAnalyzerConfig config = builder.build();
 
       operatorRegistry.get(AnalysisPanelProvider.AnalysisPanelOperator.class).ifPresent(operator -> {
@@ -287,23 +297,35 @@ public class CustomAnalyzerPanelProvider implements Provider<JPanel> {
   class CustomAnalyzerPanelOperatorImpl implements CustomAnalyzerPanelOperator {
 
     @Override
-    public void setAvailableCharFilterFactories(Collection<Class<? extends CharFilterFactory>> charFilters) {
+    public void setAnalysisModel(Analysis model) {
+      analysisModel = model;
+    }
+
+    @Override
+    public void resetAnalysisComponents() {
+      setAvailableCharFilterFactories();
+      setAvailableTokenizerFactories();
+      setAvailableTokenFilterFactories();
+    }
+
+    private void setAvailableCharFilterFactories() {
+      Collection<Class<? extends CharFilterFactory>> charFilters = analysisModel.getAvailableCharFilterFactories();
       String[] charFilterNames = new String[charFilters.size() + 1];
       charFilterNames[0] = "";
       System.arraycopy(charFilters.stream().map(Class::getName).toArray(String[]::new), 0, charFilterNames, 1, charFilters.size());
       cfFactoryCombo.setModel(new DefaultComboBoxModel<>(charFilterNames));
     }
 
-    @Override
-    public void setAvailableTokenizerFactories(Collection<Class<? extends TokenizerFactory>> tokenizers) {
+    private void setAvailableTokenizerFactories() {
+      Collection<Class<? extends TokenizerFactory>> tokenizers = analysisModel.getAvailableTokenizerFactories();
       String[] tokenizerNames = new String[tokenizers.size() + 1];
       tokenizerNames[0] = "";
       System.arraycopy(tokenizers.stream().map(Class::getName).toArray(String[]::new), 0, tokenizerNames, 1, tokenizers.size());
       tokFactoryCombo.setModel(new DefaultComboBoxModel<>(tokenizerNames));
     }
 
-    @Override
-    public void setAvailableTokenFilterFactories(Collection<Class<? extends TokenFilterFactory>> tokenFilters) {
+    private void setAvailableTokenFilterFactories() {
+      Collection<Class<? extends TokenFilterFactory>> tokenFilters = analysisModel.getAvailableTokenFilterFactories();
       String[] tokenFilterNames = new String[tokenFilters.size() + 1];
       tokenFilterNames[0] = "";
       System.arraycopy(tokenFilters.stream().map(Class::getName).toArray(String[]::new), 0, tokenFilterNames, 1, tokenFilters.size());
@@ -706,9 +728,8 @@ public class CustomAnalyzerPanelProvider implements Provider<JPanel> {
   }
 
   public interface CustomAnalyzerPanelOperator extends ComponentOperatorRegistry.ComponentOperator {
-    void setAvailableCharFilterFactories(Collection<Class<? extends CharFilterFactory>> charFilters);
-    void setAvailableTokenizerFactories(Collection<Class<? extends TokenizerFactory>> tokenizers);
-    void setAvailableTokenFilterFactories(Collection<Class<? extends TokenFilterFactory>> tokenFilters);
+    void setAnalysisModel(Analysis analysisModel);
+    void resetAnalysisComponents();
 
     void updateCharFilters(List<Integer> deletedIndexes);
     void updateTokenFilters(List<Integer> deletedIndexes);
