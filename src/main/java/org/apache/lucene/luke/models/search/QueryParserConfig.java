@@ -232,18 +232,18 @@ public final class QueryParserConfig {
   @Override
   public String toString() {
     return "QueryParserConfig: [" +
-        String.format(" default operator=%s;", defaultOperator.name()) +
-        String.format(" enable position increment=%s;", enablePositionIncrements) +
-        String.format(" allow leading wildcard=%s; ", allowLeadingWildcard) +
-        String.format(" split whitespace=%s;", splitOnWhitespace) +
-        String.format(" generate phrase query=%s;", autoGeneratePhraseQueries) +
-        String.format(" generate multiterm sysnonymsphrase query=%s;", autoGenerateMultiTermSynonymsPhraseQuery) +
-        String.format(" phrase slop=%d;", phraseSlop) +
-        String.format(" date resolution=%s;", dateResolution.name()) +
-        String.format(" locale=%s;", locale.toString()) +
-        String.format(" time zone=%s;", timeZone.getID()) +
-        String.format(" numeric types=%s;", String.join(",", getTypeMap().entrySet().stream()
-            .map(e -> e.getKey() + "=" + e.getValue().toString()).collect(Collectors.toSet()))) +
+        " default operator=" + defaultOperator.name() + ";" +
+        " enable position increment=" + enablePositionIncrements + ";" +
+        " allow leading wildcard=" + allowLeadingWildcard + ";" +
+        " split whitespace=" + splitOnWhitespace + ";" +
+        " generate phrase query=" + autoGeneratePhraseQueries + ";" +
+        " generate multiterm sysnonymsphrase query=" + autoGenerateMultiTermSynonymsPhraseQuery + ";" +
+        " phrase slop=" + phraseSlop + ";" +
+        " date resolution=" + dateResolution.name() +
+        " locale=" + locale.toString() + ";" +
+        " time zone=" + timeZone.getID() + ";" +
+        " numeric types=" + String.join(",", getTypeMap().entrySet().stream()
+        .map(e -> e.getKey() + "=" + e.getValue().toString()).collect(Collectors.toSet())) + ";" +
         "]";
   }
 }

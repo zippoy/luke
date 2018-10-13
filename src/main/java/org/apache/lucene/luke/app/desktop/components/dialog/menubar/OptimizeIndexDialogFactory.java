@@ -53,6 +53,8 @@ import java.awt.Insets;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.io.ByteArrayOutputStream;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -106,16 +108,19 @@ public class OptimizeIndexDialogFactory implements DialogOpener.DialogFactory {
           setProgress(0);
           statusLbl.setText("Running...");
           indicatorLbl.setVisible(true);
-          TextAreaPrintStream ps = new TextAreaPrintStream(logArea, new ByteArrayOutputStream(), logger);
+          TextAreaPrintStream ps;
           try {
-            toolsModel.optimize(expungeCB.isSelected(), (int)maxSegSpnr.getValue(), ps);
+            ps = new TextAreaPrintStream(logArea, new ByteArrayOutputStream(), StandardCharsets.UTF_8, logger);
+            toolsModel.optimize(expungeCB.isSelected(), (int) maxSegSpnr.getValue(), ps);
             statusLbl.setText("Done");
             indexHandler.reOpen();
+            ps.flush();
+          } catch (UnsupportedEncodingException e) {
+            // will not reach
           } catch (Exception e) {
             statusLbl.setText(MessageUtils.getLocalizedMessage("message.error.unknown"));
             throw e;
           } finally {
-            ps.flush();
             setProgress(100);
           }
           return null;

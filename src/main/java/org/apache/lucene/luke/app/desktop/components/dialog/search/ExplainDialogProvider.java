@@ -156,6 +156,6 @@ public class ExplainDialogProvider implements DialogOpener.DialogFactory {
   }
 
   private String format(Explanation explanation) {
-    return String.format("%f  %s", explanation.getValue(), explanation.getDescription());
+    return explanation.getValue() + " " + explanation.getDescription();
   }
 }

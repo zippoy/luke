@@ -162,7 +162,7 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
       selectedTermTF.setText(firstTermText);
       if (selectedTermTF.getText().length() > 0) {
         String num = documentsModel.getDocFreq().map(String::valueOf).orElse("?");
-        termDocsNumLbl.setText(String.format("in %s docs", num));
+        termDocsNumLbl.setText("in " + num + " docs");
 
         nextTermBtn.setEnabled(true);
         termTF.setEditable(true);
@@ -189,7 +189,7 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
       selectedTermTF.setText(nextTermText);
       if (selectedTermTF.getText().length() > 0) {
         String num = documentsModel.getDocFreq().map(String::valueOf).orElse("?");
-        termDocsNumLbl.setText(String.format("in %s docs", num));
+        termDocsNumLbl.setText("in " + num + " docs");
 
         termTF.setEditable(true);
         firstTermDocBtn.setEnabled(true);
@@ -385,7 +385,7 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
       addDocBtn.setEnabled(!state.readOnly() && state.hasDirectoryReader());
 
       int maxDoc = documentsModel.getMaxDoc();
-      maxDocsLbl.setText(String.format("in %d docs", maxDoc));
+      maxDocsLbl.setText("in " + maxDoc + " docs");
       if (maxDoc > 0) {
         int max = Math.max(maxDoc - 1, 0);
         SpinnerModel spinnerModel = new SpinnerNumberModel(0, 0, max, 1);
@@ -467,7 +467,7 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
       selectedTermTF.setText(nextTermText);
       if (selectedTermTF.getText().length() > 0) {
         String num = documentsModel.getDocFreq().map(String::valueOf).orElse("?");
-        termDocsNumLbl.setText(String.format("in %s docs", num));
+        termDocsNumLbl.setText("in " + num + " docs");
 
         termTF.setEditable(true);
         firstTermDocBtn.setEnabled(true);
@@ -879,7 +879,7 @@ class PosTableModel extends AbstractTableModel {
       int position = postings.get(i).getPosition();
       String offset = null;
       if (p.getStartOffset() >= 0 && p.getEndOffset() >= 0) {
-        offset = String.format("%d-%d", p.getStartOffset(), p.getEndOffset());
+        offset = p.getStartOffset() + "-" + p.getEndOffset();
       }
       String payload = null;
       if (p.getPayload() != null) {

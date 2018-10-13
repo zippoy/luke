@@ -66,6 +66,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -113,7 +114,7 @@ public final class IndexUtils {
       throw new RuntimeException("No valid directory at the location: " + indexPath);
     }
 
-    logger.info(String.format("IndexReaders (%d leaf readers) successfully opened. Index path=%s", readers.size(), indexPath));
+    logger.info(String.format(Locale.ENGLISH, "IndexReaders (%d leaf readers) successfully opened. Index path=%s", readers.size(), indexPath));
 
     if (readers.size() == 1) {
       return readers.get(0);
@@ -135,7 +136,7 @@ public final class IndexUtils {
   public static Directory openDirectory(@Nonnull String dirPath, @Nullable String dirImpl) throws IOException {
     final Path path = FileSystems.getDefault().getPath(dirPath);
     Directory dir = openDirectory(path, dirImpl);
-    logger.info(String.format("DirectoryReader successfully opened. Directory path=%s", dirPath));
+    logger.info(String.format(Locale.ENGLISH, "DirectoryReader successfully opened. Directory path=%s", dirPath));
     return dir;
   }
 

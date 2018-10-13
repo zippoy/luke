@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
@@ -98,7 +99,7 @@ public final class CommitsImpl extends LukeModel implements Commits {
     IndexCommit ic = getCommitMap().get(commitGen);
 
     if (ic == null) {
-      String msg = String.format("Commit generation %d not exists.", commitGen);
+      String msg = String.format(Locale.ENGLISH, "Commit generation %d not exists.", commitGen);
       logger.warn(msg);
       return Optional.empty();
     }
@@ -111,7 +112,7 @@ public final class CommitsImpl extends LukeModel implements Commits {
     IndexCommit ic = getCommitMap().get(commitGen);
 
     if (ic == null) {
-      String msg = String.format("Commit generation %d not exists.", commitGen);
+      String msg = String.format(Locale.ENGLISH, "Commit generation %d not exists.", commitGen);
       logger.warn(msg);
       return Collections.emptyList();
     }
@@ -122,7 +123,7 @@ public final class CommitsImpl extends LukeModel implements Commits {
           .sorted(Comparator.comparing(File::getFileName))
           .collect(Collectors.toList());
     } catch (IOException e) {
-      throw new LukeException(String.format("Failed to load files for commit generation %d", commitGen), e);
+      throw new LukeException(String.format(Locale.ENGLISH, "Failed to load files for commit generation %d", commitGen), e);
     }
   }
 
@@ -139,7 +140,7 @@ public final class CommitsImpl extends LukeModel implements Commits {
           .sorted(Comparator.comparing(Segment::getName))
           .collect(Collectors.toList());
     } catch (IOException e) {
-      throw new LukeException(String.format("Failed to load segment infos for commit generation %d", commitGen), e);
+      throw new LukeException(String.format(Locale.ENGLISH, "Failed to load segment infos for commit generation %d", commitGen), e);
     }
   }
 
@@ -157,7 +158,7 @@ public final class CommitsImpl extends LukeModel implements Commits {
           .map(seg -> seg.info.getAttributes())
           .orElse(Collections.emptyMap());
     } catch (IOException e) {
-      throw new LukeException(String.format("Failed to load segment infos for commit generation %d", commitGen), e);
+      throw new LukeException(String.format(Locale.ENGLISH, "Failed to load segment infos for commit generation %d", commitGen), e);
     }
   }
 
@@ -175,7 +176,7 @@ public final class CommitsImpl extends LukeModel implements Commits {
           .map(seg -> seg.info.getDiagnostics())
           .orElse(Collections.emptyMap());
     } catch (IOException e) {
-      throw new LukeException(String.format("Failed to load segment infos for commit generation %d", commitGen), e);
+      throw new LukeException(String.format(Locale.ENGLISH, "Failed to load segment infos for commit generation %d", commitGen), e);
     }
   }
 
@@ -192,7 +193,7 @@ public final class CommitsImpl extends LukeModel implements Commits {
           .findAny()
           .map(seg -> seg.info.getCodec());
     } catch (IOException e) {
-      throw new LukeException(String.format("Failed to load segment infos for commit generation %d", commitGen), e);
+      throw new LukeException(String.format(Locale.ENGLISH, "Failed to load segment infos for commit generation %d", commitGen), e);
     }
   }
 

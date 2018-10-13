@@ -27,6 +27,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
@@ -156,12 +157,12 @@ public final class OverviewImpl extends LukeModel implements Overview {
   @Override
   public List<TermStats> getTopTerms(@Nonnull String field, int numTerms) {
     if (numTerms < 0) {
-      throw new IllegalArgumentException(String.format("'numTerms' must be a positive integer: %d is not accepted.", numTerms));
+      throw new IllegalArgumentException(String.format(Locale.ENGLISH, "'numTerms' must be a positive integer: %d is not accepted.", numTerms));
     }
     try {
       return topTerms.getTopTerms(field, numTerms);
     } catch (Exception e) {
-      throw new LukeException(String.format("Top terms for field %s not available.", field), e);
+      throw new LukeException(String.format(Locale.ENGLISH, "Top terms for field %s not available.", field), e);
     }
   }
 

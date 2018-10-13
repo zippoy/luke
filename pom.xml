@@ -43,6 +43,7 @@
         <mockito.version>2.6.2</mockito.version>
         <findbugs.version>3.0.1</findbugs.version>
         <jgoodies.version>2.7.0</jgoodies.version>
+        <firbiddenapi.version>2.6</firbiddenapi.version>
 
         <maven-shade-plugin.version>3.0.0</maven-shade-plugin.version>
         <maven-assembly-plugin.version>3.0.0</maven-assembly-plugin.version>
@@ -51,6 +52,7 @@
         <maven-jar-plugin.version>3.0.2</maven-jar-plugin.version>
         <maven-source-plugin.version>3.0.1</maven-source-plugin.version>
         <exec-maven-plugin.version>1.5.0</exec-maven-plugin.version>
+        <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
 
     <repositories>
@@ -356,6 +358,39 @@
                         <arg>-Xlint:deprecation</arg>
                     </compilerArgs>
                 </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>de.thetaphi</groupId>
+                <artifactId>forbiddenapis</artifactId>
+                <version>${firbiddenapi.version}</version>
+                <configuration>
+                    <!--
+                      if the used Java version is too new,
+                      don't fail, just do nothing:
+                    -->
+                    <failOnUnsupportedJava>false</failOnUnsupportedJava>
+                    <bundledSignatures>
+                        <!--
+                          This will automatically choose the right
+                          signatures based on 'maven.compiler.target':
+                        -->
+                        <bundledSignature>jdk-unsafe</bundledSignature>
+                        <bundledSignature>jdk-deprecated</bundledSignature>
+                        <!-- disallow undocumented classes like sun.misc.Unsafe: -->
+                        <bundledSignature>jdk-non-portable</bundledSignature>
+                        <bundledSignature>jdk-system-out</bundledSignature>
+                        <bundledSignature>jdk-reflection</bundledSignature>
+                    </bundledSignatures>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                            <goal>testCheck</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
 
             <!-- release assembly -->
