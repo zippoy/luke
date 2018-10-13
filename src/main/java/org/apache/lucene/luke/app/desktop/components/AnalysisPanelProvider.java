@@ -125,16 +125,6 @@ public class AnalysisPanelProvider implements Provider<JPanel> {
     }
 
     @Override
-    public void addExternalJars(List<String> jarFiles) {
-      analysisModel.addExternalJars(jarFiles);
-      operatorRegistry.get(CustomAnalyzerPanelProvider.CustomAnalyzerPanelOperator.class).ifPresent(operator -> {
-        operator.setAvailableCharFilterFactories(analysisModel.getAvailableCharFilterFactories());
-        operator.setAvailableTokenizerFactories(analysisModel.getAvailableTokenizerFactories());
-        operator.setAvailableTokenFilterFactories(analysisModel.getAvailableTokenFilterFactories());
-      });
-    }
-
-    @Override
     public Analyzer getCurrentAnalyzer() {
       return analysisModel.currentAnalyzer();
     }
@@ -157,9 +147,8 @@ public class AnalysisPanelProvider implements Provider<JPanel> {
         mainPanel.add(custom, BorderLayout.CENTER);
 
         operatorRegistry.get(CustomAnalyzerPanelProvider.CustomAnalyzerPanelOperator.class).ifPresent(operator -> {
-          operator.setAvailableCharFilterFactories(analysisModel.getAvailableCharFilterFactories());
-          operator.setAvailableTokenizerFactories(analysisModel.getAvailableTokenizerFactories());
-          operator.setAvailableTokenFilterFactories(analysisModel.getAvailableTokenFilterFactories());
+          operator.setAnalysisModel(analysisModel);
+          operator.resetAnalysisComponents();
         });
       }
       mainPanel.setVisible(false);
@@ -326,7 +315,6 @@ public class AnalysisPanelProvider implements Provider<JPanel> {
   public interface AnalysisPanelOperator extends ComponentOperatorRegistry.ComponentOperator {
     void setAnalyzerByType(String analyzerType);
     void setAnalyzerByCustomConfiguration(CustomAnalyzerConfig config);
-    void addExternalJars(List<String> jarFiles);
     Analyzer getCurrentAnalyzer();
   }
 
