@@ -124,16 +124,6 @@ public class AnalysisPanelProvider implements Provider<JPanel> {
           operator.setAnalyzer(analysisModel.currentAnalyzer()));
     }
 
-    /*@Override
-    public void addExternalJars(List<String> jarFiles) {
-      analysisModel.addExternalJars(jarFiles);
-      operatorRegistry.get(CustomAnalyzerPanelProvider.CustomAnalyzerPanelOperator.class).ifPresent(operator -> {
-        operator.setAvailableCharFilterFactories(analysisModel.getAvailableCharFilterFactories());
-        operator.setAvailableTokenizerFactories(analysisModel.getAvailableTokenizerFactories());
-        operator.setAvailableTokenFilterFactories(analysisModel.getAvailableTokenFilterFactories());
-      });
-    }*/
-
     @Override
     public Analyzer getCurrentAnalyzer() {
       return analysisModel.currentAnalyzer();
