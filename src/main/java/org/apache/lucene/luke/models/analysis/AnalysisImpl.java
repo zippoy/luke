@@ -18,8 +18,6 @@
 package org.apache.lucene.luke.models.analysis;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import jdk.nashorn.internal.runtime.options.Option;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.custom.CustomAnalyzer;
@@ -36,11 +34,9 @@ import org.reflections.util.ConfigurationBuilder;
 import org.reflections.util.FilterBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.tools.jstat.Identifier;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.net.URLClassLoader;
