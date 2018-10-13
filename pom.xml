@@ -380,7 +380,7 @@
                         <!-- disallow undocumented classes like sun.misc.Unsafe: -->
                         <bundledSignature>jdk-non-portable</bundledSignature>
                         <bundledSignature>jdk-system-out</bundledSignature>
-                        <!--bundledSignature>jdk-reflection</bundledSignature-->
+                        <bundledSignature>jdk-reflection</bundledSignature>
                     </bundledSignatures>
                 </configuration>
                 <executions>
