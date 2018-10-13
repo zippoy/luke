@@ -29,6 +29,7 @@ import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * A dedicated interface for Luke's Analysis tab.
@@ -100,14 +101,35 @@ public interface Analysis {
   Collection<Class<? extends CharFilterFactory>> getAvailableCharFilterFactories();
 
   /**
+   * Returns the corresponding SPI name for a CharFilterFactory class name.
+   * @param className - class name
+   * @return name of the char filter factory, or empty if the factory class is not found in the current context.
+   */
+  Optional<String> getCharFilterFactorySPIName(String className);
+
+  /**
    * Returns available {@link TokenizerFactory}s.
    */
   Collection<Class<? extends TokenizerFactory>> getAvailableTokenizerFactories();
 
   /**
+   * Returns the corresponding SPI name for a TokenizerFactory class name.
+   * @param className - class name
+   * @return name of the tokenizer factory, or empty if the factory class is not found in the current context.
+   */
+  Optional<String> getTokenizerFactorySPIName(String className);
+
+  /**
    * Returns available {@link TokenFilterFactory}s.
    */
   Collection<Class<? extends TokenFilterFactory>> getAvailableTokenFilterFactories();
+
+  /**
+   * Returns the corresponding SPI name for a TokenFilterFactory class name.
+   * @param className - class name
+   * @return name of the token filter factory, or empty if the factory class is not found in the current context.
+   */
+  Optional<String> getTokenFilterFactorySPIName(String className);
 
   /**
    * Creates new Analyzer instance for the specified class name.

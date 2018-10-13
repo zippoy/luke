@@ -46,8 +46,8 @@ public final class CustomAnalyzerConfig {
     private final List<ComponentConfig> charFilterConfigs = new ArrayList<>();
     private final List<ComponentConfig> tokenFilterConfigs = new ArrayList<>();
 
-    public Builder(@Nonnull String tokenizerName, @Nonnull Map<String, String> tokenizerParams) {
-      tokenizerConfig = new ComponentConfig(tokenizerName, new HashMap<>(tokenizerParams));
+    public Builder(@Nonnull String name, @Nonnull Map<String, String> tokenizerParams) {
+      tokenizerConfig = new ComponentConfig(name, new HashMap<>(tokenizerParams));
     }
 
     public Builder configDir(String val) {
@@ -107,7 +107,9 @@ public final class CustomAnalyzerConfig {
 
   static class ComponentConfig {
 
+    /* SPI name */
     private final String name;
+    /* parameter map */
     private final Map<String, String> params;
 
     ComponentConfig(@Nonnull String name, @Nonnull Map<String, String> params) {

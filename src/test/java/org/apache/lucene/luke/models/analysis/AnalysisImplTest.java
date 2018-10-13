@@ -18,7 +18,6 @@
 package org.apache.lucene.luke.models.analysis;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.custom.CustomAnalyzer;
 import org.apache.lucene.analysis.util.CharFilterFactory;
@@ -55,6 +54,13 @@ public class AnalysisImplTest extends AnalysisTestBase {
   }
 
   @Test
+  public void testGetCharFilterFactorySPIName() {
+    AnalysisImpl analysis = new AnalysisImpl();
+    analysis.getAvailableCharFilterFactories();
+    assertEquals("mapping", analysis.getCharFilterFactorySPIName("org.apache.lucene.analysis.charfilter.MappingCharFilterFactory").orElse(""));
+  }
+
+  @Test
   public void testGetAvailableTokenizerFactories() {
     AnalysisImpl analysis = new AnalysisImpl();
     Collection<Class<? extends TokenizerFactory>> tokenizerFactories = analysis.getAvailableTokenizerFactories();
@@ -62,10 +68,24 @@ public class AnalysisImplTest extends AnalysisTestBase {
   }
 
   @Test
+  public void testGetTokenizerFactorySPIName() {
+    AnalysisImpl analysis = new AnalysisImpl();
+    analysis.getAvailableTokenizerFactories();
+    assertEquals("keyword", analysis.getTokenizerFactorySPIName("org.apache.lucene.analysis.core.KeywordTokenizerFactory").orElse(""));
+  }
+
+  @Test
   public void testGetAvailableTokenFilterFactories() {
     AnalysisImpl analysis = new AnalysisImpl();
     Collection<Class<? extends TokenFilterFactory>> tokenFilterFactories = analysis.getAvailableTokenFilterFactories();
     assertNotNull(tokenFilterFactories);
+  }
+
+  @Test
+  public void testGetTokenFilterFactorySPIName() {
+    AnalysisImpl analysis = new AnalysisImpl();
+    analysis.getAvailableTokenFilterFactories();
+    assertEquals("lowercase", analysis.getTokenFilterFactorySPIName("org.apache.lucene.analysis.core.LowerCaseFilterFactory").orElse(""));
   }
 
   @Test
@@ -85,9 +105,9 @@ public class AnalysisImplTest extends AnalysisTestBase {
   public void testAnalyze_custom() throws Exception {
     AnalysisImpl analysis = new AnalysisImpl();
     CustomAnalyzerConfig.Builder builder = new CustomAnalyzerConfig.Builder(
-        "org.apache.lucene.analysis.core.KeywordTokenizerFactory",
+        "keyword",
         ImmutableMap.of("maxTokenLen", "128"))
-        .addTokenFilterConfig("org.apache.lucene.analysis.core.LowerCaseFilterFactory", Collections.emptyMap());
+        .addTokenFilterConfig("lowercase", Collections.emptyMap());
     CustomAnalyzer analyzer = (CustomAnalyzer) analysis.buildCustomAnalyzer(builder.build());
     assertEquals("org.apache.lucene.analysis.custom.CustomAnalyzer", analyzer.getClass().getName());
     assertEquals("org.apache.lucene.analysis.core.KeywordTokenizerFactory", analyzer.getTokenizerFactory().getClass().getName());
@@ -107,11 +127,11 @@ public class AnalysisImplTest extends AnalysisTestBase {
 
     AnalysisImpl analysis = new AnalysisImpl();
     CustomAnalyzerConfig.Builder builder = new CustomAnalyzerConfig.Builder(
-        "org.apache.lucene.analysis.core.WhitespaceTokenizerFactory",
+        "whitespace",
         ImmutableMap.of("maxTokenLen", "128"))
         .configDir(confDir.toString())
-        .addTokenFilterConfig("org.apache.lucene.analysis.core.LowerCaseFilterFactory", Collections.emptyMap())
-        .addTokenFilterConfig("org.apache.lucene.analysis.core.StopFilterFactory",
+        .addTokenFilterConfig("lowercase", Collections.emptyMap())
+        .addTokenFilterConfig("stop",
             ImmutableMap.of("ignoreCase", "true", "words", "stop.txt", "format", "wordset"));
     CustomAnalyzer analyzer = (CustomAnalyzer) analysis.buildCustomAnalyzer(builder.build());
     assertEquals("org.apache.lucene.analysis.custom.CustomAnalyzer", analyzer.getClass().getName());
