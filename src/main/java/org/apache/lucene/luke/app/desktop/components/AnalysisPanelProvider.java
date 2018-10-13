@@ -158,7 +158,7 @@ public class AnalysisPanelProvider implements Provider<JPanel> {
 
         operatorRegistry.get(CustomAnalyzerPanelProvider.CustomAnalyzerPanelOperator.class).ifPresent(operator -> {
           operator.setAnalysisModel(analysisModel);
-          operator.resetAnalisComponents();
+          operator.resetAnalysisComponents();
         });
       }
       mainPanel.setVisible(false);

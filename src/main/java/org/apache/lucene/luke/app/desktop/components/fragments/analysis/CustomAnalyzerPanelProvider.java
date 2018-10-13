@@ -37,7 +37,6 @@ import org.apache.lucene.luke.app.desktop.util.ImageUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 import org.apache.lucene.luke.models.LukeException;
 import org.apache.lucene.luke.models.analysis.Analysis;
-import org.apache.lucene.luke.models.analysis.AnalysisFactory;
 import org.apache.lucene.luke.models.analysis.CustomAnalyzerConfig;
 
 import javax.swing.BorderFactory;
@@ -148,7 +147,7 @@ public class CustomAnalyzerPanelProvider implements Provider<JPanel> {
         File[] files = fileChooser.getSelectedFiles();
         analysisModel.addExternalJars(Arrays.stream(files).map(File::getAbsolutePath).collect(Collectors.toList()));
         operatorRegistry.get(CustomAnalyzerPanelOperator.class).ifPresent(operator ->
-          operator.resetAnalisComponents()
+          operator.resetAnalysisComponents()
         );
         messageBroker.showStatusMessage("External jars were added.");
       }
@@ -303,7 +302,7 @@ public class CustomAnalyzerPanelProvider implements Provider<JPanel> {
     }
 
     @Override
-    public void resetAnalisComponents() {
+    public void resetAnalysisComponents() {
       setAvailableCharFilterFactories();
       setAvailableTokenizerFactories();
       setAvailableTokenFilterFactories();
@@ -730,7 +729,7 @@ public class CustomAnalyzerPanelProvider implements Provider<JPanel> {
 
   public interface CustomAnalyzerPanelOperator extends ComponentOperatorRegistry.ComponentOperator {
     void setAnalysisModel(Analysis analysisModel);
-    void resetAnalisComponents();
+    void resetAnalysisComponents();
 
     void updateCharFilters(List<Integer> deletedIndexes);
     void updateTokenFilters(List<Integer> deletedIndexes);
