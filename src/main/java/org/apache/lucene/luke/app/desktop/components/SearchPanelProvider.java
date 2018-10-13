@@ -85,6 +85,7 @@ import java.awt.event.MouseListener;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -217,7 +218,7 @@ public class SearchPanelProvider implements Provider<JPanel> {
         }
         String[] tmp = queryStringTA.getText().split(":");
         if (tmp.length < 2) {
-          throw new LukeException(String.format("Invalid query [ %s ]", queryStringTA.getText()));
+          throw new LukeException(String.format(Locale.ENGLISH, "Invalid query [ %s ]", queryStringTA.getText()));
         }
         query = new TermQuery(new Term(tmp[0].trim(), tmp[1].trim()));
       } else {
@@ -426,7 +427,7 @@ public class SearchPanelProvider implements Provider<JPanel> {
     public void searchByTerm(String field, String term) {
       termQueryCB.setSelected(true);
       listeners.enableTermQuery();
-      queryStringTA.setText(String.format("%s:%s", field, term));
+      queryStringTA.setText(field + ":" + term);
       listeners.doSearch();
     }
 

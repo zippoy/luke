@@ -139,7 +139,7 @@ public final class SearchImpl extends LukeModel implements Search {
       try {
         query = query.rewrite(reader);
       } catch (IOException e) {
-        throw new LukeException(String.format("Failed to rewrite query: %s", query.toString()), e);
+        throw new LukeException(String.format(Locale.ENGLISH, "Failed to rewrite query: %s", query.toString()), e);
       }
     }
 
@@ -174,7 +174,7 @@ public final class SearchImpl extends LukeModel implements Search {
     try {
       return parser.parse(expression);
     } catch (ParseException e) {
-      throw new LukeException(String.format("Failed to parse query expression: %s", expression), e);
+      throw new LukeException(String.format(Locale.ENGLISH, "Failed to parse query expression: %s", expression), e);
     }
 
   }
@@ -213,7 +213,7 @@ public final class SearchImpl extends LukeModel implements Search {
         } else if (type == Float.class || type == Double.class) {
           pc = new PointsConfig(NumberFormat.getNumberInstance(Locale.ROOT), type);
         } else {
-          logger.warn(String.format("Ignored invalid number type: %s.", type.getName()));
+          logger.warn(String.format(Locale.ENGLISH, "Ignored invalid number type: %s.", type.getName()));
           continue;
         }
         pointsConfigMap.put(field, pc);
@@ -225,7 +225,7 @@ public final class SearchImpl extends LukeModel implements Search {
     try {
       return parser.parse(expression, defField);
     } catch (QueryNodeException e) {
-      throw new LukeException(String.format("Failed to parse query expression: %s", expression), e);
+      throw new LukeException(String.format(Locale.ENGLISH, "Failed to parse query expression: %s", expression), e);
     }
 
   }
@@ -413,7 +413,7 @@ public final class SearchImpl extends LukeModel implements Search {
   public Optional<SortField> getSortType(@Nonnull String name, @Nonnull String type, boolean reverse) {
     List<SortField> candidates = guessSortTypes(name);
     if (candidates.isEmpty()) {
-      logger.warn(String.format("No available sort types for: %s", name));
+      logger.warn(String.format(Locale.ENGLISH, "No available sort types for: %s", name));
       return Optional.empty();
     }
 
@@ -441,7 +441,7 @@ public final class SearchImpl extends LukeModel implements Search {
     try {
       return searcher.explain(query, docid);
     } catch (IOException e) {
-      throw new LukeException(String.format("Failed to create explanation for doc: %d for query: \"%s\"", docid, query.toString()), e);
+      throw new LukeException(String.format(Locale.ENGLISH, "Failed to create explanation for doc: %d for query: \"%s\"", docid, query.toString()), e);
     }
   }
 }

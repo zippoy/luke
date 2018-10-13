@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 public final class DocumentsImpl extends LukeModel implements Documents {
@@ -100,7 +101,7 @@ public final class DocumentsImpl extends LukeModel implements Documents {
       }
 
     } catch (IOException e) {
-      throw new LukeException(String.format("Fields information not available for doc %d.", docid), e);
+      throw new LukeException(String.format(Locale.ENGLISH, "Fields information not available for doc %d.", docid), e);
     }
 
     return res;
@@ -138,7 +139,7 @@ public final class DocumentsImpl extends LukeModel implements Documents {
 
     } catch (IOException e) {
       resetTermsIterator();
-      throw new LukeException(String.format("Terms not available for field: %s.", field), e);
+      throw new LukeException(String.format(Locale.ENGLISH, "Terms not available for field: %s.", field), e);
     } finally {
       // discard current postings enum
       resetPostingsIterator();
@@ -165,7 +166,7 @@ public final class DocumentsImpl extends LukeModel implements Documents {
       }
     } catch (IOException e) {
       resetTermsIterator();
-      throw new LukeException(String.format("Terms not available for field: %s.", curField), e);
+      throw new LukeException(String.format(Locale.ENGLISH, "Terms not available for field: %s.", curField), e);
     } finally {
       // discard current postings enum
       resetPostingsIterator();
@@ -194,7 +195,7 @@ public final class DocumentsImpl extends LukeModel implements Documents {
       }
     } catch (IOException e) {
       resetTermsIterator();
-      throw new LukeException(String.format("Terms not available for field: %s.", curField), e);
+      throw new LukeException(String.format(Locale.ENGLISH, "Terms not available for field: %s.", curField), e);
     } finally {
       // discard current postings enum
       resetPostingsIterator();
@@ -222,7 +223,7 @@ public final class DocumentsImpl extends LukeModel implements Documents {
       }
     } catch (IOException e) {
       resetPostingsIterator();
-      throw new LukeException(String.format("Term docs not available for field: %s.", curField), e);
+      throw new LukeException(String.format(Locale.ENGLISH, "Term docs not available for field: %s.", curField), e);
     }
   }
 
@@ -245,7 +246,7 @@ public final class DocumentsImpl extends LukeModel implements Documents {
       }
     } catch (IOException e) {
       resetPostingsIterator();
-      throw new LukeException(String.format("Term docs not available for field: %s.", curField), e);
+      throw new LukeException(String.format(Locale.ENGLISH, "Term docs not available for field: %s.", curField), e);
     }
   }
 
@@ -273,7 +274,7 @@ public final class DocumentsImpl extends LukeModel implements Documents {
       }
 
     } catch (IOException e) {
-      throw new LukeException(String.format("Postings not available for field %s.", curField), e);
+      throw new LukeException(String.format(Locale.ENGLISH, "Postings not available for field %s.", curField), e);
     }
 
     return res;
@@ -291,7 +292,7 @@ public final class DocumentsImpl extends LukeModel implements Documents {
     try {
       return Optional.of(tenum.docFreq());
     } catch (IOException e) {
-      throw new LukeException(String.format("Doc frequency not available for field: %s.", curField), e);
+      throw new LukeException(String.format(Locale.ENGLISH,"Doc frequency not available for field: %s.", curField), e);
     }
   }
 
@@ -300,7 +301,7 @@ public final class DocumentsImpl extends LukeModel implements Documents {
     try {
       return tvAdapter.getTermVector(docid, field);
     } catch (IOException e) {
-      throw new LukeException(String.format("Term vector not available for doc: #%d and field: %s", docid, field), e);
+      throw new LukeException(String.format(Locale.ENGLISH, "Term vector not available for doc: #%d and field: %s", docid, field), e);
     }
   }
 
@@ -309,7 +310,7 @@ public final class DocumentsImpl extends LukeModel implements Documents {
     try {
       return dvAdapter.getDocValues(docid, field);
     } catch (IOException e) {
-      throw new LukeException(String.format("Doc values not available for doc: #%d and field: %s", docid, field), e);
+      throw new LukeException(String.format(Locale.ENGLISH, "Doc values not available for doc: #%d and field: %s", docid, field), e);
     }
   }
 

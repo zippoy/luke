@@ -307,7 +307,6 @@ public class SearchImplTest extends LuceneTestCase {
     assertEquals(10, res.getTotalHits());
     assertEquals(10, res.size());
     assertEquals(0, res.getOffset());
-    printResults(res);
   }
 
   @Test
@@ -320,7 +319,6 @@ public class SearchImplTest extends LuceneTestCase {
     assertEquals(10, res.getTotalHits());
     assertEquals(10, res.size());
     assertEquals(0, res.getOffset());
-    printResults(res);
   }
 
   @Test
@@ -335,7 +333,6 @@ public class SearchImplTest extends LuceneTestCase {
     assertEquals(20, res.getTotalHits());
     assertEquals(10, res.size());
     assertEquals(10, res.getOffset());
-    printResults(res);
   }
 
   @Test(expected = LukeException.class)
@@ -366,7 +363,6 @@ public class SearchImplTest extends LuceneTestCase {
     assertEquals(20, res.getTotalHits());
     assertEquals(10, res.size());
     assertEquals(0, res.getOffset());
-    printResults(res);
   }
 
   @Test(expected = LukeException.class)
@@ -383,19 +379,4 @@ public class SearchImplTest extends LuceneTestCase {
     assertFalse(search.prevPage().isPresent());
   }
 
-  private void printResults(SearchResults res) {
-    System.out.println("**search results**");
-    System.out.println("total=" + res.getTotalHits());
-    System.out.println("offset=" + res.getOffset());
-    System.out.println("hits:");
-    for (SearchResults.Doc doc : res.getHits()) {
-      System.out.print(" id=" + doc.getDocId());
-      System.out.print(" score=" + doc.getScore());
-      System.out.print(" values=" + String.join(",",
-          doc.getFieldValues().entrySet().stream().map(e ->
-              e.getKey() + ":" + String.join(";", Arrays.asList(e.getValue())))
-              .collect(Collectors.toList())));
-      System.out.println();
-    }
-  }
 }

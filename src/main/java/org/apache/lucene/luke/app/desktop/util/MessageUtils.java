@@ -38,7 +38,7 @@ public class MessageUtils {
 
   public static String getLocalizedMessage(String key, Object... args) {
     String pattern = bundle.getString(key);
-    return MessageFormat.format(pattern, args);
+    return new MessageFormat(pattern, Locale.ENGLISH).format(args);
   }
 
   private MessageUtils() {

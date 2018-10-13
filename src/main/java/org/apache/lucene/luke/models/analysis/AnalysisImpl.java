@@ -50,6 +50,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -88,7 +89,7 @@ public final class AnalysisImpl implements Analysis {
     for (String jarFile : jarFiles) {
       Path path = FileSystems.getDefault().getPath(jarFile);
       if (!Files.exists(path) || !jarFile.endsWith(".jar")) {
-        throw new LukeException(String.format("Invalid jar file path: %s", jarFile));
+        throw new LukeException(String.format(Locale.ENGLISH, "Invalid jar file path: %s", jarFile));
       }
       try {
         URL url = path.toUri().toURL();
@@ -100,7 +101,7 @@ public final class AnalysisImpl implements Analysis {
 
     // reload available tokenizers, charfilters, and tokenfilters
     URLClassLoader classLoader = new URLClassLoader(
-        urls.toArray(new URL[urls.size()]), ClassLoader.getSystemClassLoader());
+        urls.toArray(new URL[0]), ClassLoader.getSystemClassLoader());
     CharFilterFactory.reloadCharFilters(classLoader);
     TokenizerFactory.reloadTokenizers(classLoader);
     TokenFilterFactory.reloadTokenFilters(classLoader);
@@ -208,7 +209,7 @@ public final class AnalysisImpl implements Analysis {
       this.analyzer = clazz.newInstance();
       return analyzer;
     } catch (ReflectiveOperationException e) {
-      throw new LukeException(String.format("Failed to instantiate class: %s", analyzerType), e);
+      throw new LukeException(String.format(Locale.ENGLISH, "Failed to instantiate class: %s", analyzerType), e);
     }
   }
 

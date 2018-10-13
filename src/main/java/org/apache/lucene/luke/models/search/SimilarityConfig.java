@@ -90,10 +90,10 @@ public final class SimilarityConfig {
 
   public String toString() {
     return "SimilarityConfig: [" +
-        String.format(" use classic similarity=%s;", useClassicSimilarity) +
-        String.format(" discount overlaps=%s;", discountOverlaps) +
-        String.format(" k1=%f;", k1) +
-        String.format(" b=%f;", b) +
+        " use classic similarity=" + useClassicSimilarity + ";" +
+        " discount overlaps=" + discountOverlaps + ";" +
+        " k1=" + k1 + ";" +
+        " b=" + b + ";" +
         "]";
   }
 }

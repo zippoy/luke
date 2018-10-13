@@ -26,6 +26,7 @@ import org.apache.lucene.analysis.util.TokenizerFactory;
 import org.apache.lucene.luke.models.LukeException;
 import org.junit.Test;
 
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -98,7 +99,6 @@ public class AnalysisImplTest extends AnalysisTestBase {
     String text = "It is a truth universally acknowledged, that a single man in possession of a good fortune, must be in want of a wife.";
     List<Analysis.Token> tokens = analysis.analyze(text);
     assertNotNull(tokens);
-    printTokens(tokens);
   }
 
   @Test
@@ -116,14 +116,13 @@ public class AnalysisImplTest extends AnalysisTestBase {
     String text = "Apache Lucene";
     List<Analysis.Token> tokens = analysis.analyze(text);
     assertNotNull(tokens);
-    printTokens(tokens);
   }
 
   @Test
   public void testAnalyzer_custom_with_confdir() throws Exception {
     Path confDir = createTempDir("conf");
     Path stopFile = Files.createFile(Paths.get(confDir.toString(), "stop.txt"));
-    Files.write(stopFile, "of\nthe\nby\nfor\n".getBytes());
+    Files.write(stopFile, "of\nthe\nby\nfor\n".getBytes(StandardCharsets.UTF_8));
 
     AnalysisImpl analysis = new AnalysisImpl();
     CustomAnalyzerConfig.Builder builder = new CustomAnalyzerConfig.Builder(
@@ -142,26 +141,14 @@ public class AnalysisImplTest extends AnalysisTestBase {
     String text = "Government of the People, by the People, for the People";
     List<Analysis.Token> tokens = analysis.analyze(text);
     assertNotNull(tokens);
-    printTokens(tokens);
   }
 
   @Test(expected = LukeException.class)
-  public void testAnalyze_not_set() throws Exception {
+  public void testAnalyze_not_set() {
     AnalysisImpl analysis = new AnalysisImpl();
     String text = "This test must fail.";
     analysis.analyze(text);
   }
 
-  private void printTokens(List<Analysis.Token> tokens) {
-    for (Analysis.Token token : tokens) {
-      System.out.println("---- Token(term=" + token.getTerm() + ") ----");
-      for (Analysis.TokenAttribute att : token.getAttributes()) {
-        System.out.println(att.getAttClass());
-        for (Map.Entry<String, String> entry : att.getAttValues().entrySet()) {
-          System.out.println(String.format("  %s=%s", entry.getKey(), entry.getValue()));
-        }
-      }
-    }
-  }
 
 }

@@ -157,7 +157,7 @@ class TermVectorTableModel extends AbstractTableModel {
       String offsets = String.join(",",
           entry.getPositions().stream()
               .filter(pos -> pos.getStartOffset().isPresent() && pos.getEndOffset().isPresent())
-              .map(pos -> String.format("%d-%d", pos.getStartOffset().orElse(-1), pos.getEndOffset().orElse(-1)))
+              .map(pos -> Integer.toString(pos.getStartOffset().orElse(-1)) + "-" + Integer.toString(pos.getEndOffset().orElse(-1)))
               .collect(Collectors.toList())
       );
 

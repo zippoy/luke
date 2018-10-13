@@ -28,7 +28,6 @@ import org.apache.lucene.luke.app.desktop.util.DialogOpener;
 import org.apache.lucene.luke.app.desktop.util.ImageUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 import org.apache.lucene.luke.app.desktop.util.TextAreaPrintStream;
-import org.apache.lucene.luke.models.LukeException;
 import org.apache.lucene.luke.models.tools.IndexTools;
 import org.apache.lucene.luke.models.tools.IndexToolsFactory;
 import org.slf4j.Logger;
@@ -55,6 +54,8 @@ import java.awt.Insets;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.io.ByteArrayOutputStream;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -123,18 +124,22 @@ public class CheckIndexDialogFactory implements DialogOpener.DialogFactory {
           setProgress(0);
           statusLbl.setText("Running...");
           indicatorLbl.setVisible(true);
-          TextAreaPrintStream ps = new TextAreaPrintStream(logArea, new ByteArrayOutputStream(), logger);
+          TextAreaPrintStream ps;
           try {
+            ps = new TextAreaPrintStream(logArea, new ByteArrayOutputStream(), StandardCharsets.UTF_8, logger);
             CheckIndex.Status status = toolsModel.checkIndex(ps);
             statusLbl.setText("Done");
+            ps.flush();
             return status;
+          } catch (UnsupportedEncodingException e) {
+            // will not reach
           } catch (Exception e) {
             statusLbl.setText(MessageUtils.getLocalizedMessage("message.error.unknown"));
             throw e;
           } finally {
-            ps.flush();
             setProgress(100);
           }
+          return null;
         }
 
         @Override
@@ -199,18 +204,22 @@ public class CheckIndexDialogFactory implements DialogOpener.DialogFactory {
           statusLbl.setText("Running...");
           indicatorLbl.setVisible(true);
           logArea.setText("");
-          TextAreaPrintStream ps = new TextAreaPrintStream(logArea, new ByteArrayOutputStream(), logger);
+          TextAreaPrintStream ps;
           try {
+            ps = new TextAreaPrintStream(logArea, new ByteArrayOutputStream(), StandardCharsets.UTF_8, logger);
             toolsModel.repairIndex(status, ps);
             statusLbl.setText("Done");
+            ps.flush();
             return status;
+          } catch (UnsupportedEncodingException e) {
+            // will not occur
           } catch (Exception e) {
             statusLbl.setText(MessageUtils.getLocalizedMessage("message.error.unknown"));
             throw e;
           } finally {
-            ps.flush();
             setProgress(100);
           }
+          return null;
         }
 
         @Override

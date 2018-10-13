@@ -60,6 +60,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
@@ -193,9 +194,9 @@ public class OverviewPanelProvider implements Provider<JPanel> {
       numFieldsLbl.setText(Integer.toString(overviewModel.getNumFields()));
       numDocsLbl.setText(Integer.toString(overviewModel.getNumDocuments()));
       numTermsLbl.setText(Long.toString(overviewModel.getNumTerms()));
-      String del = overviewModel.hasDeletions() ? String.format("Yes (%d)", overviewModel.getNumDeletedDocs()) : "No";
+      String del = overviewModel.hasDeletions() ? String.format(Locale.ENGLISH, "Yes (%d)", overviewModel.getNumDeletedDocs()) : "No";
       String opt = overviewModel.isOptimized().map(b -> b ? "Yes" : "No").orElse("?");
-      delOptLbl.setText(String.format("%s / %s", del, opt));
+      delOptLbl.setText(del + " / " + opt);
       indexVerLbl.setText(overviewModel.getIndexVersion().map(v -> Long.toString(v)).orElse("?"));
       indexFmtLbl.setText(overviewModel.getIndexFormat().orElse(""));
       dirImplLbl.setText(overviewModel.getDirImpl().orElse(""));
@@ -543,7 +544,7 @@ class TermCountsTableModel extends AbstractTableModel {
     for (Map.Entry<String, Long> e : termCounts.entrySet()) {
       String term = e.getKey();
       Long count = e.getValue();
-      data[i++] = new Object[]{ term, count, String.format("%.2f %%", count / numTerms * 100) };
+      data[i++] = new Object[]{ term, count, String.format(Locale.ENGLISH, "%.2f %%", count / numTerms * 100) };
     }
   }
 
