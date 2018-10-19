@@ -33,7 +33,9 @@ import org.apache.lucene.luke.app.desktop.util.DialogOpener;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 import org.apache.lucene.util.Version;
 
-import javax.swing.*;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import java.awt.event.ActionEvent;
 
 public class MenuBarProvider implements Provider<JMenuBar> {
@@ -73,94 +75,6 @@ public class MenuBarProvider implements Provider<JMenuBar> {
   private final JMenuItem aboutMItem = new JMenuItem();
 
   private final ListenerFunctions listeners = new ListenerFunctions();
-
-  private String indexPath;
-
-  class ListenerFunctions {
-
-    void showOpenIndexDialog(ActionEvent e){
-      OpenIndexDialogFactory.showOpenIndexDialog();
-    }
-
-    void reopenIndex(ActionEvent e) {
-      indexHandler.reOpen();
-    }
-
-    void closeIndex(ActionEvent e) {
-      close();
-    }
-
-    void exit(ActionEvent e) {
-      close();
-      System.exit(0);
-    }
-
-    private void close() {
-      directoryHandler.close();
-      indexHandler.close();
-    }
-
-    void showOptimizeIndexDialog(ActionEvent e) {
-      new DialogOpener<>(optimizeIndexDialogFactory).open("Optimize index", 600, 600,
-          factory -> {});
-    }
-
-    void showCheckIndexDialog(ActionEvent e) {
-      new DialogOpener<>(checkIndexDialogFactory).open("Check index", 600, 600,
-          factory -> {});
-    }
-
-    void showAboutDialog(ActionEvent e) {
-      final String title = "About Luke v" + Version.LATEST.toString();
-      new DialogOpener<>(aboutDialogFactory).open(title, 800, 480,
-          factory -> {});
-    }
-  }
-
-  public class Observer implements IndexObserver, DirectoryObserver {
-
-    @Override
-    public void openDirectory(LukeState state) {
-      reopenIndexMItem.setEnabled(false);
-      closeIndexMItem.setEnabled(false);
-      optimizeIndexMItem.setEnabled(false);
-      checkIndexMItem.setEnabled(true);
-      indexPath = "";
-    }
-
-    @Override
-    public void closeDirectory() {
-      close();
-    }
-
-    @Override
-    public void openIndex(LukeState state) {
-      reopenIndexMItem.setEnabled(true);
-      closeIndexMItem.setEnabled(true);
-      if (!state.readOnly() && state.hasDirectoryReader()) {
-        optimizeIndexMItem.setEnabled(true);
-      }
-      if (state.hasDirectoryReader()) {
-        checkIndexMItem.setEnabled(true);
-      }
-      indexPath = state.getIndexPath();
-    }
-
-    @Override
-    public void closeIndex() {
-      close();
-    }
-
-    private void close() {
-      reopenIndexMItem.setEnabled(false);
-      closeIndexMItem.setEnabled(false);
-      optimizeIndexMItem.setEnabled(false);
-      checkIndexMItem.setEnabled(false);
-      indexPath = "";
-    }
-
-    private Observer() {}
-  }
 
   @Inject
   public MenuBarProvider(Preferences prefs, DirectoryHandler directoryHandler, IndexHandler indexHandler,
@@ -251,4 +165,91 @@ public class MenuBarProvider implements Provider<JMenuBar> {
     return helpMenu;
   }
 
+  class ListenerFunctions {
+
+    void showOpenIndexDialog(ActionEvent e) {
+      OpenIndexDialogFactory.showOpenIndexDialog();
+    }
+
+    void reopenIndex(ActionEvent e) {
+      indexHandler.reOpen();
+    }
+
+    void closeIndex(ActionEvent e) {
+      close();
+    }
+
+    void exit(ActionEvent e) {
+      close();
+      System.exit(0);
+    }
+
+    private void close() {
+      directoryHandler.close();
+      indexHandler.close();
+    }
+
+    void showOptimizeIndexDialog(ActionEvent e) {
+      new DialogOpener<>(optimizeIndexDialogFactory).open("Optimize index", 600, 600,
+          factory -> {
+          });
+    }
+
+    void showCheckIndexDialog(ActionEvent e) {
+      new DialogOpener<>(checkIndexDialogFactory).open("Check index", 600, 600,
+          factory -> {
+          });
+    }
+
+    void showAboutDialog(ActionEvent e) {
+      final String title = "About Luke v" + Version.LATEST.toString();
+      new DialogOpener<>(aboutDialogFactory).open(title, 800, 480,
+          factory -> {
+          });
+    }
+
+  }
+
+  public class Observer implements IndexObserver, DirectoryObserver {
+
+    @Override
+    public void openDirectory(LukeState state) {
+      reopenIndexMItem.setEnabled(false);
+      closeIndexMItem.setEnabled(false);
+      optimizeIndexMItem.setEnabled(false);
+      checkIndexMItem.setEnabled(true);
+    }
+
+    @Override
+    public void closeDirectory() {
+      close();
+    }
+
+    @Override
+    public void openIndex(LukeState state) {
+      reopenIndexMItem.setEnabled(true);
+      closeIndexMItem.setEnabled(true);
+      if (!state.readOnly() && state.hasDirectoryReader()) {
+        optimizeIndexMItem.setEnabled(true);
+      }
+      if (state.hasDirectoryReader()) {
+        checkIndexMItem.setEnabled(true);
+      }
+    }
+
+    @Override
+    public void closeIndex() {
+      close();
+    }
+
+    private void close() {
+      reopenIndexMItem.setEnabled(false);
+      closeIndexMItem.setEnabled(false);
+      optimizeIndexMItem.setEnabled(false);
+      checkIndexMItem.setEnabled(false);
+    }
+
+    private Observer() {
+    }
+  }
 }

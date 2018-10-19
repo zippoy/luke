@@ -83,6 +83,117 @@ public class CheckIndexDialogFactory implements DialogOpener.DialogFactory {
 
   private final ListenerFunctions listeners = new ListenerFunctions();
 
+  @Inject
+  public CheckIndexDialogFactory(IndexToolsFactory indexToolsFactory, IndexHandler indexHandler, DirectoryHandler directoryHandler) {
+    this.indexToolsFactory = indexToolsFactory;
+    this.indexHandler = indexHandler;
+
+    indexHandler.addObserver(new Observer());
+    directoryHandler.addObserver(new Observer());
+  }
+
+  private JDialog dialog;
+
+  private IndexTools toolsModel;
+
+  @Override
+  public JDialog create(Window owner, String title, int width, int height) {
+    dialog = new JDialog(owner, title, Dialog.ModalityType.APPLICATION_MODAL);
+    dialog.add(content());
+    dialog.setSize(new Dimension(width, height));
+    dialog.setLocationRelativeTo(owner);
+    return dialog;
+  }
+
+  private JPanel content() {
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
+    panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+
+    panel.add(controller());
+    panel.add(new JSeparator(JSeparator.HORIZONTAL));
+    panel.add(logs());
+
+    return panel;
+  }
+
+  private JPanel controller() {
+    JPanel panel = new JPanel(new GridLayout(3, 1));
+
+    JPanel idxPath = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    idxPath.add(new JLabel(MessageUtils.getLocalizedMessage("checkidx.label.index_path")));
+    JLabel idxPathLbl = new JLabel(lukeState.getIndexPath());
+    idxPathLbl.setToolTipText(lukeState.getIndexPath());
+    idxPath.add(idxPathLbl);
+    panel.add(idxPath);
+
+    JPanel results = new JPanel(new GridLayout(2, 1));
+    results.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0));
+    results.add(new JLabel(MessageUtils.getLocalizedMessage("checkidx.label.results")));
+    results.add(resultLbl);
+    panel.add(results);
+
+    JPanel execButtons = new JPanel(new FlowLayout(FlowLayout.TRAILING));
+    JButton checkBtn = new JButton(MessageUtils.getLocalizedMessage("checkidx.button.check"), ImageUtils.createImageIcon("/img/icon_search_alt.png", 20, 20));
+    checkBtn.setFont(new Font(checkBtn.getFont().getFontName(), Font.PLAIN, 15));
+    checkBtn.setMargin(new Insets(3, 3, 3, 3));
+    checkBtn.addActionListener(listeners::checkIndex);
+    execButtons.add(checkBtn);
+
+    JButton closeBtn = new JButton(MessageUtils.getLocalizedMessage("button.close"));
+    closeBtn.setFont(new Font(closeBtn.getFont().getFontName(), Font.PLAIN, 15));
+    closeBtn.setMargin(new Insets(3, 3, 3, 3));
+    closeBtn.addActionListener(e -> dialog.dispose());
+    execButtons.add(closeBtn);
+    panel.add(execButtons);
+
+    return panel;
+  }
+
+  private JPanel logs() {
+    JPanel panel = new JPanel(new BorderLayout());
+
+    JPanel header = new JPanel();
+    header.setLayout(new BoxLayout(header, BoxLayout.PAGE_AXIS));
+
+    JPanel repair = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    repairBtn.setText(MessageUtils.getLocalizedMessage("checkidx.button.fix"));
+    repairBtn.setIcon(ImageUtils.createImageIcon("/img/icon_tool.png", 20, 20));
+    repairBtn.setFont(new Font(repairBtn.getFont().getFontName(), Font.PLAIN, 15));
+    repairBtn.setMargin(new Insets(3, 3, 3, 3));
+    repairBtn.setEnabled(false);
+    repairBtn.addActionListener(listeners::repairIndex);
+    repair.add(repairBtn);
+
+    JTextArea warnArea = new JTextArea(MessageUtils.getLocalizedMessage("checkidx.label.warn"), 3, 30);
+    warnArea.setLineWrap(true);
+    warnArea.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+
+    repair.add(warnArea);
+    header.add(repair);
+
+    JPanel note = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    note.add(new JLabel(MessageUtils.getLocalizedMessage("checkidx.label.note")));
+    header.add(note);
+
+    JPanel status = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    status.add(new JLabel(MessageUtils.getLocalizedMessage("checkidx.label.status")));
+    statusLbl.setText("Idle");
+    status.add(statusLbl);
+    indicatorLbl.setIcon(ImageUtils.createImageIcon("/img/indicator.gif", 20, 20));
+    indicatorLbl.setVisible(false);
+    status.add(indicatorLbl);
+    header.add(status);
+
+    panel.add(header, BorderLayout.PAGE_START);
+
+    logArea.setText("");
+    logArea.setEditable(false);
+    panel.add(new JScrollPane(logArea), BorderLayout.CENTER);
+
+    return panel;
+  }
+
   class Observer implements IndexObserver, DirectoryObserver {
 
     @Override
@@ -237,115 +348,4 @@ public class CheckIndexDialogFactory implements DialogOpener.DialogFactory {
     }
   }
 
-
-  @Inject
-  public CheckIndexDialogFactory(IndexToolsFactory indexToolsFactory, IndexHandler indexHandler, DirectoryHandler directoryHandler) {
-    this.indexToolsFactory = indexToolsFactory;
-    this.indexHandler = indexHandler;
-
-    indexHandler.addObserver(new Observer());
-    directoryHandler.addObserver(new Observer());
-  }
-
-  private JDialog dialog;
-
-  private IndexTools toolsModel;
-
-  @Override
-  public JDialog create(Window owner, String title, int width, int height) {
-    dialog = new JDialog(owner, title, Dialog.ModalityType.APPLICATION_MODAL);
-    dialog.add(content());
-    dialog.setSize(new Dimension(width, height));
-    dialog.setLocationRelativeTo(owner);
-    return dialog;
-  }
-
-  private JPanel content() {
-    JPanel panel = new JPanel();
-    panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
-    panel.setBorder(BorderFactory.createEmptyBorder(15,15, 15, 15));
-
-    panel.add(controller());
-    panel.add(new JSeparator(JSeparator.HORIZONTAL));
-    panel.add(logs());
-
-    return panel;
-  }
-
-  private JPanel controller() {
-    JPanel panel = new JPanel(new GridLayout(3, 1));
-
-    JPanel idxPath = new JPanel(new FlowLayout(FlowLayout.LEADING));
-    idxPath.add(new JLabel(MessageUtils.getLocalizedMessage("checkidx.label.index_path")));
-    JLabel idxPathLbl = new JLabel(lukeState.getIndexPath());
-    idxPathLbl.setToolTipText(lukeState.getIndexPath());
-    idxPath.add(idxPathLbl);
-    panel.add(idxPath);
-
-    JPanel results = new JPanel(new GridLayout(2,1));
-    results.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0));
-    results.add(new JLabel(MessageUtils.getLocalizedMessage("checkidx.label.results")));
-    results.add(resultLbl);
-    panel.add(results);
-
-    JPanel execButtons = new JPanel(new FlowLayout(FlowLayout.TRAILING));
-    JButton checkBtn = new JButton(MessageUtils.getLocalizedMessage("checkidx.button.check"), ImageUtils.createImageIcon("/img/icon_search_alt.png", 20, 20));
-    checkBtn.setFont(new Font(checkBtn.getFont().getFontName(), Font.PLAIN, 15));
-    checkBtn.setMargin(new Insets(3, 3, 3, 3));
-    checkBtn.addActionListener(listeners::checkIndex);
-    execButtons.add(checkBtn);
-
-    JButton closeBtn = new JButton(MessageUtils.getLocalizedMessage("button.close"));
-    closeBtn.setFont(new Font(closeBtn.getFont().getFontName(), Font.PLAIN, 15));
-    closeBtn.setMargin(new Insets(3, 3, 3, 3));
-    closeBtn.addActionListener(e -> dialog.dispose());
-    execButtons.add(closeBtn);
-    panel.add(execButtons);
-
-    return panel;
-  }
-
-  private JPanel logs() {
-    JPanel panel = new JPanel(new BorderLayout());
-
-    JPanel header = new JPanel();
-    header.setLayout(new BoxLayout(header, BoxLayout.PAGE_AXIS));
-
-    JPanel repair = new JPanel(new FlowLayout(FlowLayout.LEADING));
-    repairBtn.setText(MessageUtils.getLocalizedMessage("checkidx.button.fix"));
-    repairBtn.setIcon(ImageUtils.createImageIcon("/img/icon_tool.png", 20, 20));
-    repairBtn.setFont(new Font(repairBtn.getFont().getFontName(), Font.PLAIN, 15));
-    repairBtn.setMargin(new Insets(3, 3, 3, 3));
-    repairBtn.setEnabled(false);
-    repairBtn.addActionListener(listeners::repairIndex);
-    repair.add(repairBtn);
-
-    JTextArea warnArea = new JTextArea(MessageUtils.getLocalizedMessage("checkidx.label.warn"), 3, 30);
-    warnArea.setLineWrap(true);
-    warnArea.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-
-    repair.add(warnArea);
-    header.add(repair);
-
-    JPanel note = new JPanel(new FlowLayout(FlowLayout.LEADING));
-    note.add(new JLabel(MessageUtils.getLocalizedMessage("checkidx.label.note")));
-    header.add(note);
-
-    JPanel status = new JPanel(new FlowLayout(FlowLayout.LEADING));
-    status.add(new JLabel(MessageUtils.getLocalizedMessage("checkidx.label.status")));
-    statusLbl.setText("Idle");
-    status.add(statusLbl);
-    indicatorLbl.setIcon(ImageUtils.createImageIcon("/img/indicator.gif", 20, 20));
-    indicatorLbl.setVisible(false);
-    status.add(indicatorLbl);
-    header.add(status);
-
-    panel.add(header, BorderLayout.PAGE_START);
-
-    logArea.setText("");
-    logArea.setEditable(false);
-    panel.add(new JScrollPane(logArea), BorderLayout.CENTER);
-
-    return panel;
-  }
 }

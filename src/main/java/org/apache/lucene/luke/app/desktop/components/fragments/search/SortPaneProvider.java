@@ -42,7 +42,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-public class SortPaneProvider implements Provider<JScrollPane> {
+public class SortPaneProvider implements Provider<JScrollPane>, SortTabOperator {
 
   private static final String COMMAND_FIELD_COMBO1 = "fieldCombo1";
 
@@ -64,99 +64,9 @@ public class SortPaneProvider implements Provider<JScrollPane> {
 
   private Search searchModel;
 
-  class SortTabOperatorImpl implements SortTabOperator {
-    @Override
-    public void setSearchModel(Search model) {
-      searchModel = model;
-    }
-
-    @Override
-    public void setSortableFields(Collection<String> sortableFields) {
-      fieldCombo1.removeAllItems();
-      fieldCombo2.removeAllItems();
-
-      fieldCombo1.addItem("");
-      fieldCombo2.addItem("");
-
-      for (String field : sortableFields) {
-        fieldCombo1.addItem(field);
-        fieldCombo2.addItem(field);
-      }
-    }
-
-    @Override
-    public Sort getSort() {
-      if (Strings.isNullOrEmpty((String)fieldCombo1.getSelectedItem()) && Strings.isNullOrEmpty((String)fieldCombo2.getSelectedItem())) {
-        return null;
-      }
-
-      List<SortField> li = new ArrayList<>();
-      if (!Strings.isNullOrEmpty((String)fieldCombo1.getSelectedItem())) {
-        searchModel.getSortType((String)fieldCombo1.getSelectedItem(), (String)typeCombo1.getSelectedItem(), isReverse(orderCombo1)).ifPresent(li::add);
-      }
-      if (!Strings.isNullOrEmpty((String)fieldCombo2.getSelectedItem())) {
-        searchModel.getSortType((String)fieldCombo2.getSelectedItem(), (String)typeCombo2.getSelectedItem(), isReverse(orderCombo2)).ifPresent(li::add);
-      }
-      return new Sort(li.toArray(new SortField[li.size()]));
-    }
-
-    private boolean isReverse(JComboBox<String> order) {
-      return Order.valueOf((String)order.getSelectedItem()) == Order.DESC;
-    }
-
-  }
-
-  class ListenerFunctions {
-
-    void changeField(ActionEvent e) {
-      if (e.getActionCommand().equalsIgnoreCase(COMMAND_FIELD_COMBO1)) {
-        resetField(fieldCombo1, typeCombo1, orderCombo1);
-      } else if (e.getActionCommand().equalsIgnoreCase(COMMAND_FIELD_COMBO2)) {
-        resetField(fieldCombo2, typeCombo2, orderCombo2);
-      }
-    }
-
-    private void resetField(JComboBox<String> fieldCombo, JComboBox<String> typeCombo, JComboBox<String> orderCombo) {
-      typeCombo.removeAllItems();
-      if (Strings.isNullOrEmpty((String)fieldCombo.getSelectedItem())) {
-        typeCombo.addItem("");
-        typeCombo.setEnabled(false);
-        orderCombo.setEnabled(false);
-      } else {
-        List<SortField> sortFields = searchModel.guessSortTypes((String)fieldCombo.getSelectedItem());
-        sortFields.stream()
-            .map(sf -> {
-              if (sf instanceof SortedNumericSortField) {
-                return ((SortedNumericSortField) sf).getNumericType().name();
-              } else {
-                return sf.getType().name();
-              }
-            }).forEach(typeCombo::addItem);
-        typeCombo.setEnabled(true);
-        orderCombo.setEnabled(true);
-      }
-    }
-
-    void clear(ActionEvent e) {
-      fieldCombo1.setSelectedIndex(0);
-      typeCombo1.removeAllItems();
-      typeCombo1.setSelectedItem("");
-      typeCombo1.setEnabled(false);
-      orderCombo1.setSelectedIndex(0);
-      orderCombo1.setEnabled(false);
-
-      fieldCombo2.setSelectedIndex(0);
-      typeCombo2.removeAllItems();
-      typeCombo2.setSelectedItem("");
-      typeCombo2.setEnabled(false);
-      orderCombo2.setSelectedIndex(0);
-      orderCombo2.setEnabled(false);
-    }
-  }
-
   @Inject
   public SortPaneProvider(ComponentOperatorRegistry operatorRegistry) {
-    operatorRegistry.register(SortTabOperator.class, new SortTabOperatorImpl());
+    operatorRegistry.register(SortTabOperator.class, this);
   }
 
   @Override
@@ -222,10 +132,91 @@ public class SortPaneProvider implements Provider<JScrollPane> {
     return panel;
   }
 
-  public interface SortTabOperator extends ComponentOperatorRegistry.ComponentOperator {
-    void setSearchModel(Search model);
-    void setSortableFields(Collection<String> sortableFields);
-    Sort getSort();
+  @Override
+  public void setSearchModel(Search model) {
+    searchModel = model;
+  }
+
+  @Override
+  public void setSortableFields(Collection<String> sortableFields) {
+    fieldCombo1.removeAllItems();
+    fieldCombo2.removeAllItems();
+
+    fieldCombo1.addItem("");
+    fieldCombo2.addItem("");
+
+    for (String field : sortableFields) {
+      fieldCombo1.addItem(field);
+      fieldCombo2.addItem(field);
+    }
+  }
+
+  @Override
+  public Sort getSort() {
+    if (Strings.isNullOrEmpty((String) fieldCombo1.getSelectedItem()) && Strings.isNullOrEmpty((String) fieldCombo2.getSelectedItem())) {
+      return null;
+    }
+
+    List<SortField> li = new ArrayList<>();
+    if (!Strings.isNullOrEmpty((String) fieldCombo1.getSelectedItem())) {
+      searchModel.getSortType((String) fieldCombo1.getSelectedItem(), (String) typeCombo1.getSelectedItem(), isReverse(orderCombo1)).ifPresent(li::add);
+    }
+    if (!Strings.isNullOrEmpty((String) fieldCombo2.getSelectedItem())) {
+      searchModel.getSortType((String) fieldCombo2.getSelectedItem(), (String) typeCombo2.getSelectedItem(), isReverse(orderCombo2)).ifPresent(li::add);
+    }
+    return new Sort(li.toArray(new SortField[li.size()]));
+  }
+
+  private boolean isReverse(JComboBox<String> order) {
+    return Order.valueOf((String) order.getSelectedItem()) == Order.DESC;
+  }
+
+  class ListenerFunctions {
+
+    void changeField(ActionEvent e) {
+      if (e.getActionCommand().equalsIgnoreCase(COMMAND_FIELD_COMBO1)) {
+        resetField(fieldCombo1, typeCombo1, orderCombo1);
+      } else if (e.getActionCommand().equalsIgnoreCase(COMMAND_FIELD_COMBO2)) {
+        resetField(fieldCombo2, typeCombo2, orderCombo2);
+      }
+    }
+
+    private void resetField(JComboBox<String> fieldCombo, JComboBox<String> typeCombo, JComboBox<String> orderCombo) {
+      typeCombo.removeAllItems();
+      if (Strings.isNullOrEmpty((String) fieldCombo.getSelectedItem())) {
+        typeCombo.addItem("");
+        typeCombo.setEnabled(false);
+        orderCombo.setEnabled(false);
+      } else {
+        List<SortField> sortFields = searchModel.guessSortTypes((String) fieldCombo.getSelectedItem());
+        sortFields.stream()
+            .map(sf -> {
+              if (sf instanceof SortedNumericSortField) {
+                return ((SortedNumericSortField) sf).getNumericType().name();
+              } else {
+                return sf.getType().name();
+              }
+            }).forEach(typeCombo::addItem);
+        typeCombo.setEnabled(true);
+        orderCombo.setEnabled(true);
+      }
+    }
+
+    void clear(ActionEvent e) {
+      fieldCombo1.setSelectedIndex(0);
+      typeCombo1.removeAllItems();
+      typeCombo1.setSelectedItem("");
+      typeCombo1.setEnabled(false);
+      orderCombo1.setSelectedIndex(0);
+      orderCombo1.setEnabled(false);
+
+      fieldCombo2.setSelectedIndex(0);
+      typeCombo2.removeAllItems();
+      typeCombo2.setSelectedItem("");
+      typeCombo2.setEnabled(false);
+      orderCombo2.setSelectedIndex(0);
+      orderCombo2.setEnabled(false);
+    }
   }
 
   enum Order {

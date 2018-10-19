@@ -32,11 +32,11 @@ import org.apache.lucene.luke.app.desktop.components.dialog.documents.DocValuesD
 import org.apache.lucene.luke.app.desktop.components.dialog.documents.StoredValueDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.documents.TermVectorDialogFactory;
 import org.apache.lucene.luke.app.desktop.util.DialogOpener;
-import org.apache.lucene.luke.app.desktop.util.StyleConstants;
-import org.apache.lucene.luke.app.desktop.util.TableUtil;
 import org.apache.lucene.luke.app.desktop.util.HelpHeaderRenderer;
 import org.apache.lucene.luke.app.desktop.util.ImageUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
+import org.apache.lucene.luke.app.desktop.util.StyleConstants;
+import org.apache.lucene.luke.app.desktop.util.TableUtil;
 import org.apache.lucene.luke.models.documents.DocValues;
 import org.apache.lucene.luke.models.documents.DocumentField;
 import org.apache.lucene.luke.models.documents.Documents;
@@ -64,7 +64,6 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
-import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellRenderer;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -83,11 +82,10 @@ import java.awt.event.MouseEvent;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-public class DocumentsPanelProvider implements Provider<JPanel> {
+public class DocumentsPanelProvider implements Provider<JPanel>, DocumentsTabOperator {
 
   private final DocumentsFactory documentsFactory;
 
@@ -105,7 +103,7 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
 
   private final StoredValueDialogFactory valueDialogFactory;
 
-  private final HelpDialogFactory helpDialogFactory;
+  private final TableCellRenderer tableHeaderRenderer;
 
   private final JComboBox<String> fieldsCombo = new JComboBox<>();
 
@@ -145,364 +143,6 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
 
   private Documents documentsModel;
 
-  class ListenerFunctions {
-
-    void showFirstTerm(ActionEvent e) {
-      String fieldName = (String) fieldsCombo.getSelectedItem();
-      if (fieldName == null || fieldName.length() == 0) {
-        messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("documents.field.message.not_selected"));
-        return;
-      }
-
-      termDocIdxTF.setText("");
-      clearPosTable();
-
-      String firstTermText = documentsModel.firstTerm(fieldName).map(Term::text).orElse("");
-      termTF.setText(firstTermText);
-      selectedTermTF.setText(firstTermText);
-      if (selectedTermTF.getText().length() > 0) {
-        String num = documentsModel.getDocFreq().map(String::valueOf).orElse("?");
-        termDocsNumLbl.setText("in " + num + " docs");
-
-        nextTermBtn.setEnabled(true);
-        termTF.setEditable(true);
-        firstTermDocBtn.setEnabled(true);
-      } else {
-        nextTermBtn.setEnabled(false);
-        termTF.setEditable(false);
-        firstTermDocBtn.setEnabled(false);
-      }
-      nextTermDocBtn.setEnabled(false);
-      messageBroker.clearStatusMessage();
-    }
-
-    void seekNextTerm(ActionEvent e) {
-      operatorRegistry.get(DocumentsTabOperator.class).ifPresent(DocumentsTabOperator::seekNextTerm);
-    }
-
-    void showNextTerm(ActionEvent e) {
-      termDocIdxTF.setText("");
-      clearPosTable();
-
-      String nextTermText = documentsModel.nextTerm().map(Term::text).orElse("");
-      termTF.setText(nextTermText);
-      selectedTermTF.setText(nextTermText);
-      if (selectedTermTF.getText().length() > 0) {
-        String num = documentsModel.getDocFreq().map(String::valueOf).orElse("?");
-        termDocsNumLbl.setText("in " + num + " docs");
-
-        termTF.setEditable(true);
-        firstTermDocBtn.setEnabled(true);
-      } else {
-        nextTermBtn.setEnabled(false);
-        termTF.setEditable(false);
-        firstTermDocBtn.setEnabled(false);
-      }
-      nextTermDocBtn.setEnabled(false);
-      messageBroker.clearStatusMessage();
-    }
-
-    private void clearPosTable() {
-      TableUtil.setupTable(posTable, ListSelectionModel.SINGLE_SELECTION, new PosTableModel(), null, 80, 120);
-    }
-
-    void showFirstTermDoc(ActionEvent e) {
-      operatorRegistry.get(DocumentsTabOperator.class).ifPresent(DocumentsTabOperator::showFirstTermDoc);
-    }
-
-    void showNextTermDoc(ActionEvent e) {
-      int docid = documentsModel.nextTermDoc().orElse(-1);
-      if (docid < 0) {
-        nextTermDocBtn.setEnabled(false);
-        messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("documents.termdocs.message.not_available"));
-        return;
-      }
-      int curIdx = Integer.parseInt(termDocIdxTF.getText());
-      termDocIdxTF.setText(String.valueOf(curIdx + 1));
-      operatorRegistry.get(DocumentsTabOperator.class).ifPresent(operator -> operator.displayDoc(docid));
-
-      List<TermPosting> postings = documentsModel.getTermPositions();
-      posTable.setModel(new PosTableModel(postings));
-
-      nextTermDocBtn.setDefaultCapable(true);
-      messageBroker.clearStatusMessage();
-    }
-
-    void showCurrentDoc(ChangeEvent e) {
-      int docid = (Integer)docNumSpnr.getValue();
-      operatorRegistry.get(DocumentsTabOperator.class).ifPresent(operator -> operator.displayDoc(docid));
-    }
-
-    private JComponent createFlagsHelpDialog() {
-      String[] values = new String[]{
-          "I - index options(docs, frequencies, positions, offsets)",
-          "N - norms",
-          "P - payloads",
-          "S - stored",
-          "B - binary stored values",
-          "#txx - numeric stored values(type, precision)",
-          "V - term vectors",
-          "Dtxxxxx - doc values(type)",
-          "Tx/x - point values(num bytes/dimension)"
-      };
-      JList<String> list = new JList<>(values);
-      return new JScrollPane(list);
-    }
-
-    void mltSearch(ActionEvent e) {
-      int docNum = (int)docNumSpnr.getValue();
-      operatorRegistry.get(SearchPanelProvider.SearchTabOperator.class).ifPresent(operator -> {
-        operator.mltSearch(docNum);
-        tabSwitcher.switchTab(TabbedPaneProvider.Tab.SEARCH);
-      });
-    }
-
-    void showAddDocumentDialog(ActionEvent e) {
-      new DialogOpener<>(addDocDialogFactory).open("Add document", 600, 500,
-          (factory) -> {
-          });
-    }
-
-    void showDocumentContextMenu(MouseEvent e) {
-      if (e.getClickCount() == 2 && !e.isConsumed()) {
-        int row = documentTable.rowAtPoint(e.getPoint());
-        if (row != documentTable.getSelectedRow()) {
-          documentTable.changeSelection(row, documentTable.getSelectedColumn(), false, false);
-        }
-        documentContextMenu.show(e.getComponent(), e.getX(), e.getY());
-      }
-    }
-
-    void showTermVectorDialog(ActionEvent e) {
-      int docid = (Integer)docNumSpnr.getValue();
-      String field = (String)documentTable.getModel().getValueAt(documentTable.getSelectedRow(), DocumentTableModel.Column.FIELD.getIndex());
-      List<TermVectorEntry> tvEntries = documentsModel.getTermVectors(docid, field);
-      if (tvEntries.isEmpty()) {
-        messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("documents.termvector.message.not_available", field, docid));
-        return;
-      }
-
-      new DialogOpener<>(tvDialogFactory).open(
-          "Term Vector", 400, 300,
-          (factory) -> {
-            factory.setField(field);
-            factory.setTvEntries(tvEntries);
-          });
-      messageBroker.clearStatusMessage();
-    }
-
-    void showDocValuesDialog(ActionEvent e) {
-      int docid = (Integer)docNumSpnr.getValue();
-      String field = (String)documentTable.getModel().getValueAt(documentTable.getSelectedRow(), DocumentTableModel.Column.FIELD.getIndex());
-      Optional<DocValues> docValues = documentsModel.getDocValues(docid, field);
-      if (docValues.isPresent()) {
-        new DialogOpener<>(dvDialogFactory).open(
-            "Doc Values", 400, 300,
-            (factory) -> {
-              factory.setValue(field, docValues.get());
-            });
-        messageBroker.clearStatusMessage();
-      } else {
-        messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("documents.docvalues.message.not_available", field, docid));
-      }
-    }
-
-    void showStoredValueDialog(ActionEvent e) {
-      int docid = (Integer)docNumSpnr.getValue();
-      String field = (String)documentTable.getModel().getValueAt(documentTable.getSelectedRow(), DocumentTableModel.Column.FIELD.getIndex());
-      String value = (String)documentTable.getModel().getValueAt(documentTable.getSelectedRow(), DocumentTableModel.Column.VALUE.getIndex());
-      if (Objects.isNull(value)) {
-        messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("documents.stored.message.not_availabe", field, docid));
-        return;
-      }
-      new DialogOpener<>(valueDialogFactory).open(
-          "Stored Value", 400, 300,
-          (factory) -> {
-            factory.setField(field);
-            factory.setValue(value);
-          });
-      messageBroker.clearStatusMessage();
-    }
-
-    void copyStoredValue(ActionEvent e) {
-      int docid = (Integer)docNumSpnr.getValue();
-      String field = (String)documentTable.getModel().getValueAt(documentTable.getSelectedRow(), DocumentTableModel.Column.FIELD.getIndex());
-      String value = (String)documentTable.getModel().getValueAt(documentTable.getSelectedRow(), DocumentTableModel.Column.VALUE.getIndex());
-      if (Objects.isNull(value)) {
-        messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("documents.stored.message.not_availabe", field, docid));
-        return;
-      }
-      Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-      StringSelection selection = new StringSelection(value);
-      clipboard.setContents(selection, null);
-      messageBroker.clearStatusMessage();
-    }
-
-    void copySelectedOrAllStoredValues(ActionEvent e) {
-      StringSelection selection;
-      if (documentTable.getSelectedRowCount() == 0) {
-        selection = copyAllValues();
-      } else {
-        selection = copySelectedValues();
-      }
-      Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-      clipboard.setContents(selection, null);
-      messageBroker.clearStatusMessage();
-    }
-
-    private StringSelection copyAllValues() {
-      StringBuilder sb = new StringBuilder();
-      for (int i = 0; i < documentTable.getRowCount(); i++) {
-        String value = (String) documentTable.getModel().getValueAt(i, DocumentTableModel.Column.VALUE.getIndex());
-        if (Objects.nonNull(value)) {
-          sb.append((i == 0) ? value : System.lineSeparator() + value);
-        }
-      }
-      return new StringSelection(sb.toString());
-    }
-
-    private StringSelection copySelectedValues() {
-      StringBuilder sb = new StringBuilder();
-      boolean isFirst = true;
-      for (int rowIndex : documentTable.getSelectedRows()) {
-        String value = (String) documentTable.getModel().getValueAt(rowIndex, DocumentTableModel.Column.VALUE.getIndex());
-        if (Objects.nonNull(value)) {
-          sb.append(isFirst ? value : System.lineSeparator() + value);
-          isFirst = false;
-        }
-      }
-      return new StringSelection(sb.toString());
-    }
-
-  }
-
-  public class Observer implements IndexObserver {
-
-    @Override
-    public void openIndex(LukeState state) {
-      documentsModel = documentsFactory.newInstance(state.getIndexReader());
-
-      addDocBtn.setEnabled(!state.readOnly() && state.hasDirectoryReader());
-
-      int maxDoc = documentsModel.getMaxDoc();
-      maxDocsLbl.setText("in " + maxDoc + " docs");
-      if (maxDoc > 0) {
-        int max = Math.max(maxDoc - 1, 0);
-        SpinnerModel spinnerModel = new SpinnerNumberModel(0, 0, max, 1);
-        docNumSpnr.setModel(spinnerModel);
-        docNumSpnr.setEnabled(true);
-        operatorRegistry.get(DocumentsTabOperator.class).ifPresent(operator -> operator.displayDoc(0));
-      } else {
-        docNumSpnr.setEnabled(false);
-      }
-
-      documentsModel.getFieldNames().stream().sorted().forEach(fieldsCombo::addItem);
-    }
-
-    @Override
-    public void closeIndex() {
-      maxDocsLbl.setText("in ? docs");
-      docNumSpnr.setEnabled(false);
-      fieldsCombo.removeAllItems();
-      termTF.setText("");
-      selectedTermTF.setText("");
-      termDocsNumLbl.setText("");
-      termDocIdxTF.setText("");
-
-      posTable.setModel(new PosTableModel());
-      documentTable.setModel(new DocumentTableModel());
-    }
-  }
-
-  class DocumentsTabOperatorImpl implements DocumentsTabOperator {
-
-    private final TableCellRenderer tableHeaderRenderer =
-        new HelpHeaderRenderer(
-            "About Flags", "Format: IdfpoNPSB#txxVDtxxxxTx/x",
-            createFlagsHelpDialog(), helpDialogFactory);
-
-    @Override
-    public void browseTerm(String field, String term) {
-      fieldsCombo.setSelectedItem(field);
-      termTF.setText(term);
-      seekNextTerm();
-      showFirstTermDoc();
-    }
-
-    @Override
-    public void displayLatestDoc() {
-      int docid = documentsModel.getMaxDoc() - 1;
-      showDoc(docid);
-    }
-
-    @Override
-    public void displayDoc(int docid) { showDoc(docid); };
-
-    private void showDoc(int docid) {
-      docNumSpnr.setValue(docid);
-
-      List<DocumentField> doc = documentsModel.getDocumentFields(docid);
-      documentTable.setModel(new DocumentTableModel(doc));
-      documentTable.setFont(StyleConstants.FONT_MONOSPACE_LARGE);
-      documentTable.getColumnModel().getColumn(DocumentTableModel.Column.FIELD.getIndex()).setPreferredWidth(150);
-      documentTable.getColumnModel().getColumn(DocumentTableModel.Column.FLAGS.getIndex()).setMinWidth(240);
-      documentTable.getColumnModel().getColumn(DocumentTableModel.Column.FLAGS.getIndex()).setMaxWidth(240);
-      documentTable.getColumnModel().getColumn(DocumentTableModel.Column.NORM.getIndex()).setMinWidth(80);
-      documentTable.getColumnModel().getColumn(DocumentTableModel.Column.NORM.getIndex()).setMaxWidth(80);
-      documentTable.getColumnModel().getColumn(DocumentTableModel.Column.VALUE.getIndex()).setPreferredWidth(500);
-      documentTable.getColumnModel().getColumn(DocumentTableModel.Column.FLAGS.getIndex()).setHeaderRenderer(tableHeaderRenderer);
-
-      messageBroker.clearStatusMessage();
-    }
-
-    @Override
-    public void seekNextTerm() {
-      termDocIdxTF.setText("");
-      posTable.setModel(new PosTableModel());
-
-      String termText = termTF.getText();
-
-      String nextTermText = documentsModel.seekTerm(termText).map(Term::text).orElse("");
-      termTF.setText(nextTermText);
-      selectedTermTF.setText(nextTermText);
-      if (selectedTermTF.getText().length() > 0) {
-        String num = documentsModel.getDocFreq().map(String::valueOf).orElse("?");
-        termDocsNumLbl.setText("in " + num + " docs");
-
-        termTF.setEditable(true);
-        firstTermDocBtn.setEnabled(true);
-      } else {
-        nextTermBtn.setEnabled(false);
-        termTF.setEditable(false);
-        firstTermDocBtn.setEnabled(false);
-      }
-      nextTermDocBtn.setEnabled(false);
-      messageBroker.clearStatusMessage();
-    }
-
-    @Override
-    public void showFirstTermDoc() {
-      int docid = documentsModel.firstTermDoc().orElse(-1);
-      if (docid < 0) {
-        nextTermDocBtn.setEnabled(false);
-        messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("documents.termdocs.message.not_available"));
-        return;
-      }
-      termDocIdxTF.setText(String.valueOf(1));
-      operatorRegistry.get(DocumentsTabOperator.class).ifPresent(operator -> operator.displayDoc(docid));
-
-      List<TermPosting> postings = documentsModel.getTermPositions();
-      posTable.setModel(new PosTableModel(postings));
-      posTable.getColumnModel().getColumn(PosTableModel.Column.POSITION.getIndex()).setPreferredWidth(80);
-      posTable.getColumnModel().getColumn(PosTableModel.Column.OFFSETS.getIndex()).setPreferredWidth(120);
-      posTable.getColumnModel().getColumn(PosTableModel.Column.PAYLOAD.getIndex()).setPreferredWidth(170);
-
-      nextTermDocBtn.setEnabled(true);
-      messageBroker.clearStatusMessage();
-    }
-
-  }
-
   @Inject
   public DocumentsPanelProvider(DocumentsFactory documentsFactory,
                                 MessageBroker messageBroker,
@@ -522,10 +162,28 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
     this.tvDialogFactory = tvDialogFactory;
     this.dvDialogFactory = dvDialogFactory;
     this.valueDialogFactory = valueDialogFactory;
-    this.helpDialogFactory = helpDialogFactory;
+    this.tableHeaderRenderer = new HelpHeaderRenderer(
+        "About Flags", "Format: IdfpoNPSB#txxVDtxxxxTx/x",
+        createFlagsHelpDialog(), helpDialogFactory);
 
     indexHandler.addObserver(new Observer());
-    operatorRegistry.register(DocumentsTabOperator.class, new DocumentsTabOperatorImpl());
+    operatorRegistry.register(DocumentsTabOperator.class, this);
+  }
+
+  private JComponent createFlagsHelpDialog() {
+    String[] values = new String[]{
+        "I - index options(docs, frequencies, positions, offsets)",
+        "N - norms",
+        "P - payloads",
+        "S - stored",
+        "B - binary stored values",
+        "#txx - numeric stored values(type, precision)",
+        "V - term vectors",
+        "Dtxxxxx - doc values(type)",
+        "Tx/x - point values(num bytes/dimension)"
+    };
+    JList<String> list = new JList<>(values);
+    return new JScrollPane(list);
   }
 
   @Override
@@ -602,7 +260,7 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
     termTF.addActionListener(listeners::seekNextTerm);
     c.gridx = 1;
     c.gridy = 1;
-    c.insets = new Insets(5, 5,5, 5);
+    c.insets = new Insets(5, 5, 5, 5);
     c.weightx = 0.5;
     c.gridwidth = 1;
     center.add(termTF, c);
@@ -689,7 +347,8 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
     c.insets = new Insets(5, 5, 5, 5);
     center.add(termDocsNumLbl, c);
 
-    TableUtil.setupTable(posTable, ListSelectionModel.SINGLE_SELECTION, new PosTableModel(), null, 80, 120);
+    TableUtil.setupTable(posTable, ListSelectionModel.SINGLE_SELECTION, new PosTableModel(), null,
+        PosTableModel.Column.POSITION.getColumnWidth(), PosTableModel.Column.OFFSETS.getColumnWidth(), PosTableModel.Column.PAYLOAD.getColumnWidth());
     JScrollPane scrollPane = new JScrollPane(posTable);
     scrollPane.setMinimumSize(new Dimension(100, 100));
     c.gridx = 0;
@@ -722,11 +381,15 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
     panel.add(browseDocsPanel, BorderLayout.PAGE_START);
 
     TableUtil.setupTable(documentTable, ListSelectionModel.MULTIPLE_INTERVAL_SELECTION, new DocumentTableModel(), new MouseAdapter() {
-      @Override
-      public void mouseClicked(MouseEvent e) {
-        listeners.showDocumentContextMenu(e);
-      }
-    }, 150, 240, 80);
+          @Override
+          public void mouseClicked(MouseEvent e) {
+            listeners.showDocumentContextMenu(e);
+          }
+        },
+        DocumentTableModel.Column.FIELD.getColumnWidth(),
+        DocumentTableModel.Column.FLAGS.getColumnWidth(),
+        DocumentTableModel.Column.NORM.getColumnWidth(),
+        DocumentTableModel.Column.VALUE.getColumnWidth());
     JPanel flagsHeader = new JPanel(new FlowLayout(FlowLayout.CENTER));
     flagsHeader.add(new JLabel("Flags"));
     flagsHeader.add(new JLabel("Help"));
@@ -738,23 +401,6 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
 
     return panel;
   }
-
-  private JComponent createFlagsHelpDialog() {
-    String[] values = new String[]{
-        "I - index options(docs, frequencies, positions, offsets)",
-        "N - norms",
-        "P - payloads",
-        "S - stored",
-        "B - binary stored values",
-        "#txx - numeric stored values(type, precision)",
-        "V - term vectors",
-        "Dtxxxxx - doc values(type)",
-        "Tx/x - point values(num bytes/dimension)"
-    };
-    JList<String> list = new JList<>(values);
-    return new JScrollPane(list);
-  }
-
 
   private JPanel createBrowseDocsBar() {
     JPanel panel = new JPanel(new GridLayout(1, 2));
@@ -816,32 +462,413 @@ public class DocumentsPanelProvider implements Provider<JPanel> {
     documentContextMenu.add(item4);
   }
 
-  public interface DocumentsTabOperator extends ComponentOperatorRegistry.ComponentOperator {
-    void browseTerm(String field, String term);
-    void displayLatestDoc();
-    void displayDoc(int donid);
-    void seekNextTerm();
-    void showFirstTermDoc();
+  // control methods
+
+  private void showFirstTerm() {
+    String fieldName = (String) fieldsCombo.getSelectedItem();
+    if (fieldName == null || fieldName.length() == 0) {
+      messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("documents.field.message.not_selected"));
+      return;
+    }
+
+    termDocIdxTF.setText("");
+    clearPosTable();
+
+    String firstTermText = documentsModel.firstTerm(fieldName).map(Term::text).orElse("");
+    termTF.setText(firstTermText);
+    selectedTermTF.setText(firstTermText);
+    if (selectedTermTF.getText().length() > 0) {
+      String num = documentsModel.getDocFreq().map(String::valueOf).orElse("?");
+      termDocsNumLbl.setText("in " + num + " docs");
+
+      nextTermBtn.setEnabled(true);
+      termTF.setEditable(true);
+      firstTermDocBtn.setEnabled(true);
+    } else {
+      nextTermBtn.setEnabled(false);
+      termTF.setEditable(false);
+      firstTermDocBtn.setEnabled(false);
+    }
+    nextTermDocBtn.setEnabled(false);
+    messageBroker.clearStatusMessage();
+  }
+
+  private void showNextTerm() {
+    termDocIdxTF.setText("");
+    clearPosTable();
+
+    String nextTermText = documentsModel.nextTerm().map(Term::text).orElse("");
+    termTF.setText(nextTermText);
+    selectedTermTF.setText(nextTermText);
+    if (selectedTermTF.getText().length() > 0) {
+      String num = documentsModel.getDocFreq().map(String::valueOf).orElse("?");
+      termDocsNumLbl.setText("in " + num + " docs");
+
+      termTF.setEditable(true);
+      firstTermDocBtn.setEnabled(true);
+    } else {
+      nextTermBtn.setEnabled(false);
+      termTF.setEditable(false);
+      firstTermDocBtn.setEnabled(false);
+    }
+    nextTermDocBtn.setEnabled(false);
+    messageBroker.clearStatusMessage();
+  }
+
+  @Override
+  public void seekNextTerm() {
+    termDocIdxTF.setText("");
+    posTable.setModel(new PosTableModel());
+
+    String termText = termTF.getText();
+
+    String nextTermText = documentsModel.seekTerm(termText).map(Term::text).orElse("");
+    termTF.setText(nextTermText);
+    selectedTermTF.setText(nextTermText);
+    if (selectedTermTF.getText().length() > 0) {
+      String num = documentsModel.getDocFreq().map(String::valueOf).orElse("?");
+      termDocsNumLbl.setText("in " + num + " docs");
+
+      termTF.setEditable(true);
+      firstTermDocBtn.setEnabled(true);
+    } else {
+      nextTermBtn.setEnabled(false);
+      termTF.setEditable(false);
+      firstTermDocBtn.setEnabled(false);
+    }
+    nextTermDocBtn.setEnabled(false);
+    messageBroker.clearStatusMessage();
+  }
+
+
+  private void clearPosTable() {
+    TableUtil.setupTable(posTable, ListSelectionModel.SINGLE_SELECTION, new PosTableModel(), null,
+        PosTableModel.Column.POSITION.getColumnWidth(),
+        PosTableModel.Column.OFFSETS.getColumnWidth(),
+        PosTableModel.Column.PAYLOAD.getColumnWidth());
+  }
+
+  @Override
+  public void showFirstTermDoc() {
+    int docid = documentsModel.firstTermDoc().orElse(-1);
+    if (docid < 0) {
+      nextTermDocBtn.setEnabled(false);
+      messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("documents.termdocs.message.not_available"));
+      return;
+    }
+    termDocIdxTF.setText(String.valueOf(1));
+    displayDoc(docid);
+
+    List<TermPosting> postings = documentsModel.getTermPositions();
+    posTable.setModel(new PosTableModel(postings));
+    posTable.getColumnModel().getColumn(PosTableModel.Column.POSITION.getIndex()).setPreferredWidth(PosTableModel.Column.POSITION.getColumnWidth());
+    posTable.getColumnModel().getColumn(PosTableModel.Column.OFFSETS.getIndex()).setPreferredWidth(PosTableModel.Column.OFFSETS.getColumnWidth());
+    posTable.getColumnModel().getColumn(PosTableModel.Column.PAYLOAD.getIndex()).setPreferredWidth(PosTableModel.Column.PAYLOAD.getColumnWidth());
+
+    nextTermDocBtn.setEnabled(true);
+    messageBroker.clearStatusMessage();
+  }
+
+  private void showNextTermDoc() {
+    int docid = documentsModel.nextTermDoc().orElse(-1);
+    if (docid < 0) {
+      nextTermDocBtn.setEnabled(false);
+      messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("documents.termdocs.message.not_available"));
+      return;
+    }
+    int curIdx = Integer.parseInt(termDocIdxTF.getText());
+    termDocIdxTF.setText(String.valueOf(curIdx + 1));
+    displayDoc(docid);
+
+    List<TermPosting> postings = documentsModel.getTermPositions();
+    posTable.setModel(new PosTableModel(postings));
+
+    nextTermDocBtn.setDefaultCapable(true);
+    messageBroker.clearStatusMessage();
+  }
+
+  private void showCurrentDoc() {
+    int docid = (Integer) docNumSpnr.getValue();
+    displayDoc(docid);
+  }
+
+  private void mltSearch() {
+    int docNum = (int) docNumSpnr.getValue();
+    operatorRegistry.get(SearchTabOperator.class).ifPresent(operator -> {
+      operator.mltSearch(docNum);
+      tabSwitcher.switchTab(TabbedPaneProvider.Tab.SEARCH);
+    });
+  }
+
+  private void showAddDocumentDialog() {
+    new DialogOpener<>(addDocDialogFactory).open("Add document", 600, 500,
+        (factory) -> {
+        });
+  }
+
+  private void showTermVectorDialog() {
+    int docid = (Integer) docNumSpnr.getValue();
+    String field = (String) documentTable.getModel().getValueAt(documentTable.getSelectedRow(), DocumentTableModel.Column.FIELD.getIndex());
+    List<TermVectorEntry> tvEntries = documentsModel.getTermVectors(docid, field);
+    if (tvEntries.isEmpty()) {
+      messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("documents.termvector.message.not_available", field, docid));
+      return;
+    }
+
+    new DialogOpener<>(tvDialogFactory).open(
+        "Term Vector", 400, 300,
+        (factory) -> {
+          factory.setField(field);
+          factory.setTvEntries(tvEntries);
+        });
+    messageBroker.clearStatusMessage();
+  }
+
+  private void showDocValuesDialog() {
+    int docid = (Integer) docNumSpnr.getValue();
+    String field = (String) documentTable.getModel().getValueAt(documentTable.getSelectedRow(), DocumentTableModel.Column.FIELD.getIndex());
+    Optional<DocValues> docValues = documentsModel.getDocValues(docid, field);
+    if (docValues.isPresent()) {
+      new DialogOpener<>(dvDialogFactory).open(
+          "Doc Values", 400, 300,
+          (factory) -> {
+            factory.setValue(field, docValues.get());
+          });
+      messageBroker.clearStatusMessage();
+    } else {
+      messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("documents.docvalues.message.not_available", field, docid));
+    }
+  }
+
+  private void showStoredValueDialog() {
+    int docid = (Integer) docNumSpnr.getValue();
+    String field = (String) documentTable.getModel().getValueAt(documentTable.getSelectedRow(), DocumentTableModel.Column.FIELD.getIndex());
+    String value = (String) documentTable.getModel().getValueAt(documentTable.getSelectedRow(), DocumentTableModel.Column.VALUE.getIndex());
+    if (Objects.isNull(value)) {
+      messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("documents.stored.message.not_availabe", field, docid));
+      return;
+    }
+    new DialogOpener<>(valueDialogFactory).open(
+        "Stored Value", 400, 300,
+        (factory) -> {
+          factory.setField(field);
+          factory.setValue(value);
+        });
+    messageBroker.clearStatusMessage();
+  }
+
+  private void copyStoredValue() {
+    int docid = (Integer) docNumSpnr.getValue();
+    String field = (String) documentTable.getModel().getValueAt(documentTable.getSelectedRow(), DocumentTableModel.Column.FIELD.getIndex());
+    String value = (String) documentTable.getModel().getValueAt(documentTable.getSelectedRow(), DocumentTableModel.Column.VALUE.getIndex());
+    if (Objects.isNull(value)) {
+      messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("documents.stored.message.not_availabe", field, docid));
+      return;
+    }
+    Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+    StringSelection selection = new StringSelection(value);
+    clipboard.setContents(selection, null);
+    messageBroker.clearStatusMessage();
+  }
+
+  private void copySelectedOrAllStoredValues() {
+    StringSelection selection;
+    if (documentTable.getSelectedRowCount() == 0) {
+      selection = copyAllValues();
+    } else {
+      selection = copySelectedValues();
+    }
+    Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+    clipboard.setContents(selection, null);
+    messageBroker.clearStatusMessage();
+  }
+
+  private StringSelection copyAllValues() {
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < documentTable.getRowCount(); i++) {
+      String value = (String) documentTable.getModel().getValueAt(i, DocumentTableModel.Column.VALUE.getIndex());
+      if (Objects.nonNull(value)) {
+        sb.append((i == 0) ? value : System.lineSeparator() + value);
+      }
+    }
+    return new StringSelection(sb.toString());
+  }
+
+  private StringSelection copySelectedValues() {
+    StringBuilder sb = new StringBuilder();
+    boolean isFirst = true;
+    for (int rowIndex : documentTable.getSelectedRows()) {
+      String value = (String) documentTable.getModel().getValueAt(rowIndex, DocumentTableModel.Column.VALUE.getIndex());
+      if (Objects.nonNull(value)) {
+        sb.append(isFirst ? value : System.lineSeparator() + value);
+        isFirst = false;
+      }
+    }
+    return new StringSelection(sb.toString());
+  }
+
+  @Override
+  public void browseTerm(String field, String term) {
+    fieldsCombo.setSelectedItem(field);
+    termTF.setText(term);
+    seekNextTerm();
+    showFirstTermDoc();
+  }
+
+  @Override
+  public void displayLatestDoc() {
+    int docid = documentsModel.getMaxDoc() - 1;
+    showDoc(docid);
+  }
+
+  @Override
+  public void displayDoc(int docid) {
+    showDoc(docid);
+  }
+
+  ;
+
+  private void showDoc(int docid) {
+    docNumSpnr.setValue(docid);
+
+    List<DocumentField> doc = documentsModel.getDocumentFields(docid);
+    documentTable.setModel(new DocumentTableModel(doc));
+    documentTable.setFont(StyleConstants.FONT_MONOSPACE_LARGE);
+    documentTable.getColumnModel().getColumn(DocumentTableModel.Column.FIELD.getIndex()).setPreferredWidth(DocumentTableModel.Column.FIELD.getColumnWidth());
+    documentTable.getColumnModel().getColumn(DocumentTableModel.Column.FLAGS.getIndex()).setMinWidth(DocumentTableModel.Column.FLAGS.getColumnWidth());
+    documentTable.getColumnModel().getColumn(DocumentTableModel.Column.FLAGS.getIndex()).setMaxWidth(DocumentTableModel.Column.FIELD.getColumnWidth());
+    documentTable.getColumnModel().getColumn(DocumentTableModel.Column.NORM.getIndex()).setMinWidth(DocumentTableModel.Column.NORM.getColumnWidth());
+    documentTable.getColumnModel().getColumn(DocumentTableModel.Column.NORM.getIndex()).setMaxWidth(DocumentTableModel.Column.NORM.getColumnWidth());
+    documentTable.getColumnModel().getColumn(DocumentTableModel.Column.VALUE.getIndex()).setPreferredWidth(DocumentTableModel.Column.VALUE.getColumnWidth());
+    documentTable.getColumnModel().getColumn(DocumentTableModel.Column.FLAGS.getIndex()).setHeaderRenderer(tableHeaderRenderer);
+
+    messageBroker.clearStatusMessage();
+  }
+
+  class ListenerFunctions {
+
+    void showFirstTerm(ActionEvent e) {
+      DocumentsPanelProvider.this.showFirstTerm();
+    }
+
+    void seekNextTerm(ActionEvent e) {
+      DocumentsPanelProvider.this.seekNextTerm();
+    }
+
+    void showNextTerm(ActionEvent e) {
+      DocumentsPanelProvider.this.showNextTerm();
+    }
+
+    void showFirstTermDoc(ActionEvent e) {
+      DocumentsPanelProvider.this.showFirstTermDoc();
+    }
+
+    void showNextTermDoc(ActionEvent e) {
+      DocumentsPanelProvider.this.showNextTermDoc();
+    }
+
+    void showCurrentDoc(ChangeEvent e) {
+      DocumentsPanelProvider.this.showCurrentDoc();
+    }
+
+    void mltSearch(ActionEvent e) {
+      DocumentsPanelProvider.this.mltSearch();
+    }
+
+    void showAddDocumentDialog(ActionEvent e) {
+      DocumentsPanelProvider.this.showAddDocumentDialog();
+    }
+
+    void showDocumentContextMenu(MouseEvent e) {
+      if (e.getClickCount() == 2 && !e.isConsumed()) {
+        int row = documentTable.rowAtPoint(e.getPoint());
+        if (row != documentTable.getSelectedRow()) {
+          documentTable.changeSelection(row, documentTable.getSelectedColumn(), false, false);
+        }
+        documentContextMenu.show(e.getComponent(), e.getX(), e.getY());
+      }
+    }
+
+    void showTermVectorDialog(ActionEvent e) {
+      DocumentsPanelProvider.this.showTermVectorDialog();
+    }
+
+    void showDocValuesDialog(ActionEvent e) {
+      DocumentsPanelProvider.this.showDocValuesDialog();
+    }
+
+    void showStoredValueDialog(ActionEvent e) {
+      DocumentsPanelProvider.this.showStoredValueDialog();
+    }
+
+    void copyStoredValue(ActionEvent e) {
+      DocumentsPanelProvider.this.copyStoredValue();
+    }
+
+    void copySelectedOrAllStoredValues(ActionEvent e) {
+      DocumentsPanelProvider.this.copySelectedOrAllStoredValues();
+    }
+
+  }
+
+  public class Observer implements IndexObserver {
+
+    @Override
+    public void openIndex(LukeState state) {
+      documentsModel = documentsFactory.newInstance(state.getIndexReader());
+
+      addDocBtn.setEnabled(!state.readOnly() && state.hasDirectoryReader());
+
+      int maxDoc = documentsModel.getMaxDoc();
+      maxDocsLbl.setText("in " + maxDoc + " docs");
+      if (maxDoc > 0) {
+        int max = Math.max(maxDoc - 1, 0);
+        SpinnerModel spinnerModel = new SpinnerNumberModel(0, 0, max, 1);
+        docNumSpnr.setModel(spinnerModel);
+        docNumSpnr.setEnabled(true);
+        displayDoc(0);
+      } else {
+        docNumSpnr.setEnabled(false);
+      }
+
+      documentsModel.getFieldNames().stream().sorted().forEach(fieldsCombo::addItem);
+    }
+
+    @Override
+    public void closeIndex() {
+      maxDocsLbl.setText("in ? docs");
+      docNumSpnr.setEnabled(false);
+      fieldsCombo.removeAllItems();
+      termTF.setText("");
+      selectedTermTF.setText("");
+      termDocsNumLbl.setText("");
+      termDocIdxTF.setText("");
+
+      posTable.setModel(new PosTableModel());
+      documentTable.setModel(new DocumentTableModel());
+    }
   }
 
 }
 
-class PosTableModel extends AbstractTableModel {
+class PosTableModel extends TableModelBase<PosTableModel.Column> {
 
   enum Column implements TableColumnInfo {
 
-    POSITION("Position", 0, Integer.class),
-    OFFSETS("Offsets", 1, String.class),
-    PAYLOAD("Payload", 2, String.class);
+    POSITION("Position", 0, Integer.class, 80),
+    OFFSETS("Offsets", 1, String.class, 120),
+    PAYLOAD("Payload", 2, String.class, 300);
 
-    private String colName;
-    private int index;
-    private Class<?> type;
+    private final String colName;
+    private final int index;
+    private final Class<?> type;
+    private final int width;
 
-    Column(String colName, int index, Class<?> type) {
+    Column(String colName, int index, Class<?> type, int width) {
       this.colName = colName;
       this.index = index;
       this.type = type;
+      this.width = width;
     }
 
     @Override
@@ -858,20 +885,19 @@ class PosTableModel extends AbstractTableModel {
     public Class<?> getType() {
       return type;
     }
+
+    @Override
+    public int getColumnWidth() {
+      return width;
+    }
   }
 
-  private static final Map<Integer, Column> columnMap = TableUtil.columnMap(Column.values());
-
-  private final String[] colNames = TableUtil.columnNames(Column.values());
-
-  private final Object[][] data;
-
   PosTableModel() {
-    this.data = new Object[0][colNames.length];
+    super();
   }
 
   PosTableModel(List<TermPosting> postings) {
-    this.data = new Object[postings.size()][colNames.length];
+    super(postings.size());
 
     for (int i = 0; i < postings.size(); i++) {
       TermPosting p = postings.get(i);
@@ -886,58 +912,34 @@ class PosTableModel extends AbstractTableModel {
         payload = BytesRefUtils.decode(p.getPayload());
       }
 
-      data[i] = new Object[]{ position, offset, payload };
+      data[i] = new Object[]{position, offset, payload};
     }
   }
 
   @Override
-  public int getRowCount() {
-    return data.length;
-  }
-
-  @Override
-  public int getColumnCount() {
-    return colNames.length;
-  }
-
-  @Override
-  public String getColumnName(int colIndex) {
-    if (columnMap.containsKey(colIndex)) {
-      return columnMap.get(colIndex).colName;
-    }
-    return "";
-  }
-
-  @Override
-  public Class<?> getColumnClass(int colIndex) {
-    if (columnMap.containsKey(colIndex)) {
-      return columnMap.get(colIndex).type;
-    }
-    return Object.class;
-  }
-
-  @Override
-  public Object getValueAt(int rowIndex, int columnIndex) {
-    return data[rowIndex][columnIndex];
+  protected Column[] columnInfos() {
+    return Column.values();
   }
 }
 
-class DocumentTableModel extends AbstractTableModel {
+class DocumentTableModel extends TableModelBase<DocumentTableModel.Column> {
 
   enum Column implements TableColumnInfo {
-    FIELD("Field", 0, String.class),
-    FLAGS("Flags", 1, String.class),
-    NORM("Norm", 2, Long.class),
-    VALUE("Value", 3, String.class);
+    FIELD("Field", 0, String.class, 150),
+    FLAGS("Flags", 1, String.class, 200),
+    NORM("Norm", 2, Long.class, 80),
+    VALUE("Value", 3, String.class, 500);
 
-    private String colName;
-    private int index;
-    private Class<?> type;
+    private final String colName;
+    private final int index;
+    private final Class<?> type;
+    private final int width;
 
-    Column(String colName, int index, Class<?> type) {
+    Column(String colName, int index, Class<?> type, int width) {
       this.colName = colName;
       this.index = index;
       this.type = type;
+      this.width = width;
     }
 
     @Override
@@ -954,20 +956,19 @@ class DocumentTableModel extends AbstractTableModel {
     public Class<?> getType() {
       return type;
     }
+
+    @Override
+    public int getColumnWidth() {
+      return width;
+    }
   }
 
-  private static final Map<Integer, Column> columnMap = TableUtil.columnMap(Column.values());
-
-  private final String[] colNames = TableUtil.columnNames(Column.values());
-
-  private final Object[][] data;
-
   DocumentTableModel() {
-    this.data = new Object[0][colNames.length];
+    super();
   }
 
   DocumentTableModel(List<DocumentField> doc) {
-    this.data = new Object[doc.size()][colNames.length];
+    super(doc.size());
 
     for (int i = 0; i < doc.size(); i++) {
       DocumentField docField = doc.get(i);
@@ -982,39 +983,8 @@ class DocumentTableModel extends AbstractTableModel {
       } else if (docField.getBinaryValue() != null) {
         value = String.valueOf(docField.getBinaryValue());
       }
-      data[i] = new Object[]{ field, flags, norm, value };
+      data[i] = new Object[]{field, flags, norm, value};
     }
-  }
-
-  @Override
-  public int getRowCount() {
-    return data.length;
-  }
-
-  @Override
-  public int getColumnCount() {
-    return colNames.length;
-  }
-
-  @Override
-  public String getColumnName(int colIndex) {
-    if (columnMap.containsKey(colIndex)) {
-      return columnMap.get(colIndex).colName;
-    }
-    return "";
-  }
-
-  @Override
-  public Class<?> getColumnClass(int colIndex) {
-    if (columnMap.containsKey(colIndex)) {
-      return columnMap.get(colIndex).type;
-    }
-    return Object.class;
-  }
-
-  @Override
-  public Object getValueAt(int rowIndex, int columnIndex) {
-    return data[rowIndex][columnIndex];
   }
 
   private static String flags(org.apache.lucene.luke.models.documents.DocumentField f) {
@@ -1135,4 +1105,8 @@ class DocumentTableModel extends AbstractTableModel {
     return sb.toString();
   }
 
+  @Override
+  protected Column[] columnInfos() {
+    return Column.values();
+  }
 }

@@ -46,7 +46,7 @@ import java.awt.Insets;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-public class AnalyzerPaneProvider implements Provider<JScrollPane> {
+public class AnalyzerPaneProvider implements Provider<JScrollPane>, AnalyzerTabOperator {
 
   private final TabbedPaneProvider.TabSwitcherProxy tabSwitcher;
 
@@ -58,51 +58,12 @@ public class AnalyzerPaneProvider implements Provider<JScrollPane> {
 
   private final JList<String> tokenFilterList = new JList<>();
 
-  class AnalyzerTabOperatorImpl implements AnalyzerTabOperator {
-
-    @Override
-    public void setAnalyzer(Analyzer analyzer) {
-      analyzerNameLbl.setText(analyzer.getClass().getName());
-
-      if (analyzer instanceof CustomAnalyzer) {
-        CustomAnalyzer customAnalyzer = (CustomAnalyzer) analyzer;
-
-        DefaultListModel<String> charFilterListModel = new DefaultListModel<>();
-        customAnalyzer.getCharFilterFactories().stream()
-            .map(f -> f.getClass().getSimpleName())
-            .forEach(charFilterListModel::addElement);
-        charFilterList.setModel(charFilterListModel);
-
-        tokenizerTF.setText(customAnalyzer.getTokenizerFactory().getClass().getSimpleName());
-
-        DefaultListModel<String> tokenFilterListModel = new DefaultListModel<>();
-        customAnalyzer.getTokenFilterFactories().stream()
-            .map(f -> f.getClass().getSimpleName())
-            .forEach(tokenFilterListModel::addElement);
-        tokenFilterList.setModel(tokenFilterListModel);
-
-        charFilterList.setBackground(Color.white);
-        tokenizerTF.setBackground(Color.white);
-        tokenFilterList.setBackground(Color.white);
-      } else {
-        charFilterList.setModel(new DefaultListModel<>());
-        tokenizerTF.setText("");
-        tokenFilterList.setModel(new DefaultListModel<>());
-
-        charFilterList.setBackground(Color.lightGray);
-        tokenizerTF.setBackground(Color.lightGray);
-        tokenFilterList.setBackground(Color.lightGray);
-      }
-    }
-
-  }
-
   @Inject
   public AnalyzerPaneProvider(TabbedPaneProvider.TabSwitcherProxy tabSwitcher,
                               ComponentOperatorRegistry operatorRegistry) {
     this.tabSwitcher = tabSwitcher;
 
-    operatorRegistry.register(AnalyzerTabOperator.class, new AnalyzerTabOperatorImpl());
+    operatorRegistry.register(AnalyzerTabOperator.class, this);
   }
 
   @Override
@@ -194,7 +155,40 @@ public class AnalyzerPaneProvider implements Provider<JScrollPane> {
     return panel;
   }
 
-  public interface AnalyzerTabOperator extends ComponentOperatorRegistry.ComponentOperator {
-    void setAnalyzer(Analyzer analyzer);
+  @Override
+  public void setAnalyzer(Analyzer analyzer) {
+    analyzerNameLbl.setText(analyzer.getClass().getName());
+
+    if (analyzer instanceof CustomAnalyzer) {
+      CustomAnalyzer customAnalyzer = (CustomAnalyzer) analyzer;
+
+      DefaultListModel<String> charFilterListModel = new DefaultListModel<>();
+      customAnalyzer.getCharFilterFactories().stream()
+          .map(f -> f.getClass().getSimpleName())
+          .forEach(charFilterListModel::addElement);
+      charFilterList.setModel(charFilterListModel);
+
+      tokenizerTF.setText(customAnalyzer.getTokenizerFactory().getClass().getSimpleName());
+
+      DefaultListModel<String> tokenFilterListModel = new DefaultListModel<>();
+      customAnalyzer.getTokenFilterFactories().stream()
+          .map(f -> f.getClass().getSimpleName())
+          .forEach(tokenFilterListModel::addElement);
+      tokenFilterList.setModel(tokenFilterListModel);
+
+      charFilterList.setBackground(Color.white);
+      tokenizerTF.setBackground(Color.white);
+      tokenFilterList.setBackground(Color.white);
+    } else {
+      charFilterList.setModel(new DefaultListModel<>());
+      tokenizerTF.setText("");
+      tokenFilterList.setModel(new DefaultListModel<>());
+
+      charFilterList.setBackground(Color.lightGray);
+      tokenizerTF.setBackground(Color.lightGray);
+      tokenFilterList.setBackground(Color.lightGray);
+    }
   }
+
+
 }

@@ -18,9 +18,10 @@
 package org.apache.lucene.luke.app.desktop.components.dialog.documents;
 
 import org.apache.lucene.luke.app.desktop.components.TableColumnInfo;
+import org.apache.lucene.luke.app.desktop.components.TableModelBase;
 import org.apache.lucene.luke.app.desktop.util.DialogOpener;
-import org.apache.lucene.luke.app.desktop.util.TableUtil;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
+import org.apache.lucene.luke.app.desktop.util.TableUtil;
 import org.apache.lucene.luke.models.documents.TermVectorEntry;
 
 import javax.swing.BorderFactory;
@@ -31,7 +32,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
-import javax.swing.table.AbstractTableModel;
 import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.awt.Dimension;
@@ -39,7 +39,6 @@ import java.awt.FlowLayout;
 import java.awt.Insets;
 import java.awt.Window;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -97,7 +96,7 @@ public class TermVectorDialogFactory implements DialogOpener.DialogFactory {
   }
 }
 
-class TermVectorTableModel extends AbstractTableModel {
+class TermVectorTableModel extends TableModelBase<TermVectorTableModel.Column> {
 
   enum Column implements TableColumnInfo {
 
@@ -132,18 +131,12 @@ class TermVectorTableModel extends AbstractTableModel {
     }
   }
 
-  private static final Map<Integer, Column> columnMap = TableUtil.columnMap(Column.values());
-
-  private final String[] colNames = TableUtil.columnNames(Column.values());
-
-  private final Object[][] data;
-
   TermVectorTableModel() {
-    this.data = new Object[0][colNames.length];
+    super();
   }
 
   TermVectorTableModel(List<TermVectorEntry> tvEntries) {
-    this.data = new Object[tvEntries.size()][colNames.length];
+    super(tvEntries.size());
 
     for (int i = 0; i < tvEntries.size(); i++) {
       TermVectorEntry entry = tvEntries.get(i);
@@ -161,39 +154,13 @@ class TermVectorTableModel extends AbstractTableModel {
               .collect(Collectors.toList())
       );
 
-      data[i] = new Object[]{ termText, freq, positions, offsets };
+      data[i] = new Object[]{termText, freq, positions, offsets};
     }
 
   }
 
   @Override
-  public int getRowCount() {
-    return data.length;
-  }
-
-  @Override
-  public int getColumnCount() {
-    return colNames.length;
-  }
-
-  @Override
-  public String getColumnName(int colIndex) {
-    if (columnMap.containsKey(colIndex)) {
-      return columnMap.get(colIndex).colName;
-    }
-    return "";
-  }
-
-  @Override
-  public Class<?> getColumnClass(int colIndex) {
-    if (columnMap.containsKey(colIndex)) {
-      return columnMap.get(colIndex).type;
-    }
-    return Object.class;
-  }
-
-  @Override
-  public Object getValueAt(int rowIndex, int columnIndex) {
-    return data[rowIndex][columnIndex];
+  protected Column[] columnInfos() {
+    return Column.values();
   }
 }

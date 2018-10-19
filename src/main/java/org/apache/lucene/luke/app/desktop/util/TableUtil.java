@@ -78,6 +78,7 @@ public class TableUtil {
     return Arrays.stream(columns).collect(Collectors.toMap(T::getIndex, UnaryOperator.identity(), (e1, e2) -> e1, TreeMap::new));
   }
 
-  private TableUtil() {}
+  private TableUtil() {
+  }
 
 }

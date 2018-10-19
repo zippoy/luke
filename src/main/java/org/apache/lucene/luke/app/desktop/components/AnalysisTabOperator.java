@@ -17,26 +17,14 @@
 
 package org.apache.lucene.luke.app.desktop.components;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.luke.models.analysis.CustomAnalyzerConfig;
 
-public class ComponentOperatorRegistry {
+public interface AnalysisTabOperator extends ComponentOperatorRegistry.ComponentOperator {
+  void setAnalyzerByType(String analyzerType);
 
-  private final Map<Class<?>, Object> operators = new HashMap<>();
+  void setAnalyzerByCustomConfiguration(CustomAnalyzerConfig config);
 
-  public <T extends ComponentOperator> void register(Class<T> type, T operator) {
-    if (!operators.containsKey(type)) {
-      operators.put(type, operator);
-    }
-  }
-
-  @SuppressWarnings("unchecked")
-  public <T extends ComponentOperator> Optional<T> get(Class<T> type) {
-    return Optional.ofNullable((T) operators.get(type));
-  }
-
-  public interface ComponentOperator {
-  }
-
+  Analyzer getCurrentAnalyzer();
 }
+

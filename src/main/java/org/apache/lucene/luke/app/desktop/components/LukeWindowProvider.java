@@ -108,7 +108,8 @@ public class LukeWindowProvider implements Provider<JFrame> {
       messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("message.index_closed"));
     }
 
-    private Observer() {}
+    private Observer() {
+    }
   }
 
   public class MessageReceiverImpl implements MessageBroker.MessageReceiver {
@@ -128,7 +129,8 @@ public class LukeWindowProvider implements Provider<JFrame> {
       messageLbl.setText("");
     }
 
-    private MessageReceiverImpl() {}
+    private MessageReceiverImpl() {
+    }
 
   }
 

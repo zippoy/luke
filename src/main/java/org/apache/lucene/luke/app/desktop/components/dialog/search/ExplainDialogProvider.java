@@ -101,7 +101,7 @@ public class ExplainDialogProvider implements DialogOpener.DialogFactory {
     footer.add(copyBtn);
 
     JButton closeBtn = new JButton(MessageUtils.getLocalizedMessage("button.close"));
-    closeBtn.setMargin(new Insets(3, 3,3, 3));
+    closeBtn.setMargin(new Insets(3, 3, 3, 3));
     closeBtn.addActionListener(e -> dialog.dispose());
     footer.add(closeBtn);
     panel.add(footer, BorderLayout.PAGE_END);

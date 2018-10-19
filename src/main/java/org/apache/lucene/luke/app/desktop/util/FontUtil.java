@@ -34,6 +34,7 @@ public class FontUtil {
     return label;
   }
 
-  private FontUtil() {}
+  private FontUtil() {
+  }
 
 }

@@ -22,8 +22,9 @@ import com.google.inject.Provider;
 import org.apache.lucene.document.DateTools;
 import org.apache.lucene.luke.app.desktop.components.ComponentOperatorRegistry;
 import org.apache.lucene.luke.app.desktop.components.TableColumnInfo;
-import org.apache.lucene.luke.app.desktop.util.TableUtil;
+import org.apache.lucene.luke.app.desktop.components.TableModelBase;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
+import org.apache.lucene.luke.app.desktop.util.TableUtil;
 import org.apache.lucene.luke.models.search.QueryParserConfig;
 
 import javax.swing.BorderFactory;
@@ -41,7 +42,6 @@ import javax.swing.JSeparator;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
-import javax.swing.table.AbstractTableModel;
 import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
@@ -55,7 +55,7 @@ import java.util.TimeZone;
 
 import static org.apache.lucene.luke.app.desktop.components.fragments.search.PointRangeQueryTableModel.NumType.INT;
 
-public class QueryParserPaneProvider implements Provider<JScrollPane> {
+public class QueryParserPaneProvider implements Provider<JScrollPane>, QueryParserTabOperator {
 
   private final JRadioButton standardRB = new JRadioButton();
 
@@ -93,126 +93,9 @@ public class QueryParserPaneProvider implements Provider<JScrollPane> {
 
   private final QueryParserConfig config = new QueryParserConfig.Builder().build();
 
-  class ListenerFunctions {
-
-    void selectStandardQParser(ActionEvent e) {
-      splitWSCB.setEnabled(false);
-      genPhraseQueryCB.setEnabled(false);
-      genMultiTermSynonymsPhraseQueryCB.setEnabled(false);
-      TableUtil.setEnabled(pointRangeQueryTable, true);
-    }
-
-    void selectClassicQparser(ActionEvent e) {
-      splitWSCB.setEnabled(true);
-      if (splitWSCB.isSelected()) {
-        genPhraseQueryCB.setEnabled(true);
-      } else {
-        genPhraseQueryCB.setEnabled(false);
-        genPhraseQueryCB.setSelected(false);
-      }
-      genMultiTermSynonymsPhraseQueryCB.setEnabled(true);
-      pointRangeQueryTable.setEnabled(false);
-      pointRangeQueryTable.setForeground(Color.gray);
-      TableUtil.setEnabled(pointRangeQueryTable, false);
-    }
-
-    void toggleSplitOnWhiteSpace(ActionEvent e) {
-      if (splitWSCB.isSelected()) {
-        genPhraseQueryCB.setEnabled(true);
-      } else {
-        genPhraseQueryCB.setEnabled(false);
-        genPhraseQueryCB.setSelected(false);
-      }
-    }
-
-  }
-
-  class QueryParserTabOperatorImpl implements QueryParserTabOperator {
-    @Override
-    public void setSearchableFields(Collection<String> searchableFields) {
-      for (String field : searchableFields) {
-        dfCB.addItem(field);
-      }
-    }
-
-    @Override
-    public void setRangeSearchableFields(Collection<String> rangeSearchableFields) {
-      pointRangeQueryTable.setModel(new PointRangeQueryTableModel(rangeSearchableFields));
-      pointRangeQueryTable.setShowGrid(true);
-      String[] numTypes = Arrays.stream(PointRangeQueryTableModel.NumType.values())
-          .map(PointRangeQueryTableModel.NumType::name)
-          .toArray(String[]::new);
-      JComboBox<String> numTypesCombo = new JComboBox<>(numTypes);
-      numTypesCombo.setRenderer((list, value, index, isSelected, cellHasFocus) -> new JLabel(value));
-      pointRangeQueryTable.getColumnModel().getColumn(PointRangeQueryTableModel.Column.TYPE.getIndex()).setCellEditor(new DefaultCellEditor(numTypesCombo));
-      pointRangeQueryTable.getColumnModel().getColumn(PointRangeQueryTableModel.Column.TYPE.getIndex()).setCellRenderer(
-          (table, value, isSelected, hasFocus, row, column) -> new JLabel((String)value)
-      );
-      pointRangeQueryTable.getColumnModel().getColumn(PointRangeQueryTableModel.Column.FIELD.getIndex()).setPreferredWidth(300);
-      pointRangeQueryTable.setPreferredScrollableViewportSize(pointRangeQueryTable.getPreferredSize());
-
-      // set default type to Integer
-      for (int i = 0; i < rangeSearchableFields.size(); i++) {
-        pointRangeQueryTable.setValueAt(INT.name(), i, PointRangeQueryTableModel.Column.TYPE.getIndex());
-      }
-
-    }
-
-    @Override
-    public QueryParserConfig getConfig() {
-      int phraseSlop = (int)slopFTF.getValue();
-      float fuzzyMinSimFloat = (float)minSimFTF.getValue();
-      int fuzzyPrefLenInt = (int)prefLenFTF.getValue();
-
-      Map<String, Class<? extends Number>> typeMap = new HashMap<>();
-      for (int row = 0; row < pointRangeQueryTable.getModel().getRowCount(); row++) {
-        String field = (String)pointRangeQueryTable.getValueAt(row, PointRangeQueryTableModel.Column.FIELD.getIndex());
-        String type = (String)pointRangeQueryTable.getValueAt(row, PointRangeQueryTableModel.Column.TYPE.getIndex());
-        switch (PointRangeQueryTableModel.NumType.valueOf(type)) {
-          case INT:
-            typeMap.put(field, Integer.class);
-            break;
-          case LONG:
-            typeMap.put(field, Long.class);
-            break;
-          case FLOAT:
-            typeMap.put(field, Float.class);
-            break;
-          case DOUBLE:
-            typeMap.put(field, Double.class);
-            break;
-          default:
-            break;
-        }
-      }
-
-      return new QueryParserConfig.Builder()
-          .useClassicParser(classicRB.isSelected())
-          .defaultOperator(QueryParserConfig.Operator.valueOf((String)defOpCombo.getSelectedItem()))
-          .enablePositionIncrements(posIncCB.isSelected())
-          .allowLeadingWildcard(wildCardCB.isSelected())
-          .splitOnWhitespace(splitWSCB.isSelected())
-          .autoGeneratePhraseQueries(genPhraseQueryCB.isSelected())
-          .autoGenerateMultiTermSynonymsPhraseQuery(genMultiTermSynonymsPhraseQueryCB.isSelected())
-          .phraseSlop(phraseSlop)
-          .fuzzyMinSim(fuzzyMinSimFloat)
-          .fuzzyPrefixLength(fuzzyPrefLenInt)
-          .dateResolution(DateTools.Resolution.valueOf((String)dateResCombo.getSelectedItem()))
-          .locale(new Locale(locationTF.getText()))
-          .timeZone(TimeZone.getTimeZone(timezoneTF.getText()))
-          .typeMap(typeMap)
-          .build();
-    }
-
-    @Override
-    public String getDefaultField() {
-      return (String)dfCB.getSelectedItem();
-    }
-  }
-
   @Inject
   public QueryParserPaneProvider(ComponentOperatorRegistry operatorRegistry) {
-    operatorRegistry.register(QueryParserTabOperator.class, new QueryParserTabOperatorImpl());
+    operatorRegistry.register(QueryParserTabOperator.class, this);
   }
 
   @Override
@@ -401,7 +284,7 @@ public class QueryParserPaneProvider implements Provider<JScrollPane> {
     headerNote.add(new JLabel(MessageUtils.getLocalizedMessage("search_parser.label.pointrange_hint")));
     panel.add(headerNote);
 
-    TableUtil.setupTable(pointRangeQueryTable, ListSelectionModel.SINGLE_SELECTION, new PointRangeQueryTableModel(), null);
+    TableUtil.setupTable(pointRangeQueryTable, ListSelectionModel.SINGLE_SELECTION, new PointRangeQueryTableModel(), null, PointRangeQueryTableModel.Column.FIELD.getColumnWidth());
     pointRangeQueryTable.setShowGrid(true);
     JScrollPane scrollPane = new JScrollPane(pointRangeQueryTable);
     panel.add(scrollPane);
@@ -409,30 +292,141 @@ public class QueryParserPaneProvider implements Provider<JScrollPane> {
     return panel;
   }
 
-  public interface QueryParserTabOperator extends ComponentOperatorRegistry.ComponentOperator {
-    void setSearchableFields(Collection<String> searchableFields);
-    void setRangeSearchableFields(Collection<String> rangeSearchableFields);
-    QueryParserConfig getConfig();
-    String getDefaultField();
+  @Override
+  public void setSearchableFields(Collection<String> searchableFields) {
+    for (String field : searchableFields) {
+      dfCB.addItem(field);
+    }
   }
+
+  @Override
+  public void setRangeSearchableFields(Collection<String> rangeSearchableFields) {
+    pointRangeQueryTable.setModel(new PointRangeQueryTableModel(rangeSearchableFields));
+    pointRangeQueryTable.setShowGrid(true);
+    String[] numTypes = Arrays.stream(PointRangeQueryTableModel.NumType.values())
+        .map(PointRangeQueryTableModel.NumType::name)
+        .toArray(String[]::new);
+    JComboBox<String> numTypesCombo = new JComboBox<>(numTypes);
+    numTypesCombo.setRenderer((list, value, index, isSelected, cellHasFocus) -> new JLabel(value));
+    pointRangeQueryTable.getColumnModel().getColumn(PointRangeQueryTableModel.Column.TYPE.getIndex()).setCellEditor(new DefaultCellEditor(numTypesCombo));
+    pointRangeQueryTable.getColumnModel().getColumn(PointRangeQueryTableModel.Column.TYPE.getIndex()).setCellRenderer(
+        (table, value, isSelected, hasFocus, row, column) -> new JLabel((String) value)
+    );
+    pointRangeQueryTable.getColumnModel().getColumn(PointRangeQueryTableModel.Column.FIELD.getIndex()).setPreferredWidth(PointRangeQueryTableModel.Column.FIELD.getColumnWidth());
+    pointRangeQueryTable.setPreferredScrollableViewportSize(pointRangeQueryTable.getPreferredSize());
+
+    // set default type to Integer
+    for (int i = 0; i < rangeSearchableFields.size(); i++) {
+      pointRangeQueryTable.setValueAt(INT.name(), i, PointRangeQueryTableModel.Column.TYPE.getIndex());
+    }
+
+  }
+
+  @Override
+  public QueryParserConfig getConfig() {
+    int phraseSlop = (int) slopFTF.getValue();
+    float fuzzyMinSimFloat = (float) minSimFTF.getValue();
+    int fuzzyPrefLenInt = (int) prefLenFTF.getValue();
+
+    Map<String, Class<? extends Number>> typeMap = new HashMap<>();
+    for (int row = 0; row < pointRangeQueryTable.getModel().getRowCount(); row++) {
+      String field = (String) pointRangeQueryTable.getValueAt(row, PointRangeQueryTableModel.Column.FIELD.getIndex());
+      String type = (String) pointRangeQueryTable.getValueAt(row, PointRangeQueryTableModel.Column.TYPE.getIndex());
+      switch (PointRangeQueryTableModel.NumType.valueOf(type)) {
+        case INT:
+          typeMap.put(field, Integer.class);
+          break;
+        case LONG:
+          typeMap.put(field, Long.class);
+          break;
+        case FLOAT:
+          typeMap.put(field, Float.class);
+          break;
+        case DOUBLE:
+          typeMap.put(field, Double.class);
+          break;
+        default:
+          break;
+      }
+    }
+
+    return new QueryParserConfig.Builder()
+        .useClassicParser(classicRB.isSelected())
+        .defaultOperator(QueryParserConfig.Operator.valueOf((String) defOpCombo.getSelectedItem()))
+        .enablePositionIncrements(posIncCB.isSelected())
+        .allowLeadingWildcard(wildCardCB.isSelected())
+        .splitOnWhitespace(splitWSCB.isSelected())
+        .autoGeneratePhraseQueries(genPhraseQueryCB.isSelected())
+        .autoGenerateMultiTermSynonymsPhraseQuery(genMultiTermSynonymsPhraseQueryCB.isSelected())
+        .phraseSlop(phraseSlop)
+        .fuzzyMinSim(fuzzyMinSimFloat)
+        .fuzzyPrefixLength(fuzzyPrefLenInt)
+        .dateResolution(DateTools.Resolution.valueOf((String) dateResCombo.getSelectedItem()))
+        .locale(new Locale(locationTF.getText()))
+        .timeZone(TimeZone.getTimeZone(timezoneTF.getText()))
+        .typeMap(typeMap)
+        .build();
+  }
+
+  @Override
+  public String getDefaultField() {
+    return (String) dfCB.getSelectedItem();
+  }
+
+  class ListenerFunctions {
+
+    void selectStandardQParser(ActionEvent e) {
+      splitWSCB.setEnabled(false);
+      genPhraseQueryCB.setEnabled(false);
+      genMultiTermSynonymsPhraseQueryCB.setEnabled(false);
+      TableUtil.setEnabled(pointRangeQueryTable, true);
+    }
+
+    void selectClassicQparser(ActionEvent e) {
+      splitWSCB.setEnabled(true);
+      if (splitWSCB.isSelected()) {
+        genPhraseQueryCB.setEnabled(true);
+      } else {
+        genPhraseQueryCB.setEnabled(false);
+        genPhraseQueryCB.setSelected(false);
+      }
+      genMultiTermSynonymsPhraseQueryCB.setEnabled(true);
+      pointRangeQueryTable.setEnabled(false);
+      pointRangeQueryTable.setForeground(Color.gray);
+      TableUtil.setEnabled(pointRangeQueryTable, false);
+    }
+
+    void toggleSplitOnWhiteSpace(ActionEvent e) {
+      if (splitWSCB.isSelected()) {
+        genPhraseQueryCB.setEnabled(true);
+      } else {
+        genPhraseQueryCB.setEnabled(false);
+        genPhraseQueryCB.setSelected(false);
+      }
+    }
+
+  }
+
 
 }
 
-class PointRangeQueryTableModel extends AbstractTableModel {
+class PointRangeQueryTableModel extends TableModelBase<PointRangeQueryTableModel.Column> {
 
   enum Column implements TableColumnInfo {
 
-    FIELD("Field", 0, String.class),
-    TYPE("Numeric Type", 1, NumType.class);
+    FIELD("Field", 0, String.class, 300),
+    TYPE("Numeric Type", 1, NumType.class, 150);
 
-    private String colName;
-    private int index;
-    private Class<?> type;
+    private final String colName;
+    private final int index;
+    private final Class<?> type;
+    private final int width;
 
-    Column(String colName, int index, Class<?> type) {
+    Column(String colName, int index, Class<?> type, int width) {
       this.colName = colName;
       this.index = index;
       this.type = type;
+      this.width = width;
     }
 
     @Override
@@ -449,6 +443,11 @@ class PointRangeQueryTableModel extends AbstractTableModel {
     public Class<?> getType() {
       return type;
     }
+
+    @Override
+    public int getColumnWidth() {
+      return width;
+    }
   }
 
   enum NumType {
@@ -457,18 +456,12 @@ class PointRangeQueryTableModel extends AbstractTableModel {
 
   }
 
-  private static final Map<Integer, Column> columnMap = TableUtil.columnMap(Column.values());
-
-  private final String[] colNames = TableUtil.columnNames(Column.values());
-
-  private final Object[][] data;
-
   PointRangeQueryTableModel() {
-    this.data = new Object[0][colNames.length];
+    super();
   }
 
   PointRangeQueryTableModel(Collection<String> rangeSearchableFields) {
-    this.data = new Object[rangeSearchableFields.size()][colNames.length];
+    super(rangeSearchableFields.size());
     int i = 0;
     for (String field : rangeSearchableFields) {
       data[i++][Column.FIELD.getIndex()] = field;
@@ -476,48 +469,19 @@ class PointRangeQueryTableModel extends AbstractTableModel {
   }
 
   @Override
-  public int getRowCount() {
-    return data.length;
-  }
-
-  @Override
-  public int getColumnCount() {
-    return colNames.length;
-  }
-
-  @Override
-  public String getColumnName(int colIndex) {
-    if (columnMap.containsKey(colIndex)) {
-      return columnMap.get(colIndex).colName;
-    }
-    return "";
-  }
-
-  @Override
-  public Class<?> getColumnClass(int colIndex) {
-    if (columnMap.containsKey(colIndex)) {
-      return columnMap.get(colIndex).type;
-    }
-    return Object.class;
-  }
-
-  @Override
-  public Object getValueAt(int rowIndex, int columnIndex) {
-    return data[rowIndex][columnIndex];
-  }
-
-  @Override
   public boolean isCellEditable(int rowIndex, int columnIndex) {
-    if (columnIndex == Column.TYPE.getIndex()) {
-      return true;
-    }
-    return false;
+    return columnIndex == Column.TYPE.getIndex();
   }
 
   @Override
   public void setValueAt(Object value, int rowIndex, int columnIndex) {
     data[rowIndex][columnIndex] = value;
     fireTableCellUpdated(rowIndex, columnIndex);
+  }
+
+  @Override
+  protected Column[] columnInfos() {
+    return Column.values();
   }
 }
 

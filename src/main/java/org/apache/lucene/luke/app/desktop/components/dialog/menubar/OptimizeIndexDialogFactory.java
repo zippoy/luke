@@ -157,7 +157,7 @@ public class OptimizeIndexDialogFactory implements DialogOpener.DialogFactory {
   private JPanel content() {
     JPanel panel = new JPanel();
     panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
-    panel.setBorder(BorderFactory.createEmptyBorder(15,15, 15, 15));
+    panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
     panel.add(controller());
     panel.add(new JSeparator(JSeparator.HORIZONTAL));
@@ -208,7 +208,7 @@ public class OptimizeIndexDialogFactory implements DialogOpener.DialogFactory {
   private JPanel logs() {
     JPanel panel = new JPanel(new BorderLayout());
 
-    JPanel header = new JPanel(new GridLayout(2,1));
+    JPanel header = new JPanel(new GridLayout(2, 1));
     header.add(new JLabel(MessageUtils.getLocalizedMessage("optimize.label.note")));
     JPanel status = new JPanel(new FlowLayout(FlowLayout.LEADING));
     status.add(new JLabel(MessageUtils.getLocalizedMessage("optimize.label.status")));

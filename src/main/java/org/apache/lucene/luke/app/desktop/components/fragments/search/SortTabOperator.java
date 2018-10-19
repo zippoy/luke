@@ -15,28 +15,19 @@
  * limitations under the License.
  */
 
-package org.apache.lucene.luke.app.desktop.components;
+package org.apache.lucene.luke.app.desktop.components.fragments.search;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import org.apache.lucene.luke.app.desktop.components.ComponentOperatorRegistry;
+import org.apache.lucene.luke.models.search.Search;
+import org.apache.lucene.search.Sort;
 
-public class ComponentOperatorRegistry {
+import java.util.Collection;
 
-  private final Map<Class<?>, Object> operators = new HashMap<>();
+public interface SortTabOperator extends ComponentOperatorRegistry.ComponentOperator {
+  void setSearchModel(Search model);
 
-  public <T extends ComponentOperator> void register(Class<T> type, T operator) {
-    if (!operators.containsKey(type)) {
-      operators.put(type, operator);
-    }
-  }
+  void setSortableFields(Collection<String> sortableFields);
 
-  @SuppressWarnings("unchecked")
-  public <T extends ComponentOperator> Optional<T> get(Class<T> type) {
-    return Optional.ofNullable((T) operators.get(type));
-  }
-
-  public interface ComponentOperator {
-  }
-
+  Sort getSort();
 }
+

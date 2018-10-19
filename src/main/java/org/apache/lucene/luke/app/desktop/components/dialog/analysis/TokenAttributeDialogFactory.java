@@ -18,9 +18,10 @@
 package org.apache.lucene.luke.app.desktop.components.dialog.analysis;
 
 import org.apache.lucene.luke.app.desktop.components.TableColumnInfo;
+import org.apache.lucene.luke.app.desktop.components.TableModelBase;
 import org.apache.lucene.luke.app.desktop.util.DialogOpener;
-import org.apache.lucene.luke.app.desktop.util.TableUtil;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
+import org.apache.lucene.luke.app.desktop.util.TableUtil;
 import org.apache.lucene.luke.models.analysis.Analysis;
 
 import javax.swing.BorderFactory;
@@ -31,14 +32,12 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
-import javax.swing.table.AbstractTableModel;
 import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Window;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 public class TokenAttributeDialogFactory implements DialogOpener.DialogFactory {
@@ -94,7 +93,7 @@ public class TokenAttributeDialogFactory implements DialogOpener.DialogFactory {
 
 }
 
-class AttributeTableModel extends AbstractTableModel {
+class AttributeTableModel extends TableModelBase<AttributeTableModel.Column> {
 
   enum Column implements TableColumnInfo {
 
@@ -102,9 +101,9 @@ class AttributeTableModel extends AbstractTableModel {
     NAME("Name", 1, String.class),
     VALUE("Value", 2, String.class);
 
-    private String colName;
-    private int index;
-    private Class<?> type;
+    private final String colName;
+    private final int index;
+    private final Class<?> type;
 
     Column(String colName, int index, Class<?> type) {
       this.colName = colName;
@@ -128,14 +127,8 @@ class AttributeTableModel extends AbstractTableModel {
     }
   }
 
-  private static final Map<Integer, Column> columnMap = TableUtil.columnMap(Column.values());
-
-  private final String[] colNames = TableUtil.columnNames(Column.values());
-
-  private final Object[][] data;
-
   AttributeTableModel(List<TokenAttValue> attrValues) {
-    this.data = new Object[attrValues.size()][colNames.length];
+    super(attrValues.size());
     for (int i = 0; i < attrValues.size(); i++) {
       TokenAttValue attrValue = attrValues.get(i);
       data[i][Column.ATTR.getIndex()] = attrValue.getAttClass();
@@ -145,34 +138,8 @@ class AttributeTableModel extends AbstractTableModel {
   }
 
   @Override
-  public int getRowCount() {
-    return data.length;
-  }
-
-  @Override
-  public int getColumnCount() {
-    return colNames.length;
-  }
-
-  @Override
-  public String getColumnName(int colIndex) {
-    if (columnMap.containsKey(colIndex)) {
-      return columnMap.get(colIndex).colName;
-    }
-    return "";
-  }
-
-  @Override
-  public Class<?> getColumnClass(int colIndex) {
-    if (columnMap.containsKey(colIndex)) {
-      return columnMap.get(colIndex).type;
-    }
-    return Object.class;
-  }
-
-  @Override
-  public Object getValueAt(int rowIndex, int columnIndex) {
-    return data[rowIndex][columnIndex];
+  protected Column[] columnInfos() {
+    return Column.values();
   }
 }
 

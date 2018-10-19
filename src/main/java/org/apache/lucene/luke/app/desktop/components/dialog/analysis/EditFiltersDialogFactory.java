@@ -20,11 +20,12 @@ package org.apache.lucene.luke.app.desktop.components.dialog.analysis;
 import com.google.inject.Inject;
 import org.apache.lucene.luke.app.desktop.components.ComponentOperatorRegistry;
 import org.apache.lucene.luke.app.desktop.components.TableColumnInfo;
-import org.apache.lucene.luke.app.desktop.components.fragments.analysis.CustomAnalyzerPanelProvider;
+import org.apache.lucene.luke.app.desktop.components.TableModelBase;
+import org.apache.lucene.luke.app.desktop.components.fragments.analysis.CustomAnalyzerPanelOperator;
 import org.apache.lucene.luke.app.desktop.util.DialogOpener;
+import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 import org.apache.lucene.luke.app.desktop.util.TableUtil;
 import org.apache.lucene.luke.app.desktop.util.lang.Callable;
-import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -34,7 +35,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
-import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellRenderer;
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -95,8 +95,8 @@ public class EditFiltersDialogFactory implements DialogOpener.DialogFactory {
 
     private void showEditParamsCharFilterDialog(int selectedIndex) {
       int targetIndex = filtersTable.getSelectedRow();
-      String selectedItem = (String)filtersTable.getValueAt(selectedIndex, FiltersTableModel.Column.TYPE.getIndex());
-      Map<String, String> params = operatorRegistry.get(CustomAnalyzerPanelProvider.CustomAnalyzerPanelOperator.class).map(operator -> operator.getCharFilterParams(targetIndex)).orElse(Collections.emptyMap());
+      String selectedItem = (String) filtersTable.getValueAt(selectedIndex, FiltersTableModel.Column.TYPE.getIndex());
+      Map<String, String> params = operatorRegistry.get(CustomAnalyzerPanelOperator.class).map(operator -> operator.getCharFilterParams(targetIndex)).orElse(Collections.emptyMap());
       new DialogOpener<>(editParamsDialogFactory).open(dialog, MessageUtils.getLocalizedMessage("analysis.dialog.title.char_filter_params"), 400, 300,
           factory -> {
             factory.setMode(EditParamsDialogFactory.EditParamsMode.CHARFILTER);
@@ -108,8 +108,8 @@ public class EditFiltersDialogFactory implements DialogOpener.DialogFactory {
 
     private void showEditParamsTokenFilterDialog(int selectedIndex) {
       int targetIndex = filtersTable.getSelectedRow();
-      String selectedItem = (String)filtersTable.getValueAt(selectedIndex, FiltersTableModel.Column.TYPE.getIndex());
-      Map<String, String> params = operatorRegistry.get(CustomAnalyzerPanelProvider.CustomAnalyzerPanelOperator.class).map(operator -> operator.getTokenFilterParams(targetIndex)).orElse(Collections.emptyMap());
+      String selectedItem = (String) filtersTable.getValueAt(selectedIndex, FiltersTableModel.Column.TYPE.getIndex());
+      Map<String, String> params = operatorRegistry.get(CustomAnalyzerPanelOperator.class).map(operator -> operator.getTokenFilterParams(targetIndex)).orElse(Collections.emptyMap());
       new DialogOpener<>(editParamsDialogFactory).open(dialog, MessageUtils.getLocalizedMessage("analysis.dialog.title.char_filter_params"), 400, 300,
           factory -> {
             factory.setMode(EditParamsDialogFactory.EditParamsMode.TOKENFILTER);
@@ -164,7 +164,9 @@ public class EditFiltersDialogFactory implements DialogOpener.DialogFactory {
     header.add(targetLbl);
     panel.add(header, BorderLayout.PAGE_START);
 
-    TableUtil.setupTable(filtersTable, ListSelectionModel.SINGLE_SELECTION, new FiltersTableModel(selectedFilters), tableListener, 50, 50);
+    TableUtil.setupTable(filtersTable, ListSelectionModel.SINGLE_SELECTION, new FiltersTableModel(selectedFilters), tableListener,
+        FiltersTableModel.Column.DELETE.getColumnWidth(),
+        FiltersTableModel.Column.ORDER.getColumnWidth());
     filtersTable.setShowGrid(true);
     filtersTable.getColumnModel().getColumn(FiltersTableModel.Column.TYPE.getIndex()).setCellRenderer(new TypeCellRenderer());
     panel.add(new JScrollPane(filtersTable), BorderLayout.CENTER);
@@ -174,12 +176,12 @@ public class EditFiltersDialogFactory implements DialogOpener.DialogFactory {
     okBtn.addActionListener(e -> {
       List<Integer> deletedIndexes = new ArrayList<>();
       for (int i = 0; i < filtersTable.getRowCount(); i++) {
-        boolean deleted = (boolean)filtersTable.getValueAt(i, FiltersTableModel.Column.DELETE.getIndex());
+        boolean deleted = (boolean) filtersTable.getValueAt(i, FiltersTableModel.Column.DELETE.getIndex());
         if (deleted) {
           deletedIndexes.add(i);
         }
       }
-      operatorRegistry.get(CustomAnalyzerPanelProvider.CustomAnalyzerPanelOperator.class).ifPresent(operator -> {
+      operatorRegistry.get(CustomAnalyzerPanelOperator.class).ifPresent(operator -> {
         switch (mode) {
           case CHARFILTER:
             operator.updateCharFilters(deletedIndexes);
@@ -206,21 +208,23 @@ public class EditFiltersDialogFactory implements DialogOpener.DialogFactory {
   }
 }
 
-class FiltersTableModel extends AbstractTableModel  {
+class FiltersTableModel extends TableModelBase<FiltersTableModel.Column> {
 
   enum Column implements TableColumnInfo {
-    DELETE("Delete", 0, Boolean.class),
-    ORDER("Order", 1, Integer.class),
-    TYPE("Factory class", 2, String.class);
+    DELETE("Delete", 0, Boolean.class, 50),
+    ORDER("Order", 1, Integer.class, 50),
+    TYPE("Factory class", 2, String.class, Integer.MAX_VALUE);
 
-    private String colName;
-    private int index;
-    private Class<?> type;
+    private final String colName;
+    private final int index;
+    private final Class<?> type;
+    private final int width;
 
-    Column(String colName, int index, Class<?> type) {
+    Column(String colName, int index, Class<?> type, int width) {
       this.colName = colName;
       this.index = index;
       this.type = type;
+      this.width = width;
     }
 
     @Override
@@ -237,51 +241,24 @@ class FiltersTableModel extends AbstractTableModel  {
     public Class<?> getType() {
       return type;
     }
+
+    @Override
+    public int getColumnWidth() {
+      return width;
+    }
   }
 
-  private static final Map<Integer, Column> columnMap = TableUtil.columnMap(Column.values());
-
-  private final String[] colNames = TableUtil.columnNames(Column.values());
-
-  private final Object[][] data;
-
   FiltersTableModel() {
-    this.data = new Object[0][colNames.length];
+    super();
   }
 
   FiltersTableModel(List<String> selectedFilters) {
-    this.data = new Object[selectedFilters.size()][colNames.length];
+    super(selectedFilters.size());
     for (int i = 0; i < selectedFilters.size(); i++) {
       data[i][Column.DELETE.getIndex()] = false;
       data[i][Column.ORDER.getIndex()] = i + 1;
       data[i][Column.TYPE.getIndex()] = selectedFilters.get(i);
     }
-  }
-
-  @Override
-  public int getRowCount() {
-    return data.length;
-  }
-
-  @Override
-  public int getColumnCount() {
-    return colNames.length;
-  }
-
-  @Override
-  public String getColumnName(int colIndex) {
-    if (columnMap.containsKey(colIndex)) {
-      return columnMap.get(colIndex).colName;
-    }
-    return "";
-  }
-
-  @Override
-  public Class<?> getColumnClass(int colIndex) {
-    if (columnMap.containsKey(colIndex)) {
-      return columnMap.get(colIndex).type;
-    }
-    return Object.class;
   }
 
   @Override
@@ -293,9 +270,10 @@ class FiltersTableModel extends AbstractTableModel  {
   public void setValueAt(Object value, int rowIndex, int columnIndex) {
     data[rowIndex][columnIndex] = value;
   }
-    @Override
-  public Object getValueAt(int rowIndex, int columnIndex) {
-    return data[rowIndex][columnIndex];
+
+  @Override
+  protected Column[] columnInfos() {
+    return Column.values();
   }
 }
 
@@ -303,7 +281,7 @@ class TypeCellRenderer implements TableCellRenderer {
 
   @Override
   public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-    String[] tmp = ((String)value).split("\\.");
+    String[] tmp = ((String) value).split("\\.");
     String type = tmp[tmp.length - 1];
     return new JLabel(type);
   }

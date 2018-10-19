@@ -65,61 +65,6 @@ public class DocValuesDialogFactory implements DialogOpener.DialogFactory {
 
   private final ListenerFunctions listeners = new ListenerFunctions();
 
-  class ListenerFunctions {
-
-    void selectDecoder(ActionEvent e) {
-      String decoderLabel = (String) decodersCombo.getSelectedItem();
-      Decoder decoder = Decoder.fromLabel(decoderLabel);
-
-      if (docValues.getNumericValues().isEmpty()) {
-        return;
-      }
-
-      DefaultListModel<String> values = new DefaultListModel<>();
-      switch (decoder) {
-        case LONG:
-          docValues.getNumericValues().stream()
-              .map(String::valueOf)
-              .forEach(values::addElement);
-          break;
-        case FLOAT:
-          docValues.getNumericValues().stream()
-              .mapToInt(Long::intValue)
-              .mapToObj(NumericUtils::sortableIntToFloat)
-              .map(String::valueOf)
-              .forEach(values::addElement);
-          break;
-        case DOUBLE:
-          docValues.getNumericValues().stream()
-              .map(NumericUtils::sortableLongToDouble)
-              .map(String::valueOf)
-              .forEach(values::addElement);
-          break;
-      }
-
-      valueList.setModel(values);
-    }
-
-    void copyValues(ActionEvent e) {
-      List<String> values = valueList.getSelectedValuesList();
-      if (values.isEmpty()) {
-        values = getAllVlues();
-      }
-
-      Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-      StringSelection selection = new StringSelection(String.join("\n", values));
-      clipboard.setContents(selection, null);
-    }
-
-    private List<String> getAllVlues() {
-      List<String> values = new ArrayList<>();
-      for (int i = 0; i < valueList.getModel().getSize(); i++) {
-        values.add(valueList.getModel().getElementAt(i));
-      }
-      return values;
-    }
-  }
-
   @Override
   public JDialog create(Window owner, String title, int width, int height) {
     if (Objects.isNull(field) || Objects.isNull(docValues)) {
@@ -228,6 +173,72 @@ public class DocValuesDialogFactory implements DialogOpener.DialogFactory {
 
     return footer;
   }
+
+  // control methods
+
+  private void selectDecoder() {
+    String decoderLabel = (String) decodersCombo.getSelectedItem();
+    Decoder decoder = Decoder.fromLabel(decoderLabel);
+
+    if (docValues.getNumericValues().isEmpty()) {
+      return;
+    }
+
+    DefaultListModel<String> values = new DefaultListModel<>();
+    switch (decoder) {
+      case LONG:
+        docValues.getNumericValues().stream()
+            .map(String::valueOf)
+            .forEach(values::addElement);
+        break;
+      case FLOAT:
+        docValues.getNumericValues().stream()
+            .mapToInt(Long::intValue)
+            .mapToObj(NumericUtils::sortableIntToFloat)
+            .map(String::valueOf)
+            .forEach(values::addElement);
+        break;
+      case DOUBLE:
+        docValues.getNumericValues().stream()
+            .map(NumericUtils::sortableLongToDouble)
+            .map(String::valueOf)
+            .forEach(values::addElement);
+        break;
+    }
+
+    valueList.setModel(values);
+  }
+
+  private void copyValues() {
+    List<String> values = valueList.getSelectedValuesList();
+    if (values.isEmpty()) {
+      values = getAllVlues();
+    }
+
+    Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+    StringSelection selection = new StringSelection(String.join("\n", values));
+    clipboard.setContents(selection, null);
+  }
+
+  private List<String> getAllVlues() {
+    List<String> values = new ArrayList<>();
+    for (int i = 0; i < valueList.getModel().getSize(); i++) {
+      values.add(valueList.getModel().getElementAt(i));
+    }
+    return values;
+  }
+
+  class ListenerFunctions {
+
+    void selectDecoder(ActionEvent e) {
+      DocValuesDialogFactory.this.selectDecoder();
+    }
+
+    void copyValues(ActionEvent e) {
+      DocValuesDialogFactory.this.copyValues();
+    }
+  }
+
 
   public enum Decoder {
 

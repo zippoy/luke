@@ -21,8 +21,9 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import org.apache.lucene.luke.app.desktop.components.ComponentOperatorRegistry;
 import org.apache.lucene.luke.app.desktop.components.TableColumnInfo;
-import org.apache.lucene.luke.app.desktop.util.TableUtil;
+import org.apache.lucene.luke.app.desktop.components.TableModelBase;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
+import org.apache.lucene.luke.app.desktop.util.TableUtil;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -33,16 +34,14 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.TableModelEvent;
-import javax.swing.table.AbstractTableModel;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
-public class FieldValuesPaneProvider implements Provider<JScrollPane> {
+public class FieldValuesPaneProvider implements Provider<JScrollPane>, FieldValuesTabOperator {
 
   private final JCheckBox loadAllCB = new JCheckBox();
 
@@ -50,55 +49,9 @@ public class FieldValuesPaneProvider implements Provider<JScrollPane> {
 
   private ListenerFunctions listners = new ListenerFunctions();
 
-  class FieldValuesTabOperatorImpl implements FieldValuesTabOperator {
-    @Override
-    public void setFields(Collection<String> fields) {
-      fieldsTable.setModel(new FieldsTableModel(fields));
-      fieldsTable.getColumnModel().getColumn(FieldsTableModel.Column.LOAD.getIndex()).setMinWidth(50);
-      fieldsTable.getColumnModel().getColumn(FieldsTableModel.Column.LOAD.getIndex()).setMaxWidth(50);
-      fieldsTable.getModel().addTableModelListener(listners::tableDataChenged);
-    }
-
-    @Override
-    public Set<String> getFieldsToLoad() {
-      Set<String> fieldsToLoad = new HashSet<>();
-      for (int row = 0; row < fieldsTable.getRowCount(); row++) {
-        boolean loaded = (boolean)fieldsTable.getValueAt(row, FieldsTableModel.Column.LOAD.getIndex());
-        if (loaded) {
-          fieldsToLoad.add((String)fieldsTable.getValueAt(row, FieldsTableModel.Column.FIELD.getIndex()));
-        }
-      }
-      return fieldsToLoad;
-    }
-  }
-
-  class ListenerFunctions {
-
-    void loadAllFields(ActionEvent e) {
-      for (int i = 0; i < fieldsTable.getModel().getRowCount(); i++) {
-        if (loadAllCB.isSelected()) {
-          fieldsTable.setValueAt(true, i, FieldsTableModel.Column.LOAD.getIndex());
-        } else {
-          fieldsTable.setValueAt(false, i, FieldsTableModel.Column.LOAD.getIndex());
-        }
-      }
-    }
-
-    void tableDataChenged(TableModelEvent e) {
-      int row = e.getFirstRow();
-      int col = e.getColumn();
-      if (col == FieldsTableModel.Column.LOAD.getIndex()) {
-        boolean isLoad = (boolean)fieldsTable.getModel().getValueAt(row, col);
-        if (!isLoad) {
-          loadAllCB.setSelected(false);
-        }
-      }
-    }
-  }
-
   @Inject
   public FieldValuesPaneProvider(ComponentOperatorRegistry operatorRegistry) {
-    operatorRegistry.register(FieldValuesTabOperator.class, new FieldValuesTabOperatorImpl());
+    operatorRegistry.register(FieldValuesTabOperator.class, this);
   }
 
   @Override
@@ -124,7 +77,8 @@ public class FieldValuesPaneProvider implements Provider<JScrollPane> {
     header.add(loadAllCB);
     panel.add(header, BorderLayout.PAGE_START);
 
-    TableUtil.setupTable(fieldsTable, ListSelectionModel.SINGLE_SELECTION, new FieldsTableModel(), null);
+    TableUtil.setupTable(fieldsTable, ListSelectionModel.SINGLE_SELECTION, new FieldsTableModel(), null,
+        FieldsTableModel.Column.LOAD.getColumnWidth());
     fieldsTable.setShowGrid(true);
     fieldsTable.setPreferredScrollableViewportSize(fieldsTable.getPreferredSize());
     panel.add(new JScrollPane(fieldsTable), BorderLayout.CENTER);
@@ -132,27 +86,68 @@ public class FieldValuesPaneProvider implements Provider<JScrollPane> {
     return panel;
   }
 
-  public interface FieldValuesTabOperator extends ComponentOperatorRegistry.ComponentOperator {
-    void setFields(Collection<String> fields);
-    Set<String> getFieldsToLoad();
+  @Override
+  public void setFields(Collection<String> fields) {
+    fieldsTable.setModel(new FieldsTableModel(fields));
+    fieldsTable.getColumnModel().getColumn(FieldsTableModel.Column.LOAD.getIndex()).setMinWidth(FieldsTableModel.Column.LOAD.getColumnWidth());
+    fieldsTable.getColumnModel().getColumn(FieldsTableModel.Column.LOAD.getIndex()).setMaxWidth(FieldsTableModel.Column.LOAD.getColumnWidth());
+    fieldsTable.getModel().addTableModelListener(listners::tableDataChenged);
+  }
+
+  @Override
+  public Set<String> getFieldsToLoad() {
+    Set<String> fieldsToLoad = new HashSet<>();
+    for (int row = 0; row < fieldsTable.getRowCount(); row++) {
+      boolean loaded = (boolean) fieldsTable.getValueAt(row, FieldsTableModel.Column.LOAD.getIndex());
+      if (loaded) {
+        fieldsToLoad.add((String) fieldsTable.getValueAt(row, FieldsTableModel.Column.FIELD.getIndex()));
+      }
+    }
+    return fieldsToLoad;
+  }
+
+  class ListenerFunctions {
+
+    void loadAllFields(ActionEvent e) {
+      for (int i = 0; i < fieldsTable.getModel().getRowCount(); i++) {
+        if (loadAllCB.isSelected()) {
+          fieldsTable.setValueAt(true, i, FieldsTableModel.Column.LOAD.getIndex());
+        } else {
+          fieldsTable.setValueAt(false, i, FieldsTableModel.Column.LOAD.getIndex());
+        }
+      }
+    }
+
+    void tableDataChenged(TableModelEvent e) {
+      int row = e.getFirstRow();
+      int col = e.getColumn();
+      if (col == FieldsTableModel.Column.LOAD.getIndex()) {
+        boolean isLoad = (boolean) fieldsTable.getModel().getValueAt(row, col);
+        if (!isLoad) {
+          loadAllCB.setSelected(false);
+        }
+      }
+    }
   }
 
 }
 
-class FieldsTableModel extends AbstractTableModel {
+class FieldsTableModel extends TableModelBase<FieldsTableModel.Column> {
 
   enum Column implements TableColumnInfo {
-    LOAD("Load", 0, Boolean.class),
-    FIELD("Field", 1, String.class);
+    LOAD("Load", 0, Boolean.class, 50),
+    FIELD("Field", 1, String.class, Integer.MAX_VALUE);
 
-    private String colName;
-    private int index;
-    private Class<?> type;
+    private final String colName;
+    private final int index;
+    private final Class<?> type;
+    private final int width;
 
-    Column(String colName, int index, Class<?> type) {
+    Column(String colName, int index, Class<?> type, int width) {
       this.colName = colName;
       this.index = index;
       this.type = type;
+      this.width = width;
     }
 
     @Override
@@ -169,20 +164,19 @@ class FieldsTableModel extends AbstractTableModel {
     public Class<?> getType() {
       return type;
     }
+
+    @Override
+    public int getColumnWidth() {
+      return width;
+    }
   }
 
-  private static final Map<Integer, Column> columnMap = TableUtil.columnMap(Column.values());
-
-  private final String[] colNames = TableUtil.columnNames(Column.values());
-
-  private final Object[][] data;
-
   FieldsTableModel() {
-    this.data = new Object[0][colNames.length];
+    super();
   }
 
   FieldsTableModel(Collection<String> fields) {
-    this.data = new Object[fields.size()][colNames.length];
+    super(fields.size());
     int i = 0;
     for (String field : fields) {
       data[i][Column.LOAD.getIndex()] = true;
@@ -192,47 +186,18 @@ class FieldsTableModel extends AbstractTableModel {
   }
 
   @Override
-  public int getRowCount() {
-    return data.length;
-  }
-
-  @Override
-  public int getColumnCount() {
-    return colNames.length;
-  }
-
-  @Override
-  public String getColumnName(int colIndex) {
-    if (columnMap.containsKey(colIndex)) {
-      return columnMap.get(colIndex).colName;
-    }
-    return "";
-  }
-
-  @Override
-  public Class<?> getColumnClass(int colIndex) {
-    if (columnMap.containsKey(colIndex)) {
-      return columnMap.get(colIndex).type;
-    }
-    return Object.class;
-  }
-
-  @Override
-  public Object getValueAt(int rowIndex, int columnIndex) {
-    return data[rowIndex][columnIndex];
-  }
-
-  @Override
   public boolean isCellEditable(int rowIndex, int columnIndex) {
-    if (columnIndex == Column.LOAD.getIndex()) {
-      return true;
-    }
-    return false;
+    return columnIndex == Column.LOAD.getIndex();
   }
 
   @Override
   public void setValueAt(Object value, int rowIndex, int columnIndex) {
     data[rowIndex][columnIndex] = value;
     fireTableCellUpdated(rowIndex, columnIndex);
+  }
+
+  @Override
+  protected Column[] columnInfos() {
+    return Column.values();
   }
 }

@@ -20,7 +20,7 @@ package org.apache.lucene.luke.app.desktop.components.fragments.analysis;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.luke.app.desktop.components.AnalysisPanelProvider;
+import org.apache.lucene.luke.app.desktop.components.AnalysisTabOperator;
 import org.apache.lucene.luke.app.desktop.components.ComponentOperatorRegistry;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 
@@ -36,7 +36,7 @@ import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.util.Collection;
 
-public class PresetAnalyzerPanelProvider implements Provider<JPanel> {
+public class PresetAnalyzerPanelProvider implements Provider<JPanel>, PresetAnalyzerPanelOperator {
 
   private final ComponentOperatorRegistry operatorRegistry;
 
@@ -44,37 +44,10 @@ public class PresetAnalyzerPanelProvider implements Provider<JPanel> {
 
   private final ListenerFunctions listeners = new ListenerFunctions();
 
-  private
-
-  class ListenerFunctions {
-
-    void setAnalyzer(ActionEvent e) {
-      operatorRegistry.get(AnalysisPanelProvider.AnalysisPanelOperator.class).ifPresent(operator ->
-          operator.setAnalyzerByType((String)analyzersCB.getSelectedItem())
-      );
-    }
-
-  }
-
-  class PresetAnalyzerPaneOperatorImpl implements PresetAnalyzerPaneOperator {
-
-    @Override
-    public void setPresetAnalyzers(Collection<Class<? extends Analyzer>> presetAnalyzers) {
-      String[] analyzerNames = presetAnalyzers.stream().map(Class::getName).toArray(String[]::new);
-      ComboBoxModel<String> model = new DefaultComboBoxModel<>(analyzerNames);
-      analyzersCB.setModel(model);
-    }
-
-    @Override
-    public void setSelectedAnalyzer(Class<? extends Analyzer> analyzer) {
-      analyzersCB.setSelectedItem(analyzer.getName());
-    }
-  }
-
   @Inject
   public PresetAnalyzerPanelProvider(ComponentOperatorRegistry operatorRegistry) {
     this.operatorRegistry = operatorRegistry;
-    operatorRegistry.register(PresetAnalyzerPaneOperator.class, new PresetAnalyzerPaneOperatorImpl());
+    operatorRegistry.register(PresetAnalyzerPanelOperator.class, this);
   }
 
   @Override
@@ -95,9 +68,27 @@ public class PresetAnalyzerPanelProvider implements Provider<JPanel> {
     return panel;
   }
 
-  public interface PresetAnalyzerPaneOperator extends ComponentOperatorRegistry.ComponentOperator {
-    void setPresetAnalyzers(Collection<Class<? extends Analyzer>> presetAnalyzers);
-    void setSelectedAnalyzer(Class<? extends Analyzer> analyzer);
+  // control methods
+
+  @Override
+  public void setPresetAnalyzers(Collection<Class<? extends Analyzer>> presetAnalyzers) {
+    String[] analyzerNames = presetAnalyzers.stream().map(Class::getName).toArray(String[]::new);
+    ComboBoxModel<String> model = new DefaultComboBoxModel<>(analyzerNames);
+    analyzersCB.setModel(model);
+  }
+
+  @Override
+  public void setSelectedAnalyzer(Class<? extends Analyzer> analyzer) {
+    analyzersCB.setSelectedItem(analyzer.getName());
+  }
+
+  class ListenerFunctions {
+
+    void setAnalyzer(ActionEvent e) {
+      operatorRegistry.get(AnalysisTabOperator.class).ifPresent(operator ->
+          operator.setAnalyzerByType((String) analyzersCB.getSelectedItem())
+      );
+    }
 
   }
 

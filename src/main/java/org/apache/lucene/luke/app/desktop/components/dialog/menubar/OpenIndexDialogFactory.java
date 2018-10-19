@@ -92,88 +92,6 @@ public class OpenIndexDialogFactory implements DialogOpener.DialogFactory {
 
   private Preferences prefs;
 
-  class ListenerFunctions {
-
-    void browseDirectory(ActionEvent e) {
-      JFileChooser fc = new JFileChooser();
-      fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-      int retVal = fc.showOpenDialog(dialog);
-      if (retVal == JFileChooser.APPROVE_OPTION) {
-        File dir = fc.getSelectedFile();
-        idxPathCombo.insertItemAt(dir.getAbsolutePath(), 0);
-        idxPathCombo.setSelectedIndex(0);
-      }
-    }
-
-    void toggleReadOnly(ActionEvent e) {
-      setWriterConfigEnabled(!isReadOnly());
-    }
-
-    private void setWriterConfigEnabled(boolean enable) {
-      useCompoundCB.setEnabled(enable);
-      keepLastCommitRB.setEnabled(enable);
-      keepAllCommitsRB.setEnabled(enable);
-    }
-
-    void openIndexOrDirectory(ActionEvent e) {
-      try {
-        if (directoryHandler.directoryOpened()) {
-          directoryHandler.close();
-        }
-        if (indexHandler.indexOpened()) {
-          indexHandler.close();
-        }
-
-        String selectedPath = (String)idxPathCombo.getSelectedItem();
-        String dirImplClazz = (String)dirImplCombo.getSelectedItem();
-        if (selectedPath == null || selectedPath.length() == 0) {
-          String msg = MessageUtils.getLocalizedMessage("openindex.message.index_path_not_selected");
-          logger.error(msg);
-        } else if (isNoReader()) {
-          directoryHandler.open(selectedPath, dirImplClazz);
-        } else {
-          indexHandler.open(selectedPath, dirImplClazz, isReadOnly(), useCompound(), keepAllCommits());
-        }
-        addHistory(selectedPath);
-        prefs.setIndexOpenerPrefs(
-            isReadOnly(), dirImplClazz,
-            isNoReader(), useCompound(), keepAllCommits());
-        closeDialog();
-      } catch (LukeException ex) {
-        String message = ex.getMessage() + System.lineSeparator() + "See Logs tab or log file for more details.";
-        JOptionPane.showMessageDialog(dialog, message, "Invalid index path", JOptionPane.ERROR_MESSAGE);
-      } catch (Throwable cause) {
-        JOptionPane.showMessageDialog(dialog, MessageUtils.getLocalizedMessage("message.error.unknown"), "Unknown Error", JOptionPane.ERROR_MESSAGE);
-        logger.error(cause.getMessage(), cause);
-      }
-    }
-
-    private boolean isNoReader() {
-      return noReaderCB.isSelected();
-    }
-
-    private boolean isReadOnly() {
-      return readOnlyCB.isSelected();
-    }
-
-    private boolean useCompound() {
-      return useCompoundCB.isSelected();
-    }
-
-    private boolean keepAllCommits() {
-      return keepAllCommitsRB.isSelected();
-    }
-
-    private void closeDialog() {
-      dialog.dispose();
-    }
-
-    private void addHistory(String indexPath) throws IOException {
-      prefs.addHistory(indexPath);
-    }
-
-  }
-
   private void init(DirectoryHandler directoryHandler, IndexHandler indexHandler, Preferences prefs) {
     this.directoryHandler = directoryHandler;
     this.indexHandler = indexHandler;
@@ -192,7 +110,7 @@ public class OpenIndexDialogFactory implements DialogOpener.DialogFactory {
   private JPanel content() {
     JPanel panel = new JPanel();
     panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
-    panel.setBorder(BorderFactory.createEmptyBorder(10,10, 10, 10));
+    panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
     panel.add(basicSettings());
     panel.add(new JSeparator(JSeparator.HORIZONTAL));
@@ -320,6 +238,88 @@ public class OpenIndexDialogFactory implements DialogOpener.DialogFactory {
     panel.add(cancelBtn);
 
     return panel;
+  }
+
+  class ListenerFunctions {
+
+    void browseDirectory(ActionEvent e) {
+      JFileChooser fc = new JFileChooser();
+      fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+      int retVal = fc.showOpenDialog(dialog);
+      if (retVal == JFileChooser.APPROVE_OPTION) {
+        File dir = fc.getSelectedFile();
+        idxPathCombo.insertItemAt(dir.getAbsolutePath(), 0);
+        idxPathCombo.setSelectedIndex(0);
+      }
+    }
+
+    void toggleReadOnly(ActionEvent e) {
+      setWriterConfigEnabled(!isReadOnly());
+    }
+
+    private void setWriterConfigEnabled(boolean enable) {
+      useCompoundCB.setEnabled(enable);
+      keepLastCommitRB.setEnabled(enable);
+      keepAllCommitsRB.setEnabled(enable);
+    }
+
+    void openIndexOrDirectory(ActionEvent e) {
+      try {
+        if (directoryHandler.directoryOpened()) {
+          directoryHandler.close();
+        }
+        if (indexHandler.indexOpened()) {
+          indexHandler.close();
+        }
+
+        String selectedPath = (String) idxPathCombo.getSelectedItem();
+        String dirImplClazz = (String) dirImplCombo.getSelectedItem();
+        if (selectedPath == null || selectedPath.length() == 0) {
+          String msg = MessageUtils.getLocalizedMessage("openindex.message.index_path_not_selected");
+          logger.error(msg);
+        } else if (isNoReader()) {
+          directoryHandler.open(selectedPath, dirImplClazz);
+        } else {
+          indexHandler.open(selectedPath, dirImplClazz, isReadOnly(), useCompound(), keepAllCommits());
+        }
+        addHistory(selectedPath);
+        prefs.setIndexOpenerPrefs(
+            isReadOnly(), dirImplClazz,
+            isNoReader(), useCompound(), keepAllCommits());
+        closeDialog();
+      } catch (LukeException ex) {
+        String message = ex.getMessage() + System.lineSeparator() + "See Logs tab or log file for more details.";
+        JOptionPane.showMessageDialog(dialog, message, "Invalid index path", JOptionPane.ERROR_MESSAGE);
+      } catch (Throwable cause) {
+        JOptionPane.showMessageDialog(dialog, MessageUtils.getLocalizedMessage("message.error.unknown"), "Unknown Error", JOptionPane.ERROR_MESSAGE);
+        logger.error(cause.getMessage(), cause);
+      }
+    }
+
+    private boolean isNoReader() {
+      return noReaderCB.isSelected();
+    }
+
+    private boolean isReadOnly() {
+      return readOnlyCB.isSelected();
+    }
+
+    private boolean useCompound() {
+      return useCompoundCB.isSelected();
+    }
+
+    private boolean keepAllCommits() {
+      return keepAllCommitsRB.isSelected();
+    }
+
+    private void closeDialog() {
+      dialog.dispose();
+    }
+
+    private void addHistory(String indexPath) throws IOException {
+      prefs.addHistory(indexPath);
+    }
+
   }
 
   public static void showOpenIndexDialog() {

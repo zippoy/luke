@@ -23,8 +23,8 @@ import org.apache.lucene.document.StringField;
 import org.apache.lucene.index.DocValuesType;
 import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.index.IndexableFieldType;
-import org.apache.lucene.luke.app.desktop.util.DialogOpener;
 import org.apache.lucene.luke.app.desktop.dto.documents.NewField;
+import org.apache.lucene.luke.app.desktop.util.DialogOpener;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 
 import javax.swing.BorderFactory;
@@ -71,72 +71,6 @@ public class IndexOptionsDialogFactory implements DialogOpener.DialogFactory {
   private JDialog dialog;
 
   private NewField nf;
-
-  public void setNewField(NewField nf) {
-    this.nf = nf;
-
-    storedCB.setSelected(nf.isStored());
-
-    IndexableFieldType fieldType = nf.getFieldType();
-    tokenizedCB.setSelected(fieldType.tokenized());
-    omitNormsCB.setSelected(fieldType.omitNorms());
-    idxOptCombo.setSelectedItem(fieldType.indexOptions().name());
-    storeTVCB.setSelected(fieldType.storeTermVectors());
-    storeTVPosCB.setSelected(fieldType.storeTermVectorPositions());
-    storeTVOffCB.setSelected(fieldType.storeTermVectorOffsets());
-    storeTVPayCB.setSelected(fieldType.storeTermVectorPayloads());
-    dvTypeCombo.setSelectedItem(fieldType.docValuesType().name());
-    dimCountTF.setText(String.valueOf(fieldType.pointDimensionCount()));
-    dimNumBytesTF.setText(String.valueOf(fieldType.pointNumBytes()));
-
-    if (nf.getType().equals(org.apache.lucene.document.TextField.class) ||
-        nf.getType().equals(StringField.class) ||
-        nf.getType().equals(Field.class)) {
-      storedCB.setEnabled(true);
-    } else {
-      storedCB.setEnabled(false);
-    }
-
-    if (nf.getType().equals(Field.class)) {
-      tokenizedCB.setEnabled(true);
-      omitNormsCB.setEnabled(true);
-      idxOptCombo.setEnabled(true);
-      storeTVCB.setEnabled(true);
-      storeTVPosCB.setEnabled(true);
-      storeTVOffCB.setEnabled(true);
-      storeTVPosCB.setEnabled(true);
-    } else {
-      tokenizedCB.setEnabled(false);
-      omitNormsCB.setEnabled(false);
-      idxOptCombo.setEnabled(false);
-      storeTVCB.setEnabled(false);
-      storeTVPosCB.setEnabled(false);
-      storeTVOffCB.setEnabled(false);
-      storeTVPayCB.setEnabled(false);
-    }
-
-    // TODO
-    dvTypeCombo.setEnabled(false);
-    dimCountTF.setEnabled(false);
-    dimNumBytesTF.setEnabled(false);
-  }
-
-  private void saveOptions() {
-    nf.setStored(storedCB.isSelected());
-    if (nf.getType().equals(Field.class)) {
-      FieldType ftype = (FieldType) nf.getFieldType();
-      ftype.setStored(storedCB.isSelected());
-      ftype.setTokenized(tokenizedCB.isSelected());
-      ftype.setOmitNorms(omitNormsCB.isSelected());
-      ftype.setIndexOptions(IndexOptions.valueOf((String)idxOptCombo.getSelectedItem()));
-      ftype.setStoreTermVectors(storeTVCB.isSelected());
-      ftype.setStoreTermVectorPositions(storeTVPosCB.isSelected());
-      ftype.setStoreTermVectorOffsets(storeTVOffCB.isSelected());
-      ftype.setStoreTermVectorPayloads(storeTVPayCB.isSelected());
-    }
-    dialog.dispose();
-  }
-
 
   @Override
   public JDialog create(Window owner, String title, int width, int height) {
@@ -241,7 +175,7 @@ public class IndexOptionsDialogFactory implements DialogOpener.DialogFactory {
   private JPanel footer() {
     JPanel panel = new JPanel(new FlowLayout(FlowLayout.TRAILING));
     JButton okBtn = new JButton(MessageUtils.getLocalizedMessage("button.ok"));
-    okBtn.setMargin(new Insets(3,3, 3, 3));
+    okBtn.setMargin(new Insets(3, 3, 3, 3));
     okBtn.addActionListener(e -> saveOptions());
     panel.add(okBtn);
     JButton cancelBtn = new JButton(MessageUtils.getLocalizedMessage("button.cancel"));
@@ -250,6 +184,73 @@ public class IndexOptionsDialogFactory implements DialogOpener.DialogFactory {
     panel.add(cancelBtn);
 
     return panel;
+  }
+
+  // control methods
+
+  void setNewField(NewField nf) {
+    this.nf = nf;
+
+    storedCB.setSelected(nf.isStored());
+
+    IndexableFieldType fieldType = nf.getFieldType();
+    tokenizedCB.setSelected(fieldType.tokenized());
+    omitNormsCB.setSelected(fieldType.omitNorms());
+    idxOptCombo.setSelectedItem(fieldType.indexOptions().name());
+    storeTVCB.setSelected(fieldType.storeTermVectors());
+    storeTVPosCB.setSelected(fieldType.storeTermVectorPositions());
+    storeTVOffCB.setSelected(fieldType.storeTermVectorOffsets());
+    storeTVPayCB.setSelected(fieldType.storeTermVectorPayloads());
+    dvTypeCombo.setSelectedItem(fieldType.docValuesType().name());
+    dimCountTF.setText(String.valueOf(fieldType.pointDimensionCount()));
+    dimNumBytesTF.setText(String.valueOf(fieldType.pointNumBytes()));
+
+    if (nf.getType().equals(org.apache.lucene.document.TextField.class) ||
+        nf.getType().equals(StringField.class) ||
+        nf.getType().equals(Field.class)) {
+      storedCB.setEnabled(true);
+    } else {
+      storedCB.setEnabled(false);
+    }
+
+    if (nf.getType().equals(Field.class)) {
+      tokenizedCB.setEnabled(true);
+      omitNormsCB.setEnabled(true);
+      idxOptCombo.setEnabled(true);
+      storeTVCB.setEnabled(true);
+      storeTVPosCB.setEnabled(true);
+      storeTVOffCB.setEnabled(true);
+      storeTVPosCB.setEnabled(true);
+    } else {
+      tokenizedCB.setEnabled(false);
+      omitNormsCB.setEnabled(false);
+      idxOptCombo.setEnabled(false);
+      storeTVCB.setEnabled(false);
+      storeTVPosCB.setEnabled(false);
+      storeTVOffCB.setEnabled(false);
+      storeTVPayCB.setEnabled(false);
+    }
+
+    // TODO
+    dvTypeCombo.setEnabled(false);
+    dimCountTF.setEnabled(false);
+    dimNumBytesTF.setEnabled(false);
+  }
+
+  private void saveOptions() {
+    nf.setStored(storedCB.isSelected());
+    if (nf.getType().equals(Field.class)) {
+      FieldType ftype = (FieldType) nf.getFieldType();
+      ftype.setStored(storedCB.isSelected());
+      ftype.setTokenized(tokenizedCB.isSelected());
+      ftype.setOmitNorms(omitNormsCB.isSelected());
+      ftype.setIndexOptions(IndexOptions.valueOf((String) idxOptCombo.getSelectedItem()));
+      ftype.setStoreTermVectors(storeTVCB.isSelected());
+      ftype.setStoreTermVectorPositions(storeTVPosCB.isSelected());
+      ftype.setStoreTermVectorOffsets(storeTVOffCB.isSelected());
+      ftype.setStoreTermVectorPayloads(storeTVPayCB.isSelected());
+    }
+    dialog.dispose();
   }
 
   private static String[] availableIndexOptions() {

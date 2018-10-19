@@ -30,15 +30,15 @@ import org.apache.lucene.luke.app.LukeState;
 import org.apache.lucene.luke.app.desktop.MessageBroker;
 import org.apache.lucene.luke.app.desktop.components.dialog.ConfirmDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.search.ExplainDialogProvider;
-import org.apache.lucene.luke.app.desktop.components.fragments.search.FieldValuesPaneProvider;
-import org.apache.lucene.luke.app.desktop.components.fragments.search.MLTPaneProvider;
-import org.apache.lucene.luke.app.desktop.components.fragments.search.QueryParserPaneProvider;
-import org.apache.lucene.luke.app.desktop.components.fragments.search.SimilarityPaneProvider;
-import org.apache.lucene.luke.app.desktop.components.fragments.search.SortPaneProvider;
+import org.apache.lucene.luke.app.desktop.components.fragments.search.FieldValuesTabOperator;
+import org.apache.lucene.luke.app.desktop.components.fragments.search.MLTTabOperator;
+import org.apache.lucene.luke.app.desktop.components.fragments.search.QueryParserTabOperator;
+import org.apache.lucene.luke.app.desktop.components.fragments.search.SimilarityTabOperator;
+import org.apache.lucene.luke.app.desktop.components.fragments.search.SortTabOperator;
 import org.apache.lucene.luke.app.desktop.util.DialogOpener;
-import org.apache.lucene.luke.app.desktop.util.TableUtil;
 import org.apache.lucene.luke.app.desktop.util.ImageUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
+import org.apache.lucene.luke.app.desktop.util.TableUtil;
 import org.apache.lucene.luke.models.LukeException;
 import org.apache.lucene.luke.models.search.MLTConfig;
 import org.apache.lucene.luke.models.search.QueryParserConfig;
@@ -68,7 +68,6 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.ListSelectionModel;
-import javax.swing.table.AbstractTableModel;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -86,12 +85,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class SearchPanelProvider implements Provider<JPanel> {
+public class SearchPanelProvider implements Provider<JPanel>, SearchTabOperator {
 
   private static final int DEFAULT_PAGE_SIZE = 10;
 
@@ -161,284 +159,6 @@ public class SearchPanelProvider implements Provider<JPanel> {
 
   private IndexTools toolsModel;
 
-  class ListenerFunctions {
-
-    void toggleTermQuery(ActionEvent e) {
-      if (termQueryCB.isSelected()) {
-        enableTermQuery();
-      } else {
-        disableTermQuery();
-      }
-    }
-
-    private void enableTermQuery() {
-      tabbedPane.setEnabledAt(Tab.QPARSER.index(), false);
-      tabbedPane.setEnabledAt(Tab.ANALYZER.index(), false);
-      tabbedPane.setEnabledAt(Tab.SIMILARITY.index(), false);
-      tabbedPane.setEnabledAt(Tab.MLT.index(), false);
-      if (tabbedPane.getSelectedIndex() == Tab.QPARSER.index() ||
-          tabbedPane.getSelectedIndex() == Tab.ANALYZER.index() ||
-          tabbedPane.getSelectedIndex() == Tab.SIMILARITY.index() ||
-          tabbedPane.getSelectedIndex() == Tab.MLT.index()) {
-        tabbedPane.setSelectedIndex(Tab.SORT.index());
-      }
-      parseBtn.setEnabled(false);
-      rewriteCB.setEnabled(false);
-      mltBtn.setEnabled(false);
-      mltDocFTF.setEnabled(false);
-    }
-
-    private void disableTermQuery() {
-      tabbedPane.setEnabledAt(Tab.QPARSER.index(), true);
-      tabbedPane.setEnabledAt(Tab.ANALYZER.index(), true);
-      tabbedPane.setEnabledAt(Tab.SIMILARITY.index(), true);
-      tabbedPane.setEnabledAt(Tab.MLT.index(), true);
-      parseBtn.setEnabled(true);
-      rewriteCB.setEnabled(true);
-      mltBtn.setEnabled(true);
-      mltDocFTF.setEnabled(true);
-    }
-
-    void execParse(ActionEvent e) {
-      Query query = parse(rewriteCB.isSelected());
-      parsedQueryTA.setText(query.toString());
-      messageBroker.clearStatusMessage();
-    }
-
-    void execSearch(ActionEvent e) {
-      doSearch();
-    }
-
-    private void doSearch() {
-      Query query;
-      if (termQueryCB.isSelected()) {
-        // term query
-        if (Strings.isNullOrEmpty(queryStringTA.getText())) {
-          throw new LukeException("Query is not set.");
-        }
-        String[] tmp = queryStringTA.getText().split(":");
-        if (tmp.length < 2) {
-          throw new LukeException(String.format(Locale.ENGLISH, "Invalid query [ %s ]", queryStringTA.getText()));
-        }
-        query = new TermQuery(new Term(tmp[0].trim(), tmp[1].trim()));
-      } else {
-        query = parse(false);
-      }
-      SimilarityConfig simConfig = operatorRegistry.get(SimilarityPaneProvider.SimilarityTabOperator.class)
-          .map(SimilarityPaneProvider.SimilarityTabOperator::getConfig)
-          .orElse(new SimilarityConfig.Builder().build());
-      Sort sort = operatorRegistry.get(SortPaneProvider.SortTabOperator.class)
-          .map(SortPaneProvider.SortTabOperator::getSort)
-          .orElse(null);
-      Set<String> fieldsToLoad = operatorRegistry.get(FieldValuesPaneProvider.FieldValuesTabOperator.class)
-          .map(FieldValuesPaneProvider.FieldValuesTabOperator::getFieldsToLoad)
-          .orElse(Collections.emptySet());
-      SearchResults results = searchModel.search(query, simConfig, sort, fieldsToLoad, DEFAULT_PAGE_SIZE);
-
-      TableUtil.setupTable(resultsTable, ListSelectionModel.SINGLE_SELECTION, new SearchResultsTableModel(), null, 50, 100);
-      populateResults(results);
-
-      messageBroker.clearStatusMessage();
-    }
-
-    void nextPage(ActionEvent e) {
-      searchModel.nextPage().ifPresent(this::populateResults);
-      messageBroker.clearStatusMessage();
-    }
-
-    void prevPage(ActionEvent e) {
-      searchModel.prevPage().ifPresent(this::populateResults);
-      messageBroker.clearStatusMessage();
-    }
-
-    void execMLTSearch(ActionEvent e) {
-      doMLTSearch();
-    }
-
-    void doMLTSearch() {
-      if (Objects.isNull(mltDocFTF.getValue())) {
-        throw new LukeException("Doc num is not set.");
-      }
-      int docNum = (int)mltDocFTF.getValue();
-      MLTConfig mltConfig = operatorRegistry.get(MLTPaneProvider.MLTTabOperator.class)
-          .map(MLTPaneProvider.MLTTabOperator::getConfig)
-          .orElse(new MLTConfig.Builder().build());
-      Analyzer analyzer = operatorRegistry.get(AnalysisPanelProvider.AnalysisPanelOperator.class)
-          .map(AnalysisPanelProvider.AnalysisPanelOperator::getCurrentAnalyzer)
-          .orElse(new StandardAnalyzer());
-      Query query = searchModel.mltQuery(docNum, mltConfig, analyzer);
-      Set<String> fieldsToLoad = operatorRegistry.get(FieldValuesPaneProvider.FieldValuesTabOperator.class)
-          .map(FieldValuesPaneProvider.FieldValuesTabOperator::getFieldsToLoad)
-          .orElse(Collections.emptySet());
-      SearchResults results = searchModel.search(query, new SimilarityConfig.Builder().build(), fieldsToLoad, DEFAULT_PAGE_SIZE);
-
-      TableUtil.setupTable(resultsTable, ListSelectionModel.SINGLE_SELECTION, new SearchResultsTableModel(), null, 50, 100);
-      populateResults(results);
-
-      messageBroker.clearStatusMessage();
-    }
-
-    private Query parse(boolean rewrite) {
-      String expr = Strings.isNullOrEmpty(queryStringTA.getText()) ? "*:*" : queryStringTA.getText();
-      String df = operatorRegistry.get(QueryParserPaneProvider.QueryParserTabOperator.class)
-          .map(QueryParserPaneProvider.QueryParserTabOperator::getDefaultField)
-          .orElse("");
-      QueryParserConfig config = operatorRegistry.get(QueryParserPaneProvider.QueryParserTabOperator.class)
-          .map(QueryParserPaneProvider.QueryParserTabOperator::getConfig)
-          .orElse(new QueryParserConfig.Builder().build());
-      Analyzer analyzer = operatorRegistry.get(AnalysisPanelProvider.AnalysisPanelOperator.class)
-          .map(AnalysisPanelProvider.AnalysisPanelOperator::getCurrentAnalyzer)
-          .orElse(new StandardAnalyzer());
-      return searchModel.parseQuery(expr, df, analyzer, config, rewrite);
-    }
-
-    private void populateResults(SearchResults res) {
-      totalHitsLbl.setText(String.valueOf(res.getTotalHits()));
-      if (res.getTotalHits() > 0) {
-        startLbl.setText(String.valueOf(res.getOffset() + 1));
-        endLbl.setText(String.valueOf(res.getOffset() + res.size()));
-
-        prevBtn.setEnabled(res.getOffset() > 0);
-        nextBtn.setEnabled(res.getTotalHits() > res.getOffset() + res.size());
-
-        if (!indexHandler.getState().readOnly() && indexHandler.getState().hasDirectoryReader()) {
-          delBtn.setEnabled(true);
-        }
-
-        resultsTable.setModel(new SearchResultsTableModel(res));
-        resultsTable.getColumnModel().getColumn(SearchResultsTableModel.Column.DOCID.getIndex()).setPreferredWidth(50);
-        resultsTable.getColumnModel().getColumn(SearchResultsTableModel.Column.SCORE.getIndex()).setPreferredWidth(100);
-        resultsTable.getColumnModel().getColumn(SearchResultsTableModel.Column.VALUE.getIndex()).setPreferredWidth(800);
-      } else {
-        startLbl.setText("0");
-        endLbl.setText("0");
-        prevBtn.setEnabled(false);
-        nextBtn.setEnabled(false);
-        delBtn.setEnabled(false);
-      }
-    }
-
-    void confirmDeletion(ActionEvent e) {
-      new DialogOpener<>(confirmDialogFactory).open("Confirm Deletion", 400, 200, (factory) -> {
-        factory.setMessage(MessageUtils.getLocalizedMessage("search.message.delete_confirm"));
-        factory.setCallback(listeners::deleteDocs);
-      });
-    }
-
-    private void deleteDocs() {
-      Query query = searchModel.getCurrentQuery();
-      if (query != null) {
-        toolsModel.deleteDocuments(query);
-        indexHandler.reOpen();
-        messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("search.message.delete_success", query.toString()));
-      }
-      delBtn.setEnabled(false);
-    }
-
-    void showContextMenuInResultsTable(MouseEvent e) {
-      if (e.getClickCount() == 2 && !e.isConsumed()) {
-        createResultsContextMenuPopup().show(e.getComponent(), e.getX(), e.getY());
-      }
-    }
-
-    private JPopupMenu createResultsContextMenuPopup() {
-      JPopupMenu popup = new JPopupMenu();
-
-      // show explanation
-      JMenuItem item1 = new JMenuItem(MessageUtils.getLocalizedMessage("search.results.menu.explain"));
-      item1.addActionListener(e -> {
-        int docid = (int)resultsTable.getModel().getValueAt(resultsTable.getSelectedRow(), SearchResultsTableModel.Column.DOCID.getIndex());
-        Explanation explanation = searchModel.explain(parse(false), docid);
-        new DialogOpener<>(explainDialogProvider).open("Explanation", 600, 400,
-            (factory) -> {
-              factory.setDocid(docid);
-              factory.setExplanation(explanation);
-            });
-      });
-      popup.add(item1);
-
-      // show all fields
-      JMenuItem item2 = new JMenuItem(MessageUtils.getLocalizedMessage("search.results.menu.showdoc"));
-      item2.addActionListener(e -> {
-        int docid = (int)resultsTable.getModel().getValueAt(resultsTable.getSelectedRow(), SearchResultsTableModel.Column.DOCID.getIndex());
-        operatorRegistry.get(DocumentsPanelProvider.DocumentsTabOperator.class).ifPresent(operator -> operator.displayDoc(docid));
-        tabSwitcher.switchTab(TabbedPaneProvider.Tab.DOCUMENTS);
-      });
-      popup.add(item2);
-
-      return popup;
-    }
-
-  }
-
-  class Observer implements IndexObserver {
-
-    @Override
-    public void openIndex(LukeState state) {
-      searchModel = searchFactory.newInstance(state.getIndexReader());
-      toolsModel = toolsFactory.newInstance(state.getIndexReader(), state.useCompound(), state.keepAllCommits());
-      operatorRegistry.get(QueryParserPaneProvider.QueryParserTabOperator.class).ifPresent(operator -> {
-        operator.setSearchableFields(searchModel.getSearchableFieldNames());
-        operator.setRangeSearchableFields(searchModel.getRangeSearchableFieldNames());
-      });
-      operatorRegistry.get(SortPaneProvider.SortTabOperator.class).ifPresent(operator -> {
-        operator.setSearchModel(searchModel);
-        operator.setSortableFields(searchModel.getSortableFieldNames());
-      });
-      operatorRegistry.get(FieldValuesPaneProvider.FieldValuesTabOperator.class).ifPresent(operator -> {
-        operator.setFields(searchModel.getFieldNames());
-      });
-      operatorRegistry.get(MLTPaneProvider.MLTTabOperator.class).ifPresent(operator -> {
-        operator.setFields(searchModel.getFieldNames());
-      });
-
-      queryStringTA.setText("*:*");
-      parsedQueryTA.setText("");
-      parseBtn.setEnabled(true);
-      searchBtn.setEnabled(true);
-      mltBtn.setEnabled(true);
-    }
-
-    @Override
-    public void closeIndex() {
-      searchModel = null;
-      toolsModel = null;
-
-      queryStringTA.setText("");
-      parsedQueryTA.setText("");
-      parseBtn.setEnabled(false);
-      searchBtn.setEnabled(false);
-      mltBtn.setEnabled(false);
-      totalHitsLbl.setText("0");
-      startLbl.setText("0");
-      endLbl.setText("0");
-      nextBtn.setEnabled(false);
-      prevBtn.setEnabled(false);
-      delBtn.setEnabled(false);
-      TableUtil.setupTable(resultsTable, ListSelectionModel.SINGLE_SELECTION, new SearchResultsTableModel(), null, 50, 100);
-    }
-
-    private Observer() {}
-  }
-
-  class SearchTabOperatorImpl implements SearchTabOperator {
-
-    @Override
-    public void searchByTerm(String field, String term) {
-      termQueryCB.setSelected(true);
-      listeners.enableTermQuery();
-      queryStringTA.setText(field + ":" + term);
-      listeners.doSearch();
-    }
-
-    @Override
-    public void mltSearch(int docNum) {
-      mltDocFTF.setValue(docNum);
-      listeners.doMLTSearch();
-      tabbedPane.setSelectedIndex(Tab.MLT.index());
-    }
-  }
-
   @Inject
   public SearchPanelProvider(SearchFactory searchFactory,
                              IndexToolsFactory toolsFactory,
@@ -470,7 +190,7 @@ public class SearchPanelProvider implements Provider<JPanel> {
     this.mlt = mlt;
 
     indexHandler.addObserver(new Observer());
-    operatorRegistry.register(SearchTabOperator.class, new SearchTabOperatorImpl());
+    operatorRegistry.register(SearchTabOperator.class, this);
   }
 
   @Override
@@ -649,7 +369,7 @@ public class SearchPanelProvider implements Provider<JPanel> {
     resultsInfo.add(totalHitsLbl);
 
     prevBtn.setIcon(ImageUtils.createImageIcon("/img/arrow_triangle-left.png", 20, 20));
-    prevBtn.setMargin(new Insets(3, 3,3, 3));
+    prevBtn.setMargin(new Insets(3, 3, 3, 3));
     prevBtn.setEnabled(false);
     prevBtn.addActionListener(listeners::prevPage);
     resultsInfo.add(prevBtn);
@@ -697,16 +417,324 @@ public class SearchPanelProvider implements Provider<JPanel> {
         listeners.showContextMenuInResultsTable(e);
       }
     };
-    TableUtil.setupTable(resultsTable, ListSelectionModel.SINGLE_SELECTION, new SearchResultsTableModel(), mouseListener, 50, 100);
+    TableUtil.setupTable(resultsTable, ListSelectionModel.SINGLE_SELECTION, new SearchResultsTableModel(),
+        new MouseAdapter() {
+          @Override
+          public void mousePressed(MouseEvent e) {
+            listeners.showContextMenuInResultsTable(e);
+          }
+        },
+        SearchResultsTableModel.Column.DOCID.getColumnWidth(),
+        SearchResultsTableModel.Column.SCORE.getColumnWidth());
     JScrollPane scrollPane = new JScrollPane(resultsTable);
     panel.add(scrollPane, BorderLayout.CENTER);
 
     return panel;
   }
 
-  public interface SearchTabOperator extends ComponentOperatorRegistry.ComponentOperator {
-    void searchByTerm(String field, String term);
-    void mltSearch(int docNum);
+  // control methods
+
+  private void toggleTermQuery() {
+    if (termQueryCB.isSelected()) {
+      enableTermQuery();
+    } else {
+      disableTermQuery();
+    }
+  }
+
+  private void enableTermQuery() {
+    tabbedPane.setEnabledAt(Tab.QPARSER.index(), false);
+    tabbedPane.setEnabledAt(Tab.ANALYZER.index(), false);
+    tabbedPane.setEnabledAt(Tab.SIMILARITY.index(), false);
+    tabbedPane.setEnabledAt(Tab.MLT.index(), false);
+    if (tabbedPane.getSelectedIndex() == Tab.QPARSER.index() ||
+        tabbedPane.getSelectedIndex() == Tab.ANALYZER.index() ||
+        tabbedPane.getSelectedIndex() == Tab.SIMILARITY.index() ||
+        tabbedPane.getSelectedIndex() == Tab.MLT.index()) {
+      tabbedPane.setSelectedIndex(Tab.SORT.index());
+    }
+    parseBtn.setEnabled(false);
+    rewriteCB.setEnabled(false);
+    mltBtn.setEnabled(false);
+    mltDocFTF.setEnabled(false);
+  }
+
+  private void disableTermQuery() {
+    tabbedPane.setEnabledAt(Tab.QPARSER.index(), true);
+    tabbedPane.setEnabledAt(Tab.ANALYZER.index(), true);
+    tabbedPane.setEnabledAt(Tab.SIMILARITY.index(), true);
+    tabbedPane.setEnabledAt(Tab.MLT.index(), true);
+    parseBtn.setEnabled(true);
+    rewriteCB.setEnabled(true);
+    mltBtn.setEnabled(true);
+    mltDocFTF.setEnabled(true);
+  }
+
+  private void execParse() {
+    Query query = parse(rewriteCB.isSelected());
+    parsedQueryTA.setText(query.toString());
+    messageBroker.clearStatusMessage();
+  }
+
+  private void doSearch() {
+    Query query;
+    if (termQueryCB.isSelected()) {
+      // term query
+      if (Strings.isNullOrEmpty(queryStringTA.getText())) {
+        throw new LukeException("Query is not set.");
+      }
+      String[] tmp = queryStringTA.getText().split(":");
+      if (tmp.length < 2) {
+        throw new LukeException(String.format(Locale.ENGLISH, "Invalid query [ %s ]", queryStringTA.getText()));
+      }
+      query = new TermQuery(new Term(tmp[0].trim(), tmp[1].trim()));
+    } else {
+      query = parse(false);
+    }
+    SimilarityConfig simConfig = operatorRegistry.get(SimilarityTabOperator.class)
+        .map(SimilarityTabOperator::getConfig)
+        .orElse(new SimilarityConfig.Builder().build());
+    Sort sort = operatorRegistry.get(SortTabOperator.class)
+        .map(SortTabOperator::getSort)
+        .orElse(null);
+    Set<String> fieldsToLoad = operatorRegistry.get(FieldValuesTabOperator.class)
+        .map(FieldValuesTabOperator::getFieldsToLoad)
+        .orElse(Collections.emptySet());
+    SearchResults results = searchModel.search(query, simConfig, sort, fieldsToLoad, DEFAULT_PAGE_SIZE);
+
+    TableUtil.setupTable(resultsTable, ListSelectionModel.SINGLE_SELECTION, new SearchResultsTableModel(), null,
+        SearchResultsTableModel.Column.DOCID.getColumnWidth(),
+        SearchResultsTableModel.Column.SCORE.getColumnWidth());
+    populateResults(results);
+
+    messageBroker.clearStatusMessage();
+  }
+
+  private void nextPage() {
+    searchModel.nextPage().ifPresent(this::populateResults);
+    messageBroker.clearStatusMessage();
+  }
+
+  private void prevPage() {
+    searchModel.prevPage().ifPresent(this::populateResults);
+    messageBroker.clearStatusMessage();
+  }
+
+  private void doMLTSearch() {
+    if (Objects.isNull(mltDocFTF.getValue())) {
+      throw new LukeException("Doc num is not set.");
+    }
+    int docNum = (int) mltDocFTF.getValue();
+    MLTConfig mltConfig = operatorRegistry.get(MLTTabOperator.class)
+        .map(MLTTabOperator::getConfig)
+        .orElse(new MLTConfig.Builder().build());
+    Analyzer analyzer = operatorRegistry.get(AnalysisTabOperator.class)
+        .map(AnalysisTabOperator::getCurrentAnalyzer)
+        .orElse(new StandardAnalyzer());
+    Query query = searchModel.mltQuery(docNum, mltConfig, analyzer);
+    Set<String> fieldsToLoad = operatorRegistry.get(FieldValuesTabOperator.class)
+        .map(FieldValuesTabOperator::getFieldsToLoad)
+        .orElse(Collections.emptySet());
+    SearchResults results = searchModel.search(query, new SimilarityConfig.Builder().build(), fieldsToLoad, DEFAULT_PAGE_SIZE);
+
+    TableUtil.setupTable(resultsTable, ListSelectionModel.SINGLE_SELECTION, new SearchResultsTableModel(), null,
+        SearchResultsTableModel.Column.DOCID.getColumnWidth(),
+        SearchResultsTableModel.Column.SCORE.getColumnWidth());
+    populateResults(results);
+
+    messageBroker.clearStatusMessage();
+  }
+
+  private Query parse(boolean rewrite) {
+    String expr = Strings.isNullOrEmpty(queryStringTA.getText()) ? "*:*" : queryStringTA.getText();
+    String df = operatorRegistry.get(QueryParserTabOperator.class)
+        .map(QueryParserTabOperator::getDefaultField)
+        .orElse("");
+    QueryParserConfig config = operatorRegistry.get(QueryParserTabOperator.class)
+        .map(QueryParserTabOperator::getConfig)
+        .orElse(new QueryParserConfig.Builder().build());
+    Analyzer analyzer = operatorRegistry.get(AnalysisTabOperator.class)
+        .map(AnalysisTabOperator::getCurrentAnalyzer)
+        .orElse(new StandardAnalyzer());
+    return searchModel.parseQuery(expr, df, analyzer, config, rewrite);
+  }
+
+  private void populateResults(SearchResults res) {
+    totalHitsLbl.setText(String.valueOf(res.getTotalHits()));
+    if (res.getTotalHits() > 0) {
+      startLbl.setText(String.valueOf(res.getOffset() + 1));
+      endLbl.setText(String.valueOf(res.getOffset() + res.size()));
+
+      prevBtn.setEnabled(res.getOffset() > 0);
+      nextBtn.setEnabled(res.getTotalHits() > res.getOffset() + res.size());
+
+      if (!indexHandler.getState().readOnly() && indexHandler.getState().hasDirectoryReader()) {
+        delBtn.setEnabled(true);
+      }
+
+      resultsTable.setModel(new SearchResultsTableModel(res));
+      resultsTable.getColumnModel().getColumn(SearchResultsTableModel.Column.DOCID.getIndex()).setPreferredWidth(SearchResultsTableModel.Column.DOCID.getColumnWidth());
+      resultsTable.getColumnModel().getColumn(SearchResultsTableModel.Column.SCORE.getIndex()).setPreferredWidth(SearchResultsTableModel.Column.SCORE.getColumnWidth());
+      resultsTable.getColumnModel().getColumn(SearchResultsTableModel.Column.VALUE.getIndex()).setPreferredWidth(SearchResultsTableModel.Column.VALUE.getColumnWidth());
+    } else {
+      startLbl.setText("0");
+      endLbl.setText("0");
+      prevBtn.setEnabled(false);
+      nextBtn.setEnabled(false);
+      delBtn.setEnabled(false);
+    }
+  }
+
+  private void confirmDeletion() {
+    new DialogOpener<>(confirmDialogFactory).open("Confirm Deletion", 400, 200, (factory) -> {
+      factory.setMessage(MessageUtils.getLocalizedMessage("search.message.delete_confirm"));
+      factory.setCallback(this::deleteDocs);
+    });
+  }
+
+  private void deleteDocs() {
+    Query query = searchModel.getCurrentQuery();
+    if (query != null) {
+      toolsModel.deleteDocuments(query);
+      indexHandler.reOpen();
+      messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("search.message.delete_success", query.toString()));
+    }
+    delBtn.setEnabled(false);
+  }
+
+  private JPopupMenu createResultsContextMenuPopup() {
+    JPopupMenu popup = new JPopupMenu();
+
+    // show explanation
+    JMenuItem item1 = new JMenuItem(MessageUtils.getLocalizedMessage("search.results.menu.explain"));
+    item1.addActionListener(e -> {
+      int docid = (int) resultsTable.getModel().getValueAt(resultsTable.getSelectedRow(), SearchResultsTableModel.Column.DOCID.getIndex());
+      Explanation explanation = searchModel.explain(parse(false), docid);
+      new DialogOpener<>(explainDialogProvider).open("Explanation", 600, 400,
+          (factory) -> {
+            factory.setDocid(docid);
+            factory.setExplanation(explanation);
+          });
+    });
+    popup.add(item1);
+
+    // show all fields
+    JMenuItem item2 = new JMenuItem(MessageUtils.getLocalizedMessage("search.results.menu.showdoc"));
+    item2.addActionListener(e -> {
+      int docid = (int) resultsTable.getModel().getValueAt(resultsTable.getSelectedRow(), SearchResultsTableModel.Column.DOCID.getIndex());
+      operatorRegistry.get(DocumentsTabOperator.class).ifPresent(operator -> operator.displayDoc(docid));
+      tabSwitcher.switchTab(TabbedPaneProvider.Tab.DOCUMENTS);
+    });
+    popup.add(item2);
+
+    return popup;
+  }
+
+  @Override
+  public void searchByTerm(String field, String term) {
+    termQueryCB.setSelected(true);
+    enableTermQuery();
+    queryStringTA.setText(field + ":" + term);
+    doSearch();
+  }
+
+  @Override
+  public void mltSearch(int docNum) {
+    mltDocFTF.setValue(docNum);
+    doMLTSearch();
+    tabbedPane.setSelectedIndex(Tab.MLT.index());
+  }
+
+  class ListenerFunctions {
+
+    void toggleTermQuery(ActionEvent e) {
+      SearchPanelProvider.this.toggleTermQuery();
+    }
+
+    void execParse(ActionEvent e) {
+      SearchPanelProvider.this.execParse();
+    }
+
+    void execSearch(ActionEvent e) {
+      SearchPanelProvider.this.doSearch();
+    }
+
+    void nextPage(ActionEvent e) {
+      SearchPanelProvider.this.nextPage();
+    }
+
+    void prevPage(ActionEvent e) {
+      SearchPanelProvider.this.prevPage();
+    }
+
+    void execMLTSearch(ActionEvent e) {
+      SearchPanelProvider.this.doMLTSearch();
+    }
+
+    void confirmDeletion(ActionEvent e) {
+      SearchPanelProvider.this.confirmDeletion();
+    }
+
+    void showContextMenuInResultsTable(MouseEvent e) {
+      if (e.getClickCount() == 2 && !e.isConsumed()) {
+        SearchPanelProvider.this.createResultsContextMenuPopup().show(e.getComponent(), e.getX(), e.getY());
+        createResultsContextMenuPopup().show(e.getComponent(), e.getX(), e.getY());
+      }
+    }
+
+  }
+
+  class Observer implements IndexObserver {
+
+    @Override
+    public void openIndex(LukeState state) {
+      searchModel = searchFactory.newInstance(state.getIndexReader());
+      toolsModel = toolsFactory.newInstance(state.getIndexReader(), state.useCompound(), state.keepAllCommits());
+      operatorRegistry.get(QueryParserTabOperator.class).ifPresent(operator -> {
+        operator.setSearchableFields(searchModel.getSearchableFieldNames());
+        operator.setRangeSearchableFields(searchModel.getRangeSearchableFieldNames());
+      });
+      operatorRegistry.get(SortTabOperator.class).ifPresent(operator -> {
+        operator.setSearchModel(searchModel);
+        operator.setSortableFields(searchModel.getSortableFieldNames());
+      });
+      operatorRegistry.get(FieldValuesTabOperator.class).ifPresent(operator -> {
+        operator.setFields(searchModel.getFieldNames());
+      });
+      operatorRegistry.get(MLTTabOperator.class).ifPresent(operator -> {
+        operator.setFields(searchModel.getFieldNames());
+      });
+
+      queryStringTA.setText("*:*");
+      parsedQueryTA.setText("");
+      parseBtn.setEnabled(true);
+      searchBtn.setEnabled(true);
+      mltBtn.setEnabled(true);
+    }
+
+    @Override
+    public void closeIndex() {
+      searchModel = null;
+      toolsModel = null;
+
+      queryStringTA.setText("");
+      parsedQueryTA.setText("");
+      parseBtn.setEnabled(false);
+      searchBtn.setEnabled(false);
+      mltBtn.setEnabled(false);
+      totalHitsLbl.setText("0");
+      startLbl.setText("0");
+      endLbl.setText("0");
+      nextBtn.setEnabled(false);
+      prevBtn.setEnabled(false);
+      delBtn.setEnabled(false);
+      TableUtil.setupTable(resultsTable, ListSelectionModel.SINGLE_SELECTION, new SearchResultsTableModel(), null,
+          SearchResultsTableModel.Column.DOCID.getColumnWidth(),
+          SearchResultsTableModel.Column.SCORE.getColumnWidth());
+    }
+
+    private Observer() {
+    }
   }
 
   public enum Tab {
@@ -725,21 +753,23 @@ public class SearchPanelProvider implements Provider<JPanel> {
 
 }
 
-class SearchResultsTableModel extends AbstractTableModel {
+class SearchResultsTableModel extends TableModelBase<SearchResultsTableModel.Column> {
 
   enum Column implements TableColumnInfo {
-    DOCID("Doc ID", 0, Integer.class),
-    SCORE("Score", 1, Float.class),
-    VALUE("Field Values", 2, String.class);
+    DOCID("Doc ID", 0, Integer.class, 50),
+    SCORE("Score", 1, Float.class, 100),
+    VALUE("Field Values", 2, String.class, 800);
 
-    private String colName;
-    private int index;
-    private Class<?> type;
+    private final String colName;
+    private final int index;
+    private final Class<?> type;
+    private final int width;
 
-    Column(String colName, int index, Class<?> type) {
+    Column(String colName, int index, Class<?> type, int width) {
       this.colName = colName;
       this.index = index;
       this.type = type;
+      this.width = width;
     }
 
     @Override
@@ -756,20 +786,19 @@ class SearchResultsTableModel extends AbstractTableModel {
     public Class<?> getType() {
       return type;
     }
+
+    @Override
+    public int getColumnWidth() {
+      return width;
+    }
   }
 
-  private static final Map<Integer, Column> columnMap = TableUtil.columnMap(Column.values());
-
-  private final String[] colNames = TableUtil.columnNames(Column.values());
-
-  private final Object[][] data;
-
   SearchResultsTableModel() {
-    this.data = new Object[0][colNames.length];
+    super();
   }
 
   SearchResultsTableModel(SearchResults results) {
-    this.data = new Object[results.size()][colNames.length];
+    super(results.size());
     for (int i = 0; i < results.size(); i++) {
       SearchResults.Doc doc = results.getHits().get(i);
       data[i][Column.DOCID.getIndex()] = doc.getDocId();
@@ -787,34 +816,7 @@ class SearchResultsTableModel extends AbstractTableModel {
   }
 
   @Override
-  public int getRowCount() {
-    return data.length;
+  protected Column[] columnInfos() {
+    return Column.values();
   }
-
-  @Override
-  public int getColumnCount() {
-    return colNames.length;
-  }
-
-  @Override
-  public String getColumnName(int colIndex) {
-    if (columnMap.containsKey(colIndex)) {
-      return columnMap.get(colIndex).colName;
-    }
-    return "";
-  }
-
-  @Override
-  public Class<?> getColumnClass(int colIndex) {
-    if (columnMap.containsKey(colIndex)) {
-      return columnMap.get(colIndex).type;
-    }
-    return Object.class;
-  }
-
-  @Override
-  public Object getValueAt(int rowIndex, int columnIndex) {
-    return data[rowIndex][columnIndex];
-  }
-
 }

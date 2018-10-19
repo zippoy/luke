@@ -24,4 +24,9 @@ public interface TableColumnInfo {
   int getIndex();
 
   Class<?> getType();
+
+  default int getColumnWidth() {
+    return 0;
+  }
+
 }

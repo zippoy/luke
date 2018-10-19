@@ -17,8 +17,8 @@
 
 package org.apache.lucene.luke.app.desktop.util;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.ImageIcon;
+import java.awt.Image;
 
 public class ImageUtils {
 
@@ -50,5 +50,6 @@ public class ImageUtils {
     }
   }
 
-  private ImageUtils() {}
+  private ImageUtils() {
+  }
 }

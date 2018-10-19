@@ -51,7 +51,7 @@ public class DirectoryHandler extends AbstractHandler<DirectoryObserver> {
     Directory dir;
     try {
       dir = IndexUtils.openDirectory(indexPath, dirImpl);
-    } catch (IOException e){
+    } catch (IOException e) {
       throw new LukeException(MessageUtils.getLocalizedMessage("openindex.message.index_path_invalid", indexPath), e);
     }
 

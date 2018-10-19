@@ -91,7 +91,7 @@ public class NewField {
     return type;
   }
 
-  public void setType(@Nonnull  Class type) {
+  public void setType(@Nonnull Class type) {
     this.type = type;
   }
 
@@ -139,7 +139,7 @@ public class NewField {
     return value;
   }
 
-  public void setValue(@Nonnull  String value) {
+  public void setValue(@Nonnull String value) {
     this.value = value;
   }
 

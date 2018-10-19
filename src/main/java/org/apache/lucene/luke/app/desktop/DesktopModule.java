@@ -28,12 +28,12 @@ import org.apache.lucene.luke.app.IndexHandler;
 import org.apache.lucene.luke.app.LukeModule;
 import org.apache.lucene.luke.app.desktop.components.AnalysisPanelProvider;
 import org.apache.lucene.luke.app.desktop.components.CommitsPanelProvider;
+import org.apache.lucene.luke.app.desktop.components.ComponentOperatorRegistry;
 import org.apache.lucene.luke.app.desktop.components.DocumentsPanelProvider;
 import org.apache.lucene.luke.app.desktop.components.LogsPanelProvider;
 import org.apache.lucene.luke.app.desktop.components.LukeWindowProvider;
 import org.apache.lucene.luke.app.desktop.components.MenuBarProvider;
 import org.apache.lucene.luke.app.desktop.components.OverviewPanelProvider;
-import org.apache.lucene.luke.app.desktop.components.ComponentOperatorRegistry;
 import org.apache.lucene.luke.app.desktop.components.SearchPanelProvider;
 import org.apache.lucene.luke.app.desktop.components.TabbedPaneProvider;
 import org.apache.lucene.luke.app.desktop.components.dialog.ConfirmDialogFactory;
@@ -58,7 +58,6 @@ import org.apache.lucene.luke.app.desktop.components.fragments.search.MLTPanePro
 import org.apache.lucene.luke.app.desktop.components.fragments.search.QueryParserPaneProvider;
 import org.apache.lucene.luke.app.desktop.components.fragments.search.SimilarityPaneProvider;
 import org.apache.lucene.luke.app.desktop.components.fragments.search.SortPaneProvider;
-import org.apache.lucene.luke.models.tools.IndexTools;
 import org.apache.lucene.luke.models.tools.IndexToolsFactory;
 
 import javax.swing.JFrame;
@@ -159,5 +158,6 @@ public class DesktopModule extends AbstractModule {
     return new EditParamsDialogFactory(operatorRegistry);
   }
 
-  private DesktopModule() {}
+  private DesktopModule() {
+  }
 }

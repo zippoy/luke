@@ -53,11 +53,10 @@ public class URLLabel extends JLabel {
   }
 
   private void openUrl(URL link) {
-    if(Desktop.isDesktopSupported()) {
+    if (Desktop.isDesktopSupported()) {
       try {
         Desktop.getDesktop().browse(link.toURI());
-      }
-      catch (IOException | URISyntaxException e) {
+      } catch (IOException | URISyntaxException e) {
         throw new LukeException(e.getMessage(), e);
       }
     }

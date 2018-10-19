@@ -15,28 +15,15 @@
  * limitations under the License.
  */
 
-package org.apache.lucene.luke.app.desktop.components;
+package org.apache.lucene.luke.app.desktop.components.fragments.search;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import org.apache.lucene.luke.app.desktop.components.ComponentOperatorRegistry;
 
-public class ComponentOperatorRegistry {
+import java.util.Collection;
+import java.util.Set;
 
-  private final Map<Class<?>, Object> operators = new HashMap<>();
+public interface FieldValuesTabOperator extends ComponentOperatorRegistry.ComponentOperator {
+  void setFields(Collection<String> fields);
 
-  public <T extends ComponentOperator> void register(Class<T> type, T operator) {
-    if (!operators.containsKey(type)) {
-      operators.put(type, operator);
-    }
-  }
-
-  @SuppressWarnings("unchecked")
-  public <T extends ComponentOperator> Optional<T> get(Class<T> type) {
-    return Optional.ofNullable((T) operators.get(type));
-  }
-
-  public interface ComponentOperator {
-  }
-
+  Set<String> getFieldsToLoad();
 }

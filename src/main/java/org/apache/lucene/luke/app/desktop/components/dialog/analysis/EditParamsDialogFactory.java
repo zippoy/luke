@@ -20,11 +20,12 @@ package org.apache.lucene.luke.app.desktop.components.dialog.analysis;
 import com.google.inject.Inject;
 import org.apache.lucene.luke.app.desktop.components.ComponentOperatorRegistry;
 import org.apache.lucene.luke.app.desktop.components.TableColumnInfo;
-import org.apache.lucene.luke.app.desktop.components.fragments.analysis.CustomAnalyzerPanelProvider;
+import org.apache.lucene.luke.app.desktop.components.TableModelBase;
+import org.apache.lucene.luke.app.desktop.components.fragments.analysis.CustomAnalyzerPanelOperator;
 import org.apache.lucene.luke.app.desktop.util.DialogOpener;
+import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 import org.apache.lucene.luke.app.desktop.util.TableUtil;
 import org.apache.lucene.luke.app.desktop.util.lang.Callable;
-import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -34,7 +35,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
-import javax.swing.table.AbstractTableModel;
 import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.awt.Dimension;
@@ -115,7 +115,9 @@ public class EditParamsDialogFactory implements DialogOpener.DialogFactory {
     header.add(targetLbl);
     panel.add(header, BorderLayout.PAGE_START);
 
-    TableUtil.setupTable(paramsTable, ListSelectionModel.SINGLE_SELECTION, new ParamsTableModel(params), null, 50, 150);
+    TableUtil.setupTable(paramsTable, ListSelectionModel.SINGLE_SELECTION, new ParamsTableModel(params), null,
+        ParamsTableModel.Column.DELETE.getColumnWidth(),
+        ParamsTableModel.Column.NAME.getColumnWidth());
     paramsTable.setShowGrid(true);
     panel.add(new JScrollPane(paramsTable), BorderLayout.CENTER);
 
@@ -124,9 +126,9 @@ public class EditParamsDialogFactory implements DialogOpener.DialogFactory {
     okBtn.addActionListener(e -> {
       Map<String, String> params = new HashMap<>();
       for (int i = 0; i < paramsTable.getRowCount(); i++) {
-        boolean deleted = (boolean)paramsTable.getValueAt(i, ParamsTableModel.Column.DELETE.getIndex());
-        String name = (String)paramsTable.getValueAt(i, ParamsTableModel.Column.NAME.getIndex());
-        String value = (String)paramsTable.getValueAt(i, ParamsTableModel.Column.VALUE.getIndex());
+        boolean deleted = (boolean) paramsTable.getValueAt(i, ParamsTableModel.Column.DELETE.getIndex());
+        String name = (String) paramsTable.getValueAt(i, ParamsTableModel.Column.NAME.getIndex());
+        String value = (String) paramsTable.getValueAt(i, ParamsTableModel.Column.VALUE.getIndex());
         if (deleted || Objects.isNull(name) || name.equals("") || Objects.isNull(value) || value.equals("")) {
           continue;
         }
@@ -150,7 +152,7 @@ public class EditParamsDialogFactory implements DialogOpener.DialogFactory {
   }
 
   private void updateTargetParams(Map<String, String> params) {
-    operatorRegistry.get(CustomAnalyzerPanelProvider.CustomAnalyzerPanelOperator.class).ifPresent(operator -> {
+    operatorRegistry.get(CustomAnalyzerPanelOperator.class).ifPresent(operator -> {
       switch (mode) {
         case CHARFILTER:
           operator.updateCharFilterParams(targetIndex, params);
@@ -170,21 +172,23 @@ public class EditParamsDialogFactory implements DialogOpener.DialogFactory {
   }
 }
 
-class ParamsTableModel extends AbstractTableModel {
+class ParamsTableModel extends TableModelBase<ParamsTableModel.Column> {
 
   enum Column implements TableColumnInfo {
-    DELETE("Delete", 0, Boolean.class),
-    NAME("Name", 1, String.class),
-    VALUE("Value", 2, String.class);
+    DELETE("Delete", 0, Boolean.class, 50),
+    NAME("Name", 1, String.class, 150),
+    VALUE("Value", 2, String.class, Integer.MAX_VALUE);
 
-    private String colName;
-    private int index;
-    private Class<?> type;
+    private final String colName;
+    private final int index;
+    private final Class<?> type;
+    private final int width;
 
-    Column(String colName, int index, Class<?> type) {
+    Column(String colName, int index, Class<?> type, int width) {
       this.colName = colName;
       this.index = index;
       this.type = type;
+      this.width = width;
     }
 
     @Override
@@ -201,17 +205,18 @@ class ParamsTableModel extends AbstractTableModel {
     public Class<?> getType() {
       return type;
     }
+
+    @Override
+    public int getColumnWidth() {
+      return width;
+    }
+
   }
 
   private static final int PARAM_SIZE = 20;
-  private static final Map<Integer, Column> columnMap = TableUtil.columnMap(Column.values());
-
-  private final String[] colNames = TableUtil.columnNames(Column.values());
-
-  private final Object[][] data;
 
   ParamsTableModel(Map<String, String> params) {
-    this.data = new Object[PARAM_SIZE][colNames.length];
+    super(PARAM_SIZE);
     List<String> keys = new ArrayList<>(params.keySet());
     for (int i = 0; i < keys.size(); i++) {
       data[i][Column.NAME.getIndex()] = keys.get(i);
@@ -220,32 +225,6 @@ class ParamsTableModel extends AbstractTableModel {
     for (int i = 0; i < data.length; i++) {
       data[i][Column.DELETE.getIndex()] = false;
     }
-  }
-
-  @Override
-  public int getRowCount() {
-    return data.length;
-  }
-
-  @Override
-  public int getColumnCount() {
-    return colNames.length;
-  }
-
-  @Override
-  public String getColumnName(int colIndex) {
-    if (columnMap.containsKey(colIndex)) {
-      return columnMap.get(colIndex).colName;
-    }
-    return "";
-  }
-
-  @Override
-  public Class<?> getColumnClass(int colIndex) {
-    if (columnMap.containsKey(colIndex)) {
-      return columnMap.get(colIndex).type;
-    }
-    return Object.class;
   }
 
   @Override
@@ -259,7 +238,7 @@ class ParamsTableModel extends AbstractTableModel {
   }
 
   @Override
-  public Object getValueAt(int rowIndex, int columnIndex) {
-    return data[rowIndex][columnIndex];
+  protected Column[] columnInfos() {
+    return Column.values();
   }
 }

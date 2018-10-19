@@ -20,8 +20,8 @@ package org.apache.lucene.luke.app.desktop.components.fragments.search;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import org.apache.lucene.luke.app.desktop.components.ComponentOperatorRegistry;
-import org.apache.lucene.luke.app.desktop.util.StyleConstants;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
+import org.apache.lucene.luke.app.desktop.util.StyleConstants;
 import org.apache.lucene.luke.models.search.SimilarityConfig;
 
 import javax.swing.BorderFactory;
@@ -37,7 +37,7 @@ import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 
-public class SimilarityPaneProvider implements Provider<JScrollPane> {
+public class SimilarityPaneProvider implements Provider<JScrollPane>, SimilarityTabOperator {
 
   private final JCheckBox tfidfCB = new JCheckBox();
 
@@ -51,42 +51,9 @@ public class SimilarityPaneProvider implements Provider<JScrollPane> {
 
   private final ListenerFunctions listeners = new ListenerFunctions();
 
-  class ListenerFunctions {
-
-    void toggleTfIdf(ActionEvent e) {
-      if (tfidfCB.isSelected()) {
-        k1FTF.setEnabled(false);
-        k1FTF.setBackground(StyleConstants.DISABLED_COLOR);
-        bFTF.setEnabled(false);
-        bFTF.setBackground(StyleConstants.DISABLED_COLOR);
-      } else {
-        k1FTF.setEnabled(true);
-        k1FTF.setBackground(Color.white);
-        bFTF.setEnabled(true);
-        bFTF.setBackground(Color.white);
-      }
-    }
-  }
-
-  class SimilarityTabOperatorImpl implements SimilarityTabOperator {
-
-    @Override
-    public SimilarityConfig getConfig() {
-      float k1 = (float)k1FTF.getValue();
-      float b = (float)bFTF.getValue();
-      return new SimilarityConfig.Builder()
-          .useClassicSimilarity(tfidfCB.isSelected())
-          .discountOverlaps(discardOverlapsCB.isSelected())
-          .k1(k1)
-          .b(b)
-          .build();
-    }
-
-  }
-
   @Inject
   public SimilarityPaneProvider(ComponentOperatorRegistry operatorRegistry) {
-    operatorRegistry.register(SimilarityTabOperator.class, new SimilarityTabOperatorImpl());
+    operatorRegistry.register(SimilarityTabOperator.class, this);
   }
 
   @Override
@@ -139,7 +106,33 @@ public class SimilarityPaneProvider implements Provider<JScrollPane> {
     return panel;
   }
 
-  public interface SimilarityTabOperator extends ComponentOperatorRegistry.ComponentOperator {
-    SimilarityConfig getConfig();
+  @Override
+  public SimilarityConfig getConfig() {
+    float k1 = (float) k1FTF.getValue();
+    float b = (float) bFTF.getValue();
+    return new SimilarityConfig.Builder()
+        .useClassicSimilarity(tfidfCB.isSelected())
+        .discountOverlaps(discardOverlapsCB.isSelected())
+        .k1(k1)
+        .b(b)
+        .build();
   }
+
+  class ListenerFunctions {
+
+    void toggleTfIdf(ActionEvent e) {
+      if (tfidfCB.isSelected()) {
+        k1FTF.setEnabled(false);
+        k1FTF.setBackground(StyleConstants.DISABLED_COLOR);
+        bFTF.setEnabled(false);
+        bFTF.setBackground(StyleConstants.DISABLED_COLOR);
+      } else {
+        k1FTF.setEnabled(true);
+        k1FTF.setBackground(Color.white);
+        bFTF.setEnabled(true);
+        bFTF.setBackground(Color.white);
+      }
+    }
+  }
+
 }

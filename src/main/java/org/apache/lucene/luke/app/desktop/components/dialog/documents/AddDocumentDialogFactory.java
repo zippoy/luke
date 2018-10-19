@@ -39,19 +39,20 @@ import org.apache.lucene.index.IndexableFieldType;
 import org.apache.lucene.luke.app.IndexHandler;
 import org.apache.lucene.luke.app.IndexObserver;
 import org.apache.lucene.luke.app.LukeState;
-import org.apache.lucene.luke.app.desktop.components.AnalysisPanelProvider;
+import org.apache.lucene.luke.app.desktop.components.AnalysisTabOperator;
 import org.apache.lucene.luke.app.desktop.components.ComponentOperatorRegistry;
-import org.apache.lucene.luke.app.desktop.components.DocumentsPanelProvider;
+import org.apache.lucene.luke.app.desktop.components.DocumentsTabOperator;
 import org.apache.lucene.luke.app.desktop.components.TabbedPaneProvider;
 import org.apache.lucene.luke.app.desktop.components.TableColumnInfo;
+import org.apache.lucene.luke.app.desktop.components.TableModelBase;
 import org.apache.lucene.luke.app.desktop.components.dialog.HelpDialogFactory;
+import org.apache.lucene.luke.app.desktop.dto.documents.NewField;
 import org.apache.lucene.luke.app.desktop.util.DialogOpener;
 import org.apache.lucene.luke.app.desktop.util.FontUtil;
 import org.apache.lucene.luke.app.desktop.util.HelpHeaderRenderer;
+import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 import org.apache.lucene.luke.app.desktop.util.NumericUtils;
 import org.apache.lucene.luke.app.desktop.util.TableUtil;
-import org.apache.lucene.luke.app.desktop.dto.documents.NewField;
-import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 import org.apache.lucene.luke.models.LukeException;
 import org.apache.lucene.luke.models.tools.IndexTools;
 import org.apache.lucene.luke.models.tools.IndexToolsFactory;
@@ -73,7 +74,6 @@ import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.ListSelectionModel;
 import javax.swing.UIManager;
-import javax.swing.table.AbstractTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
 import java.awt.BorderLayout;
@@ -90,11 +90,10 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.lang.reflect.Constructor;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class AddDocumentDialogFactory implements DialogOpener.DialogFactory {
+public class AddDocumentDialogFactory implements DialogOpener.DialogFactory, AddDocumentDialogOperator {
 
   private final static Logger logger = LoggerFactory.getLogger(AddDocumentDialogFactory.class);
 
@@ -128,124 +127,6 @@ public class AddDocumentDialogFactory implements DialogOpener.DialogFactory {
 
   private JDialog dialog;
 
-  class ListenerFunctions {
-
-    void addDocument(ActionEvent e) {
-      List<NewField> validFields = newFieldList.stream()
-          .filter(nf -> !nf.isDeleted())
-          .filter(nf -> !Strings.isNullOrEmpty(nf.getName()))
-          .filter(nf -> !Strings.isNullOrEmpty(nf.getValue()))
-          .collect(Collectors.toList());
-      if (validFields.isEmpty()) {
-        infoTA.setText("Please add one or more fields. Name and Value are both required.");
-        return;
-      }
-
-      Document doc = new Document();
-      try {
-        for (NewField nf : validFields) {
-          doc.add(toIndexableField(nf));
-        }
-      } catch (NumberFormatException ex) {
-        logger.error(ex.getMessage(), e);
-        throw new LukeException("Invalid value: " + ex.getMessage(), ex);
-      } catch (Exception ex) {
-        logger.error(ex.getMessage(), e);
-        throw new LukeException(ex.getMessage(), ex);
-      }
-
-      addDocument(doc);
-      logger.info("Added document: {}", doc.toString());
-    }
-
-    @SuppressWarnings("unchecked")
-    private IndexableField toIndexableField(NewField nf) throws Exception {
-      if (nf.getType().equals(TextField.class) || nf.getType().equals(StringField.class)) {
-        Field.Store store = nf.isStored() ? Field.Store.YES : Field.Store.NO;
-        Constructor<IndexableField> constr = nf.getType().getConstructor(String.class, String.class, Field.Store.class);
-        return constr.newInstance(nf.getName(), nf.getValue(), store);
-      } else if (nf.getType().equals(IntPoint.class)) {
-        Constructor<IndexableField> constr = nf.getType().getConstructor(String.class, int[].class);
-        int[] values = NumericUtils.convertToIntArray(nf.getValue(), false);
-        return constr.newInstance(nf.getName(), values);
-      } else if (nf.getType().equals(LongPoint.class)) {
-        Constructor<IndexableField> constr = nf.getType().getConstructor(String.class, long[].class);
-        long[] values = NumericUtils.convertToLongArray(nf.getValue(), false);
-        return constr.newInstance(nf.getName(), values);
-      } else if (nf.getType().equals(FloatPoint.class)) {
-        Constructor<IndexableField> constr = nf.getType().getConstructor(String.class, float[].class);
-        float[] values = NumericUtils.convertToFloatArray(nf.getValue(), false);
-        return constr.newInstance(nf.getName(), values);
-      } else if (nf.getType().equals(DoublePoint.class)) {
-        Constructor<IndexableField> constr = nf.getType().getConstructor(String.class, double[].class);
-        double[] values = NumericUtils.convertToDoubleArray(nf.getValue(), false);
-        return constr.newInstance(nf.getName(), values);
-      } else if (nf.getType().equals(SortedDocValuesField.class) ||
-          nf.getType().equals(SortedSetDocValuesField.class)) {
-        Constructor<IndexableField> constr = nf.getType().getConstructor(String.class, BytesRef.class);
-        return constr.newInstance(nf.getName(), new BytesRef(nf.getValue()));
-      } else if (nf.getType().equals(NumericDocValuesField.class) ||
-          nf.getType().equals(SortedNumericDocValuesField.class)) {
-        Constructor<IndexableField> constr = nf.getType().getConstructor(String.class, long.class);
-        long value = NumericUtils.tryConvertToLongValue(nf.getValue());
-        return constr.newInstance(nf.getName(), value);
-      } else if (nf.getType().equals(StoredField.class)) {
-        Constructor<IndexableField> constr = nf.getType().getConstructor(String.class, String.class);
-        return constr.newInstance(nf.getName(), nf.getValue());
-      } else if (nf.getType().equals(Field.class)) {
-        Constructor<IndexableField> constr = nf.getType().getConstructor(String.class, String.class, IndexableFieldType.class);
-        return constr.newInstance(nf.getName(), nf.getValue(), nf.getFieldType());
-      } else {
-        // TODO: unknown field
-        return new StringField(nf.getName(), nf.getValue(), Field.Store.YES);
-      }
-    }
-
-    private void addDocument(Document doc) {
-      try {
-        Analyzer analyzer = operatorRegistry.get(AnalysisPanelProvider.AnalysisPanelOperator.class)
-            .map(AnalysisPanelProvider.AnalysisPanelOperator::getCurrentAnalyzer)
-            .orElse(new StandardAnalyzer());
-        toolsModel.addDocument(doc, analyzer);
-        indexHandler.reOpen();
-        operatorRegistry.get(DocumentsPanelProvider.DocumentsTabOperator.class).ifPresent(DocumentsPanelProvider.DocumentsTabOperator::displayLatestDoc);
-        tabSwitcher.switchTab(TabbedPaneProvider.Tab.DOCUMENTS);
-        infoTA.setText(MessageUtils.getLocalizedMessage("add_document.message.success"));
-        addBtn.setEnabled(false);
-        closeBtn.setText(MessageUtils.getLocalizedMessage("button.close"));
-      } catch (LukeException e) {
-        infoTA.setText(MessageUtils.getLocalizedMessage("add_document.message.fail"));
-        throw e;
-      } catch (Exception e) {
-        infoTA.setText(MessageUtils.getLocalizedMessage("add_document.message.fail"));
-        throw new LukeException(e.getMessage(), e);
-      }
-    }
-
-  }
-
-  public class Observer implements IndexObserver {
-
-    @Override
-    public void openIndex(LukeState state) {
-      toolsModel = toolsFactory.newInstance(state.getIndexReader(), state.useCompound(), state.keepAllCommits());
-    }
-
-    @Override
-    public void closeIndex() {
-      toolsModel = null;
-    }
-  }
-
-  class AddDocumentOperatorImpl implements AddDocumentDialogOperator {
-
-    @Override
-    public void setAnalyzer(Analyzer analyzer) {
-      analyzerNameLbl.setText(analyzer.getClass().getName());
-    }
-
-  }
-
   @Inject
   public AddDocumentDialogFactory(IndexOptionsDialogFactory indexOptionsDialogFactory, HelpDialogFactory helpDialogFactory,
                                   IndexHandler indexHandler, IndexToolsFactory toolsFactory,
@@ -259,7 +140,7 @@ public class AddDocumentDialogFactory implements DialogOpener.DialogFactory {
     this.helpDialogFactory = helpDialogFactory;
     this.newFieldList = IntStream.range(0, ROW_COUNT).mapToObj(i -> NewField.newInstance()).collect(Collectors.toList());
 
-    operatorRegistry.register(AddDocumentDialogOperator.class, new AddDocumentOperatorImpl());
+    operatorRegistry.register(AddDocumentDialogOperator.class, this);
     indexHandler.addObserver(new Observer());
 
   }
@@ -379,7 +260,7 @@ public class AddDocumentDialogFactory implements DialogOpener.DialogFactory {
     JComboBox<String> typeCombo = new JComboBox<>(typeList);
     typeCombo.setSelectedItem(typeList[0]);
     typeCombo.addActionListener(e -> {
-      String selected = (String)typeCombo.getSelectedItem();
+      String selected = (String) typeCombo.getSelectedItem();
       descTA.setText(MessageUtils.getLocalizedMessage("help.fieldtype." + selected));
     });
     wrapper1.add(typeCombo);
@@ -423,13 +304,123 @@ public class AddDocumentDialogFactory implements DialogOpener.DialogFactory {
       StoredField.class, Field.class
   };
 
-  public interface AddDocumentDialogOperator extends ComponentOperatorRegistry.ComponentOperator {
-    void setAnalyzer(Analyzer analyzer);
+  @Override
+  public void setAnalyzer(Analyzer analyzer) {
+    analyzerNameLbl.setText(analyzer.getClass().getName());
+  }
+
+  class ListenerFunctions {
+
+    void addDocument(ActionEvent e) {
+      List<NewField> validFields = newFieldList.stream()
+          .filter(nf -> !nf.isDeleted())
+          .filter(nf -> !Strings.isNullOrEmpty(nf.getName()))
+          .filter(nf -> !Strings.isNullOrEmpty(nf.getValue()))
+          .collect(Collectors.toList());
+      if (validFields.isEmpty()) {
+        infoTA.setText("Please add one or more fields. Name and Value are both required.");
+        return;
+      }
+
+      Document doc = new Document();
+      try {
+        for (NewField nf : validFields) {
+          doc.add(toIndexableField(nf));
+        }
+      } catch (NumberFormatException ex) {
+        logger.error(ex.getMessage(), e);
+        throw new LukeException("Invalid value: " + ex.getMessage(), ex);
+      } catch (Exception ex) {
+        logger.error(ex.getMessage(), e);
+        throw new LukeException(ex.getMessage(), ex);
+      }
+
+      addDocument(doc);
+      logger.info("Added document: {}", doc.toString());
+    }
+
+    @SuppressWarnings("unchecked")
+    private IndexableField toIndexableField(NewField nf) throws Exception {
+      if (nf.getType().equals(TextField.class) || nf.getType().equals(StringField.class)) {
+        Field.Store store = nf.isStored() ? Field.Store.YES : Field.Store.NO;
+        Constructor<IndexableField> constr = nf.getType().getConstructor(String.class, String.class, Field.Store.class);
+        return constr.newInstance(nf.getName(), nf.getValue(), store);
+      } else if (nf.getType().equals(IntPoint.class)) {
+        Constructor<IndexableField> constr = nf.getType().getConstructor(String.class, int[].class);
+        int[] values = NumericUtils.convertToIntArray(nf.getValue(), false);
+        return constr.newInstance(nf.getName(), values);
+      } else if (nf.getType().equals(LongPoint.class)) {
+        Constructor<IndexableField> constr = nf.getType().getConstructor(String.class, long[].class);
+        long[] values = NumericUtils.convertToLongArray(nf.getValue(), false);
+        return constr.newInstance(nf.getName(), values);
+      } else if (nf.getType().equals(FloatPoint.class)) {
+        Constructor<IndexableField> constr = nf.getType().getConstructor(String.class, float[].class);
+        float[] values = NumericUtils.convertToFloatArray(nf.getValue(), false);
+        return constr.newInstance(nf.getName(), values);
+      } else if (nf.getType().equals(DoublePoint.class)) {
+        Constructor<IndexableField> constr = nf.getType().getConstructor(String.class, double[].class);
+        double[] values = NumericUtils.convertToDoubleArray(nf.getValue(), false);
+        return constr.newInstance(nf.getName(), values);
+      } else if (nf.getType().equals(SortedDocValuesField.class) ||
+          nf.getType().equals(SortedSetDocValuesField.class)) {
+        Constructor<IndexableField> constr = nf.getType().getConstructor(String.class, BytesRef.class);
+        return constr.newInstance(nf.getName(), new BytesRef(nf.getValue()));
+      } else if (nf.getType().equals(NumericDocValuesField.class) ||
+          nf.getType().equals(SortedNumericDocValuesField.class)) {
+        Constructor<IndexableField> constr = nf.getType().getConstructor(String.class, long.class);
+        long value = NumericUtils.tryConvertToLongValue(nf.getValue());
+        return constr.newInstance(nf.getName(), value);
+      } else if (nf.getType().equals(StoredField.class)) {
+        Constructor<IndexableField> constr = nf.getType().getConstructor(String.class, String.class);
+        return constr.newInstance(nf.getName(), nf.getValue());
+      } else if (nf.getType().equals(Field.class)) {
+        Constructor<IndexableField> constr = nf.getType().getConstructor(String.class, String.class, IndexableFieldType.class);
+        return constr.newInstance(nf.getName(), nf.getValue(), nf.getFieldType());
+      } else {
+        // TODO: unknown field
+        return new StringField(nf.getName(), nf.getValue(), Field.Store.YES);
+      }
+    }
+
+    private void addDocument(Document doc) {
+      try {
+        Analyzer analyzer = operatorRegistry.get(AnalysisTabOperator.class)
+            .map(AnalysisTabOperator::getCurrentAnalyzer)
+            .orElse(new StandardAnalyzer());
+        toolsModel.addDocument(doc, analyzer);
+        indexHandler.reOpen();
+        operatorRegistry.get(DocumentsTabOperator.class).ifPresent(DocumentsTabOperator::displayLatestDoc);
+        tabSwitcher.switchTab(TabbedPaneProvider.Tab.DOCUMENTS);
+        infoTA.setText(MessageUtils.getLocalizedMessage("add_document.message.success"));
+        addBtn.setEnabled(false);
+        closeBtn.setText(MessageUtils.getLocalizedMessage("button.close"));
+      } catch (LukeException e) {
+        infoTA.setText(MessageUtils.getLocalizedMessage("add_document.message.fail"));
+        throw e;
+      } catch (Exception e) {
+        infoTA.setText(MessageUtils.getLocalizedMessage("add_document.message.fail"));
+        throw new LukeException(e.getMessage(), e);
+      }
+    }
+
+  }
+
+  public class Observer implements IndexObserver {
+
+    @Override
+    public void openIndex(LukeState state) {
+      toolsModel = toolsFactory.newInstance(state.getIndexReader(), state.useCompound(), state.keepAllCommits());
+    }
+
+    @Override
+    public void closeIndex() {
+      toolsModel = null;
+    }
   }
 
 }
 
-class FieldsTableModel extends AbstractTableModel {
+class FieldsTableModel extends TableModelBase<FieldsTableModel.Column> {
 
   enum Column implements TableColumnInfo {
     DEL("Del", 0, Boolean.class),
@@ -465,43 +456,11 @@ class FieldsTableModel extends AbstractTableModel {
 
   }
 
-  private static final Map<Integer, Column> columnMap = TableUtil.columnMap(Column.values());
-
-  private final String[] colNames = TableUtil.columnNames(Column.values());
-
-  private final Object[][] data;
-
   private final List<NewField> newFieldList;
 
   FieldsTableModel(List<NewField> newFieldList) {
-    this.data = new Object[newFieldList.size()][colNames.length];
+    super(newFieldList.size());
     this.newFieldList = newFieldList;
-  }
-
-  @Override
-  public int getRowCount() {
-    return data.length;
-  }
-
-  @Override
-  public int getColumnCount() {
-    return colNames.length;
-  }
-
-  @Override
-  public String getColumnName(int colIndex) {
-    if (columnMap.containsKey(colIndex)) {
-      return columnMap.get(colIndex).colName;
-    }
-    return "";
-  }
-
-  @Override
-  public Class<?> getColumnClass(int colIndex) {
-    if (columnMap.containsKey(colIndex)) {
-      return columnMap.get(colIndex).type;
-    }
-    return Object.class;
   }
 
   @Override
@@ -514,10 +473,7 @@ class FieldsTableModel extends AbstractTableModel {
 
   @Override
   public boolean isCellEditable(int rowIndex, int columnIndex) {
-    if (columnIndex == Column.OPTIONS.getIndex()) {
-      return false;
-    }
-    return true;
+    return columnIndex != Column.OPTIONS.getIndex();
   }
 
   @Override
@@ -526,16 +482,21 @@ class FieldsTableModel extends AbstractTableModel {
     fireTableCellUpdated(rowIndex, columnIndex);
     NewField selectedField = newFieldList.get(rowIndex);
     if (columnIndex == Column.DEL.getIndex()) {
-      selectedField.setDeleted((Boolean)value);
+      selectedField.setDeleted((Boolean) value);
     } else if (columnIndex == Column.NAME.getIndex()) {
-      selectedField.setName((String)value);
+      selectedField.setName((String) value);
     } else if (columnIndex == Column.TYPE.getIndex()) {
-      selectedField.setType((Class)value);
-      selectedField.resetFieldType((Class)value);
+      selectedField.setType((Class) value);
+      selectedField.resetFieldType((Class) value);
       selectedField.setStored(selectedField.getFieldType().stored());
     } else if (columnIndex == Column.VALUE.getIndex()) {
-      selectedField.setValue((String)value);
+      selectedField.setValue((String) value);
     }
+  }
+
+  @Override
+  protected Column[] columnInfos() {
+    return Column.values();
   }
 }
 
@@ -543,7 +504,7 @@ class TypeCellRenderer implements TableCellRenderer {
 
   @Override
   public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-    String simpleName = ((Class)value).getSimpleName();
+    String simpleName = ((Class) value).getSimpleName();
     return new JLabel(simpleName);
   }
 }
