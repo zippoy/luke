@@ -9,10 +9,10 @@ Luke atop Swing.
 
 Luke is the GUI tool for introspecting your Lucene / Solr / Elasticsearch index. It allows:
 
-* Viewing your documents and analyzing their field contents (for stored fields)
+* Browsing your documents, indexed terms and posting lists
 * Searching in the index
 * Performing index maintenance: index health checking, index optimization (take a backup before running this!)
-* Testing your custom Lucene analyzers
+* Testing your custom Lucene analyzer (Tokenizer/CharFilter/TokenFilter)
 
 ![Swing Luke](luke-swing.png)
 
