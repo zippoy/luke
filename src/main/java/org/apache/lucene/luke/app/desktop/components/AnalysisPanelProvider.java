@@ -32,7 +32,7 @@ import org.apache.lucene.luke.app.desktop.components.fragments.search.MLTTabOper
 import org.apache.lucene.luke.app.desktop.util.DialogOpener;
 import org.apache.lucene.luke.app.desktop.util.ImageUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
-import org.apache.lucene.luke.app.desktop.util.TableUtil;
+import org.apache.lucene.luke.app.desktop.util.TableUtils;
 import org.apache.lucene.luke.models.analysis.Analysis;
 import org.apache.lucene.luke.models.analysis.AnalysisFactory;
 import org.apache.lucene.luke.models.analysis.CustomAnalyzerConfig;
@@ -62,7 +62,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 
-public class AnalysisPanelProvider implements Provider<JPanel>, AnalysisTabOperator {
+public final class AnalysisPanelProvider implements Provider<JPanel>, AnalysisTabOperator {
 
   private static final String TYPE_PRESET = "preset";
 
@@ -204,7 +204,7 @@ public class AnalysisPanelProvider implements Provider<JPanel>, AnalysisTabOpera
     inner2.add(hint, BorderLayout.PAGE_START);
 
 
-    TableUtil.setupTable(tokensTable, ListSelectionModel.SINGLE_SELECTION, new TokensTableModel(),
+    TableUtils.setupTable(tokensTable, ListSelectionModel.SINGLE_SELECTION, new TokensTableModel(),
         new MouseAdapter() {
           @Override
           public void mouseClicked(MouseEvent e) {
@@ -301,7 +301,7 @@ public class AnalysisPanelProvider implements Provider<JPanel>, AnalysisTabOpera
     return analysisModel.currentAnalyzer();
   }
 
-  class ListenerFunctions {
+  private class ListenerFunctions {
 
     void toggleMainPanel(ActionEvent e) {
       AnalysisPanelProvider.this.toggleMainPanel(e.getActionCommand());
@@ -326,7 +326,7 @@ public class AnalysisPanelProvider implements Provider<JPanel>, AnalysisTabOpera
 
 }
 
-class TokensTableModel extends TableModelBase<TokensTableModel.Column> {
+final class TokensTableModel extends TableModelBase<TokensTableModel.Column> {
 
   enum Column implements TableColumnInfo {
     TERM("Term", 0, String.class, 150),

@@ -45,7 +45,7 @@ import java.awt.Insets;
 import java.awt.Window;
 import java.util.Arrays;
 
-public class IndexOptionsDialogFactory implements DialogOpener.DialogFactory {
+public final class IndexOptionsDialogFactory implements DialogOpener.DialogFactory {
 
   private final JCheckBox storedCB = new JCheckBox();
 

@@ -36,7 +36,7 @@ import java.util.Objects;
 /**
  * Cell render class for table header with help dialog.
  */
-public class HelpHeaderRenderer implements TableCellRenderer {
+public final class HelpHeaderRenderer implements TableCellRenderer {
 
   private JTable table;
 
@@ -82,7 +82,7 @@ public class HelpHeaderRenderer implements TableCellRenderer {
             ImageUtils.createImageIcon("/img/icon_question_alt2.png", 12, 12),
             JLabel.LEFT);
         helpLabel.setIconTextGap(5);
-        panel.add(FontUtil.toLinkText(helpLabel));
+        panel.add(FontUtils.toLinkText(helpLabel));
 
         // add mouse listener to JTableHeader object.
         // see: https://stackoverflow.com/questions/7137786/how-can-i-put-a-control-in-the-jtableheader-of-a-jtable

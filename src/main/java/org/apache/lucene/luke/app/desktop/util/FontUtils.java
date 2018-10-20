@@ -22,7 +22,7 @@ import java.awt.Font;
 import java.awt.font.TextAttribute;
 import java.util.Map;
 
-public class FontUtil {
+public class FontUtils {
 
   @SuppressWarnings("unchecked")
   public static JLabel toLinkText(JLabel label) {
@@ -34,7 +34,7 @@ public class FontUtil {
     return label;
   }
 
-  private FontUtil() {
+  private FontUtils() {
   }
 
 }

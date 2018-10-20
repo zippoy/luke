@@ -51,7 +51,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-public class DocValuesDialogFactory implements DialogOpener.DialogFactory {
+public final class DocValuesDialogFactory implements DialogOpener.DialogFactory {
 
   private final JComboBox<String> decodersCombo = new JComboBox<>();
 
@@ -228,7 +228,7 @@ public class DocValuesDialogFactory implements DialogOpener.DialogFactory {
     return values;
   }
 
-  class ListenerFunctions {
+  private class ListenerFunctions {
 
     void selectDecoder(ActionEvent e) {
       DocValuesDialogFactory.this.selectDecoder();

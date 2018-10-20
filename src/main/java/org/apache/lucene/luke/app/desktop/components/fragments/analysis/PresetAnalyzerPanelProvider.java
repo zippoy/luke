@@ -36,7 +36,7 @@ import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.util.Collection;
 
-public class PresetAnalyzerPanelProvider implements Provider<JPanel>, PresetAnalyzerPanelOperator {
+public final class PresetAnalyzerPanelProvider implements Provider<JPanel>, PresetAnalyzerPanelOperator {
 
   private final ComponentOperatorRegistry operatorRegistry;
 
@@ -82,7 +82,7 @@ public class PresetAnalyzerPanelProvider implements Provider<JPanel>, PresetAnal
     analyzersCB.setSelectedItem(analyzer.getName());
   }
 
-  class ListenerFunctions {
+  private class ListenerFunctions {
 
     void setAnalyzer(ActionEvent e) {
       operatorRegistry.get(AnalysisTabOperator.class).ifPresent(operator ->

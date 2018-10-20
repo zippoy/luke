@@ -35,6 +35,7 @@ import org.apache.lucene.luke.app.desktop.components.LukeWindowProvider;
 import org.apache.lucene.luke.app.desktop.components.MenuBarProvider;
 import org.apache.lucene.luke.app.desktop.components.OverviewPanelProvider;
 import org.apache.lucene.luke.app.desktop.components.SearchPanelProvider;
+import org.apache.lucene.luke.app.desktop.components.TabSwitcherProxy;
 import org.apache.lucene.luke.app.desktop.components.TabbedPaneProvider;
 import org.apache.lucene.luke.app.desktop.components.dialog.ConfirmDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.HelpDialogFactory;
@@ -68,7 +69,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 
 
-public class DesktopModule extends AbstractModule {
+public final class DesktopModule extends AbstractModule {
 
   private static final Injector injector = Guice.createInjector(new DesktopModule());
 
@@ -83,7 +84,7 @@ public class DesktopModule extends AbstractModule {
 
     // UI components and fragments
     bind(ComponentOperatorRegistry.class).toInstance(new ComponentOperatorRegistry());
-    bind(TabbedPaneProvider.TabSwitcherProxy.class).toInstance(new TabbedPaneProvider.TabSwitcherProxy());
+    bind(TabSwitcherProxy.class).toInstance(new TabSwitcherProxy());
     bind(MessageBroker.class).toInstance(new MessageBroker());
 
     bind(JMenuBar.class).toProvider(MenuBarProvider.class);
@@ -146,7 +147,7 @@ public class DesktopModule extends AbstractModule {
   public AddDocumentDialogFactory provideAddDocumentDialogFactory(
       IndexOptionsDialogFactory indexOptionsDialogFactory, HelpDialogFactory helpDialogFactory,
       IndexHandler indexHandler, IndexToolsFactory toolsFactory,
-      TabbedPaneProvider.TabSwitcherProxy tabSwitcherProxy, ComponentOperatorRegistry operatorRegistry) {
+      TabSwitcherProxy tabSwitcherProxy, ComponentOperatorRegistry operatorRegistry) {
     return new AddDocumentDialogFactory(indexOptionsDialogFactory, helpDialogFactory, indexHandler, toolsFactory, tabSwitcherProxy, operatorRegistry);
   }
 

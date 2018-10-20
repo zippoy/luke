@@ -24,7 +24,7 @@ import org.apache.lucene.luke.app.desktop.components.ComponentOperatorRegistry;
 import org.apache.lucene.luke.app.desktop.components.TableColumnInfo;
 import org.apache.lucene.luke.app.desktop.components.TableModelBase;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
-import org.apache.lucene.luke.app.desktop.util.TableUtil;
+import org.apache.lucene.luke.app.desktop.util.TableUtils;
 import org.apache.lucene.luke.models.search.QueryParserConfig;
 
 import javax.swing.BorderFactory;
@@ -55,7 +55,7 @@ import java.util.TimeZone;
 
 import static org.apache.lucene.luke.app.desktop.components.fragments.search.PointTypesTableModel.NumType.INT;
 
-public class QueryParserPaneProvider implements Provider<JScrollPane>, QueryParserTabOperator {
+public final class QueryParserPaneProvider implements Provider<JScrollPane>, QueryParserTabOperator {
 
   private final JRadioButton standardRB = new JRadioButton();
 
@@ -284,7 +284,7 @@ public class QueryParserPaneProvider implements Provider<JScrollPane>, QueryPars
     headerNote.add(new JLabel(MessageUtils.getLocalizedMessage("search_parser.label.pointrange_hint")));
     panel.add(headerNote);
 
-    TableUtil.setupTable(pointRangeQueryTable, ListSelectionModel.SINGLE_SELECTION, new PointTypesTableModel(), null, PointTypesTableModel.Column.FIELD.getColumnWidth());
+    TableUtils.setupTable(pointRangeQueryTable, ListSelectionModel.SINGLE_SELECTION, new PointTypesTableModel(), null, PointTypesTableModel.Column.FIELD.getColumnWidth());
     pointRangeQueryTable.setShowGrid(true);
     JScrollPane scrollPane = new JScrollPane(pointRangeQueryTable);
     panel.add(scrollPane);
@@ -373,13 +373,13 @@ public class QueryParserPaneProvider implements Provider<JScrollPane>, QueryPars
     return (String) dfCB.getSelectedItem();
   }
 
-  class ListenerFunctions {
+  private class ListenerFunctions {
 
     void selectStandardQParser(ActionEvent e) {
       splitWSCB.setEnabled(false);
       genPhraseQueryCB.setEnabled(false);
       genMultiTermSynonymsPhraseQueryCB.setEnabled(false);
-      TableUtil.setEnabled(pointRangeQueryTable, true);
+      TableUtils.setEnabled(pointRangeQueryTable, true);
     }
 
     void selectClassicQparser(ActionEvent e) {
@@ -393,7 +393,7 @@ public class QueryParserPaneProvider implements Provider<JScrollPane>, QueryPars
       genMultiTermSynonymsPhraseQueryCB.setEnabled(true);
       pointRangeQueryTable.setEnabled(false);
       pointRangeQueryTable.setForeground(Color.gray);
-      TableUtil.setEnabled(pointRangeQueryTable, false);
+      TableUtils.setEnabled(pointRangeQueryTable, false);
     }
 
     void toggleSplitOnWhiteSpace(ActionEvent e) {
@@ -409,7 +409,7 @@ public class QueryParserPaneProvider implements Provider<JScrollPane>, QueryPars
 
 }
 
-class PointTypesTableModel extends TableModelBase<PointTypesTableModel.Column> {
+final class PointTypesTableModel extends TableModelBase<PointTypesTableModel.Column> {
 
   enum Column implements TableColumnInfo {
 

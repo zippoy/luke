@@ -23,8 +23,9 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.custom.CustomAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.luke.app.desktop.components.ComponentOperatorRegistry;
+import org.apache.lucene.luke.app.desktop.components.TabSwitcherProxy;
 import org.apache.lucene.luke.app.desktop.components.TabbedPaneProvider;
-import org.apache.lucene.luke.app.desktop.util.FontUtil;
+import org.apache.lucene.luke.app.desktop.util.FontUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 
 import javax.swing.BorderFactory;
@@ -46,9 +47,9 @@ import java.awt.Insets;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-public class AnalyzerPaneProvider implements Provider<JScrollPane>, AnalyzerTabOperator {
+public final class AnalyzerPaneProvider implements Provider<JScrollPane>, AnalyzerTabOperator {
 
-  private final TabbedPaneProvider.TabSwitcherProxy tabSwitcher;
+  private final TabSwitcherProxy tabSwitcher;
 
   private final JLabel analyzerNameLbl = new JLabel(StandardAnalyzer.class.getName());
 
@@ -59,7 +60,7 @@ public class AnalyzerPaneProvider implements Provider<JScrollPane>, AnalyzerTabO
   private final JList<String> tokenFilterList = new JList<>();
 
   @Inject
-  public AnalyzerPaneProvider(TabbedPaneProvider.TabSwitcherProxy tabSwitcher,
+  public AnalyzerPaneProvider(TabSwitcherProxy tabSwitcher,
                               ComponentOperatorRegistry operatorRegistry) {
     this.tabSwitcher = tabSwitcher;
 
@@ -94,7 +95,7 @@ public class AnalyzerPaneProvider implements Provider<JScrollPane>, AnalyzerTabO
         tabSwitcher.switchTab(TabbedPaneProvider.Tab.ANALYZER);
       }
     });
-    panel.add(FontUtil.toLinkText(changeLbl));
+    panel.add(FontUtils.toLinkText(changeLbl));
 
     return panel;
   }

@@ -42,7 +42,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-public class SortPaneProvider implements Provider<JScrollPane>, SortTabOperator {
+public final class SortPaneProvider implements Provider<JScrollPane>, SortTabOperator {
 
   private static final String COMMAND_FIELD_COMBO1 = "fieldCombo1";
 
@@ -171,7 +171,7 @@ public class SortPaneProvider implements Provider<JScrollPane>, SortTabOperator 
     return Order.valueOf((String) order.getSelectedItem()) == Order.DESC;
   }
 
-  class ListenerFunctions {
+  private class ListenerFunctions {
 
     void changeField(ActionEvent e) {
       if (e.getActionCommand().equalsIgnoreCase(COMMAND_FIELD_COMBO1)) {

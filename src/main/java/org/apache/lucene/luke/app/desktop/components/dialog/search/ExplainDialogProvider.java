@@ -44,7 +44,7 @@ import java.awt.datatransfer.StringSelection;
 import java.util.Objects;
 import java.util.stream.IntStream;
 
-public class ExplainDialogProvider implements DialogOpener.DialogFactory {
+public final class ExplainDialogProvider implements DialogOpener.DialogFactory {
 
   private JDialog dialog;
 

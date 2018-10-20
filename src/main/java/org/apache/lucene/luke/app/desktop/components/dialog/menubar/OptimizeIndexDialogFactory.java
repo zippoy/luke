@@ -58,7 +58,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class OptimizeIndexDialogFactory implements DialogOpener.DialogFactory {
+public final class OptimizeIndexDialogFactory implements DialogOpener.DialogFactory {
 
   private static final Logger logger = LoggerFactory.getLogger(OptimizeIndexDialogFactory.class);
 
@@ -180,7 +180,7 @@ public class OptimizeIndexDialogFactory implements DialogOpener.DialogFactory {
     return panel;
   }
 
-  class ListenerFunctions {
+  private class ListenerFunctions {
 
     void optimize(ActionEvent e) {
       ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -222,7 +222,7 @@ public class OptimizeIndexDialogFactory implements DialogOpener.DialogFactory {
 
   }
 
-  class Observer implements IndexObserver {
+  private class Observer implements IndexObserver {
 
     @Override
     public void openIndex(LukeState state) {

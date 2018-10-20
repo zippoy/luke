@@ -28,7 +28,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PreferencesImpl implements Preferences {
+public final class PreferencesImpl implements Preferences {
 
   private static final String CONFIG_DIR = System.getProperty("user.home") + File.separator + ".luke.d";
   private static final String INIT_FILE = "luke.ini";

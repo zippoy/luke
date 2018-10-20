@@ -36,7 +36,7 @@ import org.apache.lucene.luke.app.desktop.util.HelpHeaderRenderer;
 import org.apache.lucene.luke.app.desktop.util.ImageUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 import org.apache.lucene.luke.app.desktop.util.StyleConstants;
-import org.apache.lucene.luke.app.desktop.util.TableUtil;
+import org.apache.lucene.luke.app.desktop.util.TableUtils;
 import org.apache.lucene.luke.models.documents.DocValues;
 import org.apache.lucene.luke.models.documents.DocumentField;
 import org.apache.lucene.luke.models.documents.Documents;
@@ -85,7 +85,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-public class DocumentsPanelProvider implements Provider<JPanel>, DocumentsTabOperator {
+public final class DocumentsPanelProvider implements Provider<JPanel>, DocumentsTabOperator {
 
   private final DocumentsFactory documentsFactory;
 
@@ -93,7 +93,7 @@ public class DocumentsPanelProvider implements Provider<JPanel>, DocumentsTabOpe
 
   private final ComponentOperatorRegistry operatorRegistry;
 
-  private final TabbedPaneProvider.TabSwitcherProxy tabSwitcher;
+  private final TabSwitcherProxy tabSwitcher;
 
   private final AddDocumentDialogFactory addDocDialogFactory;
 
@@ -147,7 +147,7 @@ public class DocumentsPanelProvider implements Provider<JPanel>, DocumentsTabOpe
   public DocumentsPanelProvider(DocumentsFactory documentsFactory,
                                 MessageBroker messageBroker,
                                 IndexHandler indexHandler,
-                                TabbedPaneProvider.TabSwitcherProxy tabSwitcher,
+                                TabSwitcherProxy tabSwitcher,
                                 ComponentOperatorRegistry operatorRegistry,
                                 AddDocumentDialogFactory addDocDialogFactory,
                                 TermVectorDialogFactory tvDialogFactory,
@@ -347,7 +347,7 @@ public class DocumentsPanelProvider implements Provider<JPanel>, DocumentsTabOpe
     c.insets = new Insets(5, 5, 5, 5);
     center.add(termDocsNumLbl, c);
 
-    TableUtil.setupTable(posTable, ListSelectionModel.SINGLE_SELECTION, new PosTableModel(), null,
+    TableUtils.setupTable(posTable, ListSelectionModel.SINGLE_SELECTION, new PosTableModel(), null,
         PosTableModel.Column.POSITION.getColumnWidth(), PosTableModel.Column.OFFSETS.getColumnWidth(), PosTableModel.Column.PAYLOAD.getColumnWidth());
     JScrollPane scrollPane = new JScrollPane(posTable);
     scrollPane.setMinimumSize(new Dimension(100, 100));
@@ -380,7 +380,7 @@ public class DocumentsPanelProvider implements Provider<JPanel>, DocumentsTabOpe
 
     panel.add(browseDocsPanel, BorderLayout.PAGE_START);
 
-    TableUtil.setupTable(documentTable, ListSelectionModel.MULTIPLE_INTERVAL_SELECTION, new DocumentsTableModel(), new MouseAdapter() {
+    TableUtils.setupTable(documentTable, ListSelectionModel.MULTIPLE_INTERVAL_SELECTION, new DocumentsTableModel(), new MouseAdapter() {
           @Override
           public void mouseClicked(MouseEvent e) {
             listeners.showDocumentContextMenu(e);
@@ -542,7 +542,7 @@ public class DocumentsPanelProvider implements Provider<JPanel>, DocumentsTabOpe
 
 
   private void clearPosTable() {
-    TableUtil.setupTable(posTable, ListSelectionModel.SINGLE_SELECTION, new PosTableModel(), null,
+    TableUtils.setupTable(posTable, ListSelectionModel.SINGLE_SELECTION, new PosTableModel(), null,
         PosTableModel.Column.POSITION.getColumnWidth(),
         PosTableModel.Column.OFFSETS.getColumnWidth(),
         PosTableModel.Column.PAYLOAD.getColumnWidth());
@@ -745,7 +745,7 @@ public class DocumentsPanelProvider implements Provider<JPanel>, DocumentsTabOpe
     messageBroker.clearStatusMessage();
   }
 
-  class ListenerFunctions {
+  private class ListenerFunctions {
 
     void showFirstTerm(ActionEvent e) {
       DocumentsPanelProvider.this.showFirstTerm();
@@ -811,7 +811,7 @@ public class DocumentsPanelProvider implements Provider<JPanel>, DocumentsTabOpe
 
   }
 
-  public class Observer implements IndexObserver {
+  private class Observer implements IndexObserver {
 
     @Override
     public void openIndex(LukeState state) {
@@ -851,7 +851,7 @@ public class DocumentsPanelProvider implements Provider<JPanel>, DocumentsTabOpe
 
 }
 
-class PosTableModel extends TableModelBase<PosTableModel.Column> {
+final class PosTableModel extends TableModelBase<PosTableModel.Column> {
 
   enum Column implements TableColumnInfo {
 
@@ -922,7 +922,7 @@ class PosTableModel extends TableModelBase<PosTableModel.Column> {
   }
 }
 
-class DocumentsTableModel extends TableModelBase<DocumentsTableModel.Column> {
+final class DocumentsTableModel extends TableModelBase<DocumentsTableModel.Column> {
 
   enum Column implements TableColumnInfo {
     FIELD("Field", 0, String.class, 150),

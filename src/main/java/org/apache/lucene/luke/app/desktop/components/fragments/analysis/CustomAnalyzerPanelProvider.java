@@ -30,9 +30,9 @@ import org.apache.lucene.luke.app.desktop.components.ComponentOperatorRegistry;
 import org.apache.lucene.luke.app.desktop.components.dialog.analysis.EditFiltersDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.analysis.EditParamsDialogFactory;
 import org.apache.lucene.luke.app.desktop.util.DialogOpener;
-import org.apache.lucene.luke.app.desktop.util.FontUtil;
+import org.apache.lucene.luke.app.desktop.util.FontUtils;
 import org.apache.lucene.luke.app.desktop.util.ImageUtils;
-import org.apache.lucene.luke.app.desktop.util.ListUtil;
+import org.apache.lucene.luke.app.desktop.util.ListUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 import org.apache.lucene.luke.app.desktop.util.lang.Callable;
 import org.apache.lucene.luke.models.LukeException;
@@ -74,7 +74,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 
-public class CustomAnalyzerPanelProvider implements Provider<JPanel>, CustomAnalyzerPanelOperator {
+public final class CustomAnalyzerPanelProvider implements Provider<JPanel>, CustomAnalyzerPanelOperator {
 
   private final ComponentOperatorRegistry operatorRegistry;
 
@@ -180,7 +180,7 @@ public class CustomAnalyzerPanelProvider implements Provider<JPanel>, CustomAnal
         listeners.loadExternalJars(e);
       }
     });
-    panel.add(FontUtil.toLinkText(loadJarLbl));
+    panel.add(FontUtils.toLinkText(loadJarLbl));
 
     return panel;
   }
@@ -463,10 +463,10 @@ public class CustomAnalyzerPanelProvider implements Provider<JPanel>, CustomAnal
 
 
   private void buildAnalyzer() {
-    List<String> charFilterFactories = ListUtil.getAllItems(selectedCfList);
+    List<String> charFilterFactories = ListUtils.getAllItems(selectedCfList);
     assert charFilterFactories.size() == cfParamsList.size();
 
-    List<String> tokenFilterFactories = ListUtil.getAllItems(selectedTfList);
+    List<String> tokenFilterFactories = ListUtils.getAllItems(selectedTfList);
     assert tokenFilterFactories.size() == tfParamsList.size();
 
     String tokenizerName = analysisModel.getTokenizerFactorySPIName(selectedTokTF.getText()).orElseThrow(() -> new LukeException("No such tokenizer: " + selectedTokTF.getText()));
@@ -497,7 +497,7 @@ public class CustomAnalyzerPanelProvider implements Provider<JPanel>, CustomAnal
 
     int targetIndex = selectedCfList.getModel().getSize();
     String selectedItem = (String) cfFactoryCombo.getSelectedItem();
-    List<String> updatedList = ListUtil.getAllItems(selectedCfList);
+    List<String> updatedList = ListUtils.getAllItems(selectedCfList);
     updatedList.add(selectedItem);
     cfParamsList.add(new HashMap<>());
 
@@ -535,7 +535,7 @@ public class CustomAnalyzerPanelProvider implements Provider<JPanel>, CustomAnal
 
     int targetIndex = selectedTfList.getModel().getSize();
     String selectedItem = (String) tfFactoryCombo.getSelectedItem();
-    List<String> updatedList = ListUtil.getAllItems(selectedTfList);
+    List<String> updatedList = ListUtils.getAllItems(selectedTfList);
     updatedList.add(selectedItem);
     tfParamsList.add(new HashMap<>());
 
@@ -563,7 +563,7 @@ public class CustomAnalyzerPanelProvider implements Provider<JPanel>, CustomAnal
   }
 
   private void editCharFilters() {
-    List<String> filters = ListUtil.getAllItems(selectedCfList);
+    List<String> filters = ListUtils.getAllItems(selectedCfList);
     showEditFiltersDialog(EditFiltersDialogFactory.EditFiltersMode.CHARFILTER, filters,
         () -> {
           cfEditBtn.setEnabled(selectedCfList.getModel().getSize() > 0);
@@ -580,7 +580,7 @@ public class CustomAnalyzerPanelProvider implements Provider<JPanel>, CustomAnal
   }
 
   private void editTokenFilters() {
-    List<String> filters = ListUtil.getAllItems(selectedTfList);
+    List<String> filters = ListUtils.getAllItems(selectedTfList);
     showEditFiltersDialog(EditFiltersDialogFactory.EditFiltersMode.TOKENFILTER, filters,
         () -> {
           tfEditBtn.setEnabled(selectedTfList.getModel().getSize() > 0);
@@ -639,7 +639,7 @@ public class CustomAnalyzerPanelProvider implements Provider<JPanel>, CustomAnal
   @Override
   public void updateCharFilters(List<Integer> deletedIndexes) {
     // update filters
-    List<String> filters = ListUtil.getAllItems(selectedCfList);
+    List<String> filters = ListUtils.getAllItems(selectedCfList);
     String[] updatedFilters = IntStream.range(0, filters.size())
         .filter(i -> !deletedIndexes.contains(i))
         .mapToObj(filters::get)
@@ -658,7 +658,7 @@ public class CustomAnalyzerPanelProvider implements Provider<JPanel>, CustomAnal
   @Override
   public void updateTokenFilters(List<Integer> deletedIndexes) {
     // update filters
-    List<String> filters = ListUtil.getAllItems(selectedTfList);
+    List<String> filters = ListUtils.getAllItems(selectedTfList);
     String[] updatedFilters = IntStream.range(0, filters.size())
         .filter(i -> !deletedIndexes.contains(i))
         .mapToObj(filters::get)
@@ -720,7 +720,7 @@ public class CustomAnalyzerPanelProvider implements Provider<JPanel>, CustomAnal
     tfParamsList.get(index).putAll(updatedParams);
   }
 
-  class ListenerFunctions {
+  private class ListenerFunctions {
 
     void chooseConfigDir(ActionEvent e) {
       CustomAnalyzerPanelProvider.this.chooseConfigDir();

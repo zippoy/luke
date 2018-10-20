@@ -40,7 +40,7 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.util.Objects;
 
-public class StoredValueDialogFactory implements DialogOpener.DialogFactory {
+public final class StoredValueDialogFactory implements DialogOpener.DialogFactory {
 
   private JDialog dialog;
 

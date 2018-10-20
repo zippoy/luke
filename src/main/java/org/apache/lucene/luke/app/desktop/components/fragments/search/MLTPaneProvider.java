@@ -22,12 +22,13 @@ import com.google.inject.Provider;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.luke.app.desktop.components.ComponentOperatorRegistry;
+import org.apache.lucene.luke.app.desktop.components.TabSwitcherProxy;
 import org.apache.lucene.luke.app.desktop.components.TabbedPaneProvider;
 import org.apache.lucene.luke.app.desktop.components.TableColumnInfo;
 import org.apache.lucene.luke.app.desktop.components.TableModelBase;
-import org.apache.lucene.luke.app.desktop.util.FontUtil;
+import org.apache.lucene.luke.app.desktop.util.FontUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
-import org.apache.lucene.luke.app.desktop.util.TableUtil;
+import org.apache.lucene.luke.app.desktop.util.TableUtils;
 import org.apache.lucene.luke.models.search.MLTConfig;
 
 import javax.swing.BorderFactory;
@@ -52,7 +53,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class MLTPaneProvider implements Provider<JScrollPane>, MLTTabOperator {
+public final class MLTPaneProvider implements Provider<JScrollPane>, MLTTabOperator {
 
   private final JLabel analyzerLbl = new JLabel(StandardAnalyzer.class.getName());
 
@@ -66,14 +67,14 @@ public class MLTPaneProvider implements Provider<JScrollPane>, MLTTabOperator {
 
   private final JTable fieldsTable = new JTable();
 
-  private final TabbedPaneProvider.TabSwitcherProxy tabSwitcher;
+  private final TabSwitcherProxy tabSwitcher;
 
   private final ListenerFunctions listeners = new ListenerFunctions();
 
   private MLTConfig config = new MLTConfig.Builder().build();
 
   @Inject
-  public MLTPaneProvider(TabbedPaneProvider.TabSwitcherProxy tabSwitcher,
+  public MLTPaneProvider(TabSwitcherProxy tabSwitcher,
                          ComponentOperatorRegistry operatorRegistry) {
     this.tabSwitcher = tabSwitcher;
 
@@ -140,7 +141,7 @@ public class MLTPaneProvider implements Provider<JScrollPane>, MLTTabOperator {
         tabSwitcher.switchTab(TabbedPaneProvider.Tab.ANALYZER);
       }
     });
-    panel.add(FontUtil.toLinkText(changeLbl));
+    panel.add(FontUtils.toLinkText(changeLbl));
 
     return panel;
   }
@@ -159,7 +160,7 @@ public class MLTPaneProvider implements Provider<JScrollPane>, MLTTabOperator {
     header.add(loadAllCB);
     panel.add(header, BorderLayout.PAGE_START);
 
-    TableUtil.setupTable(fieldsTable, ListSelectionModel.SINGLE_SELECTION, new MLTFieldsTableModel(), null, MLTFieldsTableModel.Column.SELECT.getColumnWidth());
+    TableUtils.setupTable(fieldsTable, ListSelectionModel.SINGLE_SELECTION, new MLTFieldsTableModel(), null, MLTFieldsTableModel.Column.SELECT.getColumnWidth());
     fieldsTable.setPreferredScrollableViewportSize(fieldsTable.getPreferredSize());
     panel.add(new JScrollPane(fieldsTable), BorderLayout.CENTER);
 
@@ -197,7 +198,7 @@ public class MLTPaneProvider implements Provider<JScrollPane>, MLTTabOperator {
         .build();
   }
 
-  class ListenerFunctions {
+  private class ListenerFunctions {
 
     void loadAllFields(ActionEvent e) {
       for (int i = 0; i < fieldsTable.getModel().getRowCount(); i++) {
@@ -223,7 +224,7 @@ public class MLTPaneProvider implements Provider<JScrollPane>, MLTTabOperator {
 
 }
 
-class MLTFieldsTableModel extends TableModelBase<MLTFieldsTableModel.Column> {
+final class MLTFieldsTableModel extends TableModelBase<MLTFieldsTableModel.Column> {
 
   enum Column implements TableColumnInfo {
     SELECT("Select", 0, Boolean.class, 50),

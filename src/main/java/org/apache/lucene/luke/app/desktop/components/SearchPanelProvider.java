@@ -38,7 +38,7 @@ import org.apache.lucene.luke.app.desktop.components.fragments.search.SortTabOpe
 import org.apache.lucene.luke.app.desktop.util.DialogOpener;
 import org.apache.lucene.luke.app.desktop.util.ImageUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
-import org.apache.lucene.luke.app.desktop.util.TableUtil;
+import org.apache.lucene.luke.app.desktop.util.TableUtils;
 import org.apache.lucene.luke.models.LukeException;
 import org.apache.lucene.luke.models.search.MLTConfig;
 import org.apache.lucene.luke.models.search.QueryParserConfig;
@@ -89,7 +89,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class SearchPanelProvider implements Provider<JPanel>, SearchTabOperator {
+public final class SearchPanelProvider implements Provider<JPanel>, SearchTabOperator {
 
   private static final int DEFAULT_PAGE_SIZE = 10;
 
@@ -101,7 +101,7 @@ public class SearchPanelProvider implements Provider<JPanel>, SearchTabOperator 
 
   private final MessageBroker messageBroker;
 
-  private final TabbedPaneProvider.TabSwitcherProxy tabSwitcher;
+  private final TabSwitcherProxy tabSwitcher;
 
   private final ComponentOperatorRegistry operatorRegistry;
 
@@ -164,7 +164,7 @@ public class SearchPanelProvider implements Provider<JPanel>, SearchTabOperator 
                              IndexToolsFactory toolsFactory,
                              IndexHandler indexHandler,
                              MessageBroker messageBroker,
-                             TabbedPaneProvider.TabSwitcherProxy tabSwitcher,
+                             TabSwitcherProxy tabSwitcher,
                              ComponentOperatorRegistry operatorRegistry,
                              ConfirmDialogFactory confirmDialogFactory,
                              ExplainDialogProvider explainDialogProvider,
@@ -417,7 +417,7 @@ public class SearchPanelProvider implements Provider<JPanel>, SearchTabOperator 
         listeners.showContextMenuInResultsTable(e);
       }
     };
-    TableUtil.setupTable(resultsTable, ListSelectionModel.SINGLE_SELECTION, new SearchResultsTableModel(),
+    TableUtils.setupTable(resultsTable, ListSelectionModel.SINGLE_SELECTION, new SearchResultsTableModel(),
         new MouseAdapter() {
           @Override
           public void mousePressed(MouseEvent e) {
@@ -502,7 +502,7 @@ public class SearchPanelProvider implements Provider<JPanel>, SearchTabOperator 
         .orElse(Collections.emptySet());
     SearchResults results = searchModel.search(query, simConfig, sort, fieldsToLoad, DEFAULT_PAGE_SIZE);
 
-    TableUtil.setupTable(resultsTable, ListSelectionModel.SINGLE_SELECTION, new SearchResultsTableModel(), null,
+    TableUtils.setupTable(resultsTable, ListSelectionModel.SINGLE_SELECTION, new SearchResultsTableModel(), null,
         SearchResultsTableModel.Column.DOCID.getColumnWidth(),
         SearchResultsTableModel.Column.SCORE.getColumnWidth());
     populateResults(results);
@@ -537,7 +537,7 @@ public class SearchPanelProvider implements Provider<JPanel>, SearchTabOperator 
         .orElse(Collections.emptySet());
     SearchResults results = searchModel.search(query, new SimilarityConfig.Builder().build(), fieldsToLoad, DEFAULT_PAGE_SIZE);
 
-    TableUtil.setupTable(resultsTable, ListSelectionModel.SINGLE_SELECTION, new SearchResultsTableModel(), null,
+    TableUtils.setupTable(resultsTable, ListSelectionModel.SINGLE_SELECTION, new SearchResultsTableModel(), null,
         SearchResultsTableModel.Column.DOCID.getColumnWidth(),
         SearchResultsTableModel.Column.SCORE.getColumnWidth());
     populateResults(results);
@@ -645,7 +645,7 @@ public class SearchPanelProvider implements Provider<JPanel>, SearchTabOperator 
     tabbedPane.setSelectedIndex(Tab.MLT.index());
   }
 
-  class ListenerFunctions {
+  private class ListenerFunctions {
 
     void toggleTermQuery(ActionEvent e) {
       SearchPanelProvider.this.toggleTermQuery();
@@ -684,7 +684,7 @@ public class SearchPanelProvider implements Provider<JPanel>, SearchTabOperator 
 
   }
 
-  class Observer implements IndexObserver {
+  private class Observer implements IndexObserver {
 
     @Override
     public void openIndex(LukeState state) {
@@ -728,13 +728,11 @@ public class SearchPanelProvider implements Provider<JPanel>, SearchTabOperator 
       nextBtn.setEnabled(false);
       prevBtn.setEnabled(false);
       delBtn.setEnabled(false);
-      TableUtil.setupTable(resultsTable, ListSelectionModel.SINGLE_SELECTION, new SearchResultsTableModel(), null,
+      TableUtils.setupTable(resultsTable, ListSelectionModel.SINGLE_SELECTION, new SearchResultsTableModel(), null,
           SearchResultsTableModel.Column.DOCID.getColumnWidth(),
           SearchResultsTableModel.Column.SCORE.getColumnWidth());
     }
 
-    private Observer() {
-    }
   }
 
   public enum Tab {
@@ -753,7 +751,7 @@ public class SearchPanelProvider implements Provider<JPanel>, SearchTabOperator 
 
 }
 
-class SearchResultsTableModel extends TableModelBase<SearchResultsTableModel.Column> {
+final class SearchResultsTableModel extends TableModelBase<SearchResultsTableModel.Column> {
 
   enum Column implements TableColumnInfo {
     DOCID("Doc ID", 0, Integer.class, 50),

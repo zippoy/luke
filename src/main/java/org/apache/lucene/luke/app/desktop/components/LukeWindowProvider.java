@@ -46,11 +46,13 @@ import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 
 
-public class LukeWindowProvider implements Provider<JFrame> {
+public final class LukeWindowProvider implements Provider<JFrame> {
 
   private static final String WINDOW_TITLE = MessageUtils.getLocalizedMessage("window.title") + " - v" + Version.LATEST.toString();
 
   private final MessageBroker messageBroker;
+
+  private final TabSwitcherProxy tabSwitcher;
 
   private final JMenuBar menuBar;
 
@@ -64,85 +66,17 @@ public class LukeWindowProvider implements Provider<JFrame> {
 
   private final JLabel noReaderIcon = new JLabel();
 
-  public class Observer implements IndexObserver, DirectoryObserver {
-
-    @Override
-    public void openDirectory(LukeState state) {
-      multiIcon.setVisible(false);
-      readOnlyIcon.setVisible(false);
-      noReaderIcon.setVisible(true);
-
-      messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("message.directory_opened"));
-    }
-
-    @Override
-    public void closeDirectory() {
-      multiIcon.setVisible(false);
-      readOnlyIcon.setVisible(false);
-      noReaderIcon.setVisible(false);
-
-      messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("message.directory_closed"));
-    }
-
-    @Override
-    public void openIndex(LukeState state) {
-      multiIcon.setVisible(!state.hasDirectoryReader());
-      readOnlyIcon.setVisible(state.readOnly());
-      noReaderIcon.setVisible(false);
-
-      if (state.readOnly()) {
-        messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("message.index_opened_ro"));
-      } else if (!state.hasDirectoryReader()) {
-        messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("message.index_opened_multi"));
-      } else {
-        messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("message.index_opened"));
-      }
-    }
-
-    @Override
-    public void closeIndex() {
-      multiIcon.setVisible(false);
-      readOnlyIcon.setVisible(false);
-      noReaderIcon.setVisible(false);
-
-      messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("message.index_closed"));
-    }
-
-    private Observer() {
-    }
-  }
-
-  public class MessageReceiverImpl implements MessageBroker.MessageReceiver {
-
-    @Override
-    public void showStatusMessage(String message) {
-      messageLbl.setText(message);
-    }
-
-    @Override
-    public void showUnknownErrorMessage() {
-      messageLbl.setText(MessageUtils.getLocalizedMessage("message.error.unknown"));
-    }
-
-    @Override
-    public void clearStatusMessage() {
-      messageLbl.setText("");
-    }
-
-    private MessageReceiverImpl() {
-    }
-
-  }
-
   @Inject
   public LukeWindowProvider(JMenuBar menuBar,
                             @Named("main") JTabbedPane tabbedPane,
                             DirectoryHandler directoryHandler,
                             IndexHandler indexHandler,
-                            MessageBroker messageBroker) {
+                            MessageBroker messageBroker,
+                            TabSwitcherProxy tabSwitcher) {
     this.menuBar = menuBar;
     this.tabbedPane = tabbedPane;
     this.messageBroker = messageBroker;
+    this.tabSwitcher = tabSwitcher;
 
     Observer observer = new Observer();
     directoryHandler.addObserver(observer);
@@ -157,8 +91,8 @@ public class LukeWindowProvider implements Provider<JFrame> {
     frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
     frame.setJMenuBar(menuBar);
-    frame.add(createMainPanel(), BorderLayout.CENTER);
-    frame.add(createMessagePanel(), BorderLayout.PAGE_END);
+    frame.add(initMainPanel(), BorderLayout.CENTER);
+    frame.add(initMessagePanel(), BorderLayout.PAGE_END);
 
     frame.setPreferredSize(new Dimension(900, 680));
     frame.pack();
@@ -166,7 +100,7 @@ public class LukeWindowProvider implements Provider<JFrame> {
     return frame;
   }
 
-  private JPanel createMainPanel() {
+  private JPanel initMainPanel() {
     JPanel panel = new JPanel(new GridLayout(1, 1));
 
     tabbedPane.setEnabledAt(TabbedPaneProvider.Tab.OVERVIEW.index(), false);
@@ -179,7 +113,7 @@ public class LukeWindowProvider implements Provider<JFrame> {
     return panel;
   }
 
-  private JPanel createMessagePanel() {
+  private JPanel initMessagePanel() {
     JPanel panel = new JPanel(new GridLayout(1, 1));
     panel.setBorder(BorderFactory.createEmptyBorder(0, 2, 2, 2));
 
@@ -224,6 +158,76 @@ public class LukeWindowProvider implements Provider<JFrame> {
     panel.add(innerPanel);
 
     return panel;
+  }
+
+  private class Observer implements IndexObserver, DirectoryObserver {
+
+    @Override
+    public void openDirectory(LukeState state) {
+      multiIcon.setVisible(false);
+      readOnlyIcon.setVisible(false);
+      noReaderIcon.setVisible(true);
+
+      tabSwitcher.switchTab(TabbedPaneProvider.Tab.COMMITS);
+
+      messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("message.directory_opened"));
+    }
+
+    @Override
+    public void closeDirectory() {
+      multiIcon.setVisible(false);
+      readOnlyIcon.setVisible(false);
+      noReaderIcon.setVisible(false);
+
+      messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("message.directory_closed"));
+    }
+
+    @Override
+    public void openIndex(LukeState state) {
+      multiIcon.setVisible(!state.hasDirectoryReader());
+      readOnlyIcon.setVisible(state.readOnly());
+      noReaderIcon.setVisible(false);
+
+      if (state.readOnly()) {
+        messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("message.index_opened_ro"));
+      } else if (!state.hasDirectoryReader()) {
+        messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("message.index_opened_multi"));
+      } else {
+        messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("message.index_opened"));
+      }
+    }
+
+    @Override
+    public void closeIndex() {
+      multiIcon.setVisible(false);
+      readOnlyIcon.setVisible(false);
+      noReaderIcon.setVisible(false);
+
+      messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("message.index_closed"));
+    }
+
+  }
+
+  private class MessageReceiverImpl implements MessageBroker.MessageReceiver {
+
+    @Override
+    public void showStatusMessage(String message) {
+      messageLbl.setText(message);
+    }
+
+    @Override
+    public void showUnknownErrorMessage() {
+      messageLbl.setText(MessageUtils.getLocalizedMessage("message.error.unknown"));
+    }
+
+    @Override
+    public void clearStatusMessage() {
+      messageLbl.setText("");
+    }
+
+    private MessageReceiverImpl() {
+    }
+
   }
 
 }

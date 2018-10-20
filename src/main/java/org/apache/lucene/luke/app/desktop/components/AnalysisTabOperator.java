@@ -21,6 +21,7 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.luke.models.analysis.CustomAnalyzerConfig;
 
 public interface AnalysisTabOperator extends ComponentOperatorRegistry.ComponentOperator {
+
   void setAnalyzerByType(String analyzerType);
 
   void setAnalyzerByCustomConfiguration(CustomAnalyzerConfig config);

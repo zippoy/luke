@@ -22,7 +22,7 @@ import org.apache.lucene.luke.models.LukeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ExceptionHandler {
+public final class ExceptionHandler {
 
   private static final Logger logger = LoggerFactory.getLogger(ExceptionHandler.class);
 

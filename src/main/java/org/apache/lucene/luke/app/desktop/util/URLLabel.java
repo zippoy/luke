@@ -29,7 +29,7 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 
-public class URLLabel extends JLabel {
+public final class URLLabel extends JLabel {
 
   private final URL link;
 

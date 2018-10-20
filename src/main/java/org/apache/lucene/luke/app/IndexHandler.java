@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class IndexHandler extends AbstractHandler<IndexObserver> {
+public final class IndexHandler extends AbstractHandler<IndexObserver> {
 
   private static Logger logger = LoggerFactory.getLogger(IndexHandler.class);
 

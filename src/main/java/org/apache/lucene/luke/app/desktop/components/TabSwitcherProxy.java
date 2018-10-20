@@ -15,25 +15,30 @@
  * limitations under the License.
  */
 
-package org.apache.lucene.luke.app.desktop.util;
+package org.apache.lucene.luke.app.desktop.components;
 
-import javax.swing.JList;
-import javax.swing.ListModel;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.function.IntFunction;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
-public class ListUtil {
+public class TabSwitcherProxy {
 
-  public static <T> List<T> getAllItems(JList<T> jlist) {
-    ListModel<T> model = jlist.getModel();
-    return getAllItems(jlist, model::getElementAt);
+  private final List<TabSwitcher> switcherHolder = new ArrayList<>();
+
+  public void set(TabSwitcher switcher) {
+    if (switcherHolder.isEmpty()) {
+      switcherHolder.add(switcher);
+    }
   }
 
-  public static <T, R> List<R> getAllItems(JList<T> jlist, IntFunction<R> mapFunc) {
-    ListModel<T> model = jlist.getModel();
-    return IntStream.range(0, model.getSize()).mapToObj(mapFunc).collect(Collectors.toList());
+  public void switchTab(TabbedPaneProvider.Tab tab) {
+    if (switcherHolder.get(0) == null) {
+      throw new IllegalStateException();
+    }
+    switcherHolder.get(0).switchTab(tab);
+  }
+
+  public interface TabSwitcher {
+    void switchTab(TabbedPaneProvider.Tab tab);
   }
 
 }

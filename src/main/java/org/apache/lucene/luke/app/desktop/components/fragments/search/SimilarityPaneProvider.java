@@ -37,7 +37,7 @@ import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 
-public class SimilarityPaneProvider implements Provider<JScrollPane>, SimilarityTabOperator {
+public final class SimilarityPaneProvider implements Provider<JScrollPane>, SimilarityTabOperator {
 
   private final JCheckBox tfidfCB = new JCheckBox();
 
@@ -118,7 +118,7 @@ public class SimilarityPaneProvider implements Provider<JScrollPane>, Similarity
         .build();
   }
 
-  class ListenerFunctions {
+  private class ListenerFunctions {
 
     void toggleTfIdf(ActionEvent e) {
       if (tfidfCB.isSelected()) {

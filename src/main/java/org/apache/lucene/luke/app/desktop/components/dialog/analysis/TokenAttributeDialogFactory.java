@@ -21,7 +21,7 @@ import org.apache.lucene.luke.app.desktop.components.TableColumnInfo;
 import org.apache.lucene.luke.app.desktop.components.TableModelBase;
 import org.apache.lucene.luke.app.desktop.util.DialogOpener;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
-import org.apache.lucene.luke.app.desktop.util.TableUtil;
+import org.apache.lucene.luke.app.desktop.util.TableUtils;
 import org.apache.lucene.luke.models.analysis.Analysis;
 
 import javax.swing.BorderFactory;
@@ -40,7 +40,7 @@ import java.awt.Window;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class TokenAttributeDialogFactory implements DialogOpener.DialogFactory {
+public final class TokenAttributeDialogFactory implements DialogOpener.DialogFactory {
 
   private final JTable attributesTable = new JTable();
 
@@ -79,7 +79,7 @@ public class TokenAttributeDialogFactory implements DialogOpener.DialogFactory {
     List<TokenAttValue> attrValues = attributes.stream()
         .flatMap(att -> att.getAttValues().entrySet().stream().map(e -> TokenAttValue.of(att.getAttClass(), e.getKey(), e.getValue())))
         .collect(Collectors.toList());
-    TableUtil.setupTable(attributesTable, ListSelectionModel.SINGLE_SELECTION, new AttributeTableModel(attrValues), null);
+    TableUtils.setupTable(attributesTable, ListSelectionModel.SINGLE_SELECTION, new AttributeTableModel(attrValues), null);
     panel.add(new JScrollPane(attributesTable), BorderLayout.CENTER);
 
     JPanel footer = new JPanel(new FlowLayout(FlowLayout.TRAILING));
@@ -93,7 +93,7 @@ public class TokenAttributeDialogFactory implements DialogOpener.DialogFactory {
 
 }
 
-class AttributeTableModel extends TableModelBase<AttributeTableModel.Column> {
+final class AttributeTableModel extends TableModelBase<AttributeTableModel.Column> {
 
   enum Column implements TableColumnInfo {
 
@@ -143,7 +143,7 @@ class AttributeTableModel extends TableModelBase<AttributeTableModel.Column> {
   }
 }
 
-class TokenAttValue {
+final class TokenAttValue {
   private String attClass;
   private String name;
   private String value;
@@ -159,15 +159,15 @@ class TokenAttValue {
   private TokenAttValue() {
   }
 
-  public String getAttClass() {
+  String getAttClass() {
     return attClass;
   }
 
-  public String getName() {
+  String getName() {
     return name;
   }
 
-  public String getValue() {
+  String getValue() {
     return value;
   }
 }

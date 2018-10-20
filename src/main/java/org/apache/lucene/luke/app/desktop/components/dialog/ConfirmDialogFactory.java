@@ -35,7 +35,7 @@ import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.Window;
 
-public class ConfirmDialogFactory implements DialogOpener.DialogFactory {
+public final class ConfirmDialogFactory implements DialogOpener.DialogFactory {
 
   private JDialog dialog;
 

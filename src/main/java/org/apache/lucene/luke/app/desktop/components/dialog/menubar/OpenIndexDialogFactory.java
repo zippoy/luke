@@ -63,7 +63,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class OpenIndexDialogFactory implements DialogOpener.DialogFactory {
+public final class OpenIndexDialogFactory implements DialogOpener.DialogFactory {
 
   private static final Logger logger = LoggerFactory.getLogger(OpenIndexDialogFactory.class);
 
@@ -256,7 +256,7 @@ public class OpenIndexDialogFactory implements DialogOpener.DialogFactory {
     return panel;
   }
 
-  class ListenerFunctions {
+  private class ListenerFunctions {
 
     void browseDirectory(ActionEvent e) {
       JFileChooser fc = new JFileChooser();
@@ -342,7 +342,8 @@ public class OpenIndexDialogFactory implements DialogOpener.DialogFactory {
     Injector injector = DesktopModule.getIngector();
     OpenIndexDialogFactory openIndexDialogFactory = injector.getInstance(OpenIndexDialogFactory.class);
     new DialogOpener<>(openIndexDialogFactory).open(MessageUtils.getLocalizedMessage("openindex.dialog.title"), 600, 420,
-        (factory) -> {});
+        (factory) -> {
+        });
   }
 
 }

@@ -24,7 +24,7 @@ import org.apache.lucene.luke.app.desktop.components.TableModelBase;
 import org.apache.lucene.luke.app.desktop.components.fragments.analysis.CustomAnalyzerPanelOperator;
 import org.apache.lucene.luke.app.desktop.util.DialogOpener;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
-import org.apache.lucene.luke.app.desktop.util.TableUtil;
+import org.apache.lucene.luke.app.desktop.util.TableUtils;
 import org.apache.lucene.luke.app.desktop.util.lang.Callable;
 
 import javax.swing.BorderFactory;
@@ -46,7 +46,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public class EditParamsDialogFactory implements DialogOpener.DialogFactory {
+public final class EditParamsDialogFactory implements DialogOpener.DialogFactory {
 
   private final ComponentOperatorRegistry operatorRegistry;
 
@@ -109,7 +109,7 @@ public class EditParamsDialogFactory implements DialogOpener.DialogFactory {
     header.add(targetLbl);
     panel.add(header, BorderLayout.PAGE_START);
 
-    TableUtil.setupTable(paramsTable, ListSelectionModel.SINGLE_SELECTION, new ParamsTableModel(params), null,
+    TableUtils.setupTable(paramsTable, ListSelectionModel.SINGLE_SELECTION, new ParamsTableModel(params), null,
         ParamsTableModel.Column.DELETE.getColumnWidth(),
         ParamsTableModel.Column.NAME.getColumnWidth());
     paramsTable.setShowGrid(true);
@@ -166,7 +166,7 @@ public class EditParamsDialogFactory implements DialogOpener.DialogFactory {
   }
 }
 
-class ParamsTableModel extends TableModelBase<ParamsTableModel.Column> {
+final class ParamsTableModel extends TableModelBase<ParamsTableModel.Column> {
 
   enum Column implements TableColumnInfo {
     DELETE("Delete", 0, Boolean.class, 50),

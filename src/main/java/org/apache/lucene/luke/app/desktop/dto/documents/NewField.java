@@ -35,7 +35,7 @@ import org.apache.lucene.luke.app.desktop.util.NumericUtils;
 
 import javax.annotation.Nonnull;
 
-public class NewField {
+public final class NewField {
 
   private boolean deleted;
 

@@ -23,7 +23,7 @@ import org.apache.log4j.spi.LoggingEvent;
 
 import javax.swing.JTextArea;
 
-public class TextAreaAppender extends AppenderSkeleton {
+public final class TextAreaAppender extends AppenderSkeleton {
 
   private static JTextArea textArea;
 
@@ -56,7 +56,6 @@ public class TextAreaAppender extends AppenderSkeleton {
 
   @Override
   public void close() {
-
   }
 
   @Override

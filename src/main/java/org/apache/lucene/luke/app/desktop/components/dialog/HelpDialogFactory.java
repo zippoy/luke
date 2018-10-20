@@ -33,7 +33,7 @@ import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.Window;
 
-public class HelpDialogFactory implements DialogOpener.DialogFactory {
+public final class HelpDialogFactory implements DialogOpener.DialogFactory {
 
   private JDialog dialog;
 

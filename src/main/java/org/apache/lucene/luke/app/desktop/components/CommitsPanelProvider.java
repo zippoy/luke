@@ -26,7 +26,7 @@ import org.apache.lucene.luke.app.IndexHandler;
 import org.apache.lucene.luke.app.IndexObserver;
 import org.apache.lucene.luke.app.LukeState;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
-import org.apache.lucene.luke.app.desktop.util.TableUtil;
+import org.apache.lucene.luke.app.desktop.util.TableUtils;
 import org.apache.lucene.luke.models.commits.Commit;
 import org.apache.lucene.luke.models.commits.Commits;
 import org.apache.lucene.luke.models.commits.CommitsFactory;
@@ -61,7 +61,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class CommitsPanelProvider implements Provider<JPanel> {
+public final class CommitsPanelProvider implements Provider<JPanel> {
 
   private final CommitsFactory commitsFactory;
 
@@ -195,7 +195,7 @@ public class CommitsPanelProvider implements Provider<JPanel> {
     header.add(new JLabel(MessageUtils.getLocalizedMessage("commits.label.files")));
     panel.add(header, BorderLayout.PAGE_START);
 
-    TableUtil.setupTable(filesTable, ListSelectionModel.SINGLE_SELECTION, new FilesTableModel(), null, FilesTableModel.Column.FILENAME.getColumnWidth());
+    TableUtils.setupTable(filesTable, ListSelectionModel.SINGLE_SELECTION, new FilesTableModel(), null, FilesTableModel.Column.FILENAME.getColumnWidth());
     panel.add(new JScrollPane(filesTable), BorderLayout.CENTER);
 
     return panel;
@@ -209,7 +209,7 @@ public class CommitsPanelProvider implements Provider<JPanel> {
     segments.add(new JLabel(MessageUtils.getLocalizedMessage("commits.label.segments")));
     panel.add(segments);
 
-    TableUtil.setupTable(segmentsTable, ListSelectionModel.SINGLE_SELECTION, new SegmentsTableModel(),
+    TableUtils.setupTable(segmentsTable, ListSelectionModel.SINGLE_SELECTION, new SegmentsTableModel(),
         new MouseAdapter() {
           @Override
           public void mouseClicked(MouseEvent e) {
@@ -358,7 +358,7 @@ public class CommitsPanelProvider implements Provider<JPanel> {
 
   }
 
-  class ListenerFunctions {
+  private class ListenerFunctions {
 
     void selectGeneration(ActionEvent e) {
       CommitsPanelProvider.this.selectGeneration();
@@ -370,7 +370,7 @@ public class CommitsPanelProvider implements Provider<JPanel> {
 
   }
 
-  class Observer implements IndexObserver, DirectoryObserver {
+  private class Observer implements IndexObserver, DirectoryObserver {
 
     @Override
     public void openDirectory(LukeState state) {
@@ -416,8 +416,8 @@ public class CommitsPanelProvider implements Provider<JPanel> {
       deletedLbl.setText("");
       segCntLbl.setText("");
       userDataTA.setText("");
-      TableUtil.setupTable(filesTable, ListSelectionModel.SINGLE_SELECTION, new FilesTableModel(), null, FilesTableModel.Column.FILENAME.getColumnWidth());
-      TableUtil.setupTable(segmentsTable, ListSelectionModel.SINGLE_SELECTION, new SegmentsTableModel(), null,
+      TableUtils.setupTable(filesTable, ListSelectionModel.SINGLE_SELECTION, new FilesTableModel(), null, FilesTableModel.Column.FILENAME.getColumnWidth());
+      TableUtils.setupTable(segmentsTable, ListSelectionModel.SINGLE_SELECTION, new SegmentsTableModel(), null,
           SegmentsTableModel.Column.NAME.getColumnWidth(),
           SegmentsTableModel.Column.MAXDOCS.getColumnWidth(),
           SegmentsTableModel.Column.DELS.getColumnWidth(),
@@ -437,7 +437,7 @@ public class CommitsPanelProvider implements Provider<JPanel> {
 
 }
 
-class FilesTableModel extends TableModelBase<FilesTableModel.Column> {
+final class FilesTableModel extends TableModelBase<FilesTableModel.Column> {
 
   enum Column implements TableColumnInfo {
 
@@ -496,7 +496,7 @@ class FilesTableModel extends TableModelBase<FilesTableModel.Column> {
   }
 }
 
-class SegmentsTableModel extends TableModelBase<SegmentsTableModel.Column> {
+final class SegmentsTableModel extends TableModelBase<SegmentsTableModel.Column> {
 
   enum Column implements TableColumnInfo {
 

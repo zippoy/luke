@@ -25,7 +25,7 @@ import org.apache.lucene.luke.app.LukeState;
 import org.apache.lucene.luke.app.desktop.MessageBroker;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 import org.apache.lucene.luke.app.desktop.util.StyleConstants;
-import org.apache.lucene.luke.app.desktop.util.TableUtil;
+import org.apache.lucene.luke.app.desktop.util.TableUtils;
 import org.apache.lucene.luke.models.overview.Overview;
 import org.apache.lucene.luke.models.overview.OverviewFactory;
 import org.apache.lucene.luke.models.overview.TermCountsOrder;
@@ -73,7 +73,7 @@ public final class OverviewPanelProvider implements Provider<JPanel> {
 
   private final ComponentOperatorRegistry operatorRegistry;
 
-  private final TabbedPaneProvider.TabSwitcherProxy tabSwitcher;
+  private final TabSwitcherProxy tabSwitcher;
 
   private final MessageBroker messageBroker;
 
@@ -121,7 +121,7 @@ public final class OverviewPanelProvider implements Provider<JPanel> {
       MessageBroker messageBroker,
       ComponentOperatorRegistry operatorRegistry,
       IndexHandler indexHandler,
-      TabbedPaneProvider.TabSwitcherProxy tabSwitcher) {
+      TabSwitcherProxy tabSwitcher) {
     this.overviewFactory = overviewFactory;
     this.messageBroker = messageBroker;
     this.operatorRegistry = operatorRegistry;
@@ -277,7 +277,7 @@ public final class OverviewPanelProvider implements Provider<JPanel> {
     label.setBorder(BorderFactory.createEmptyBorder(0, 0, 5, 0));
     panel.add(label, BorderLayout.PAGE_START);
 
-    TableUtil.setupTable(termCountsTable, ListSelectionModel.SINGLE_SELECTION, new TermCountsTableModel(),
+    TableUtils.setupTable(termCountsTable, ListSelectionModel.SINGLE_SELECTION, new TermCountsTableModel(),
         new MouseAdapter() {
           @Override
           public void mouseClicked(MouseEvent e) {
@@ -335,7 +335,7 @@ public final class OverviewPanelProvider implements Provider<JPanel> {
     label.setBorder(BorderFactory.createEmptyBorder(0, 0, 5, 0));
     termsPanel.add(label, BorderLayout.PAGE_START);
 
-    TableUtil.setupTable(topTermsTable, ListSelectionModel.SINGLE_SELECTION, new TopTermsTableModel(),
+    TableUtils.setupTable(topTermsTable, ListSelectionModel.SINGLE_SELECTION, new TopTermsTableModel(),
         new MouseAdapter() {
           @Override
           public void mouseClicked(MouseEvent e) {
@@ -447,7 +447,7 @@ public final class OverviewPanelProvider implements Provider<JPanel> {
 
   }
 
-  public final class Observer implements IndexObserver {
+  private class Observer implements IndexObserver {
 
     @Override
     public void openIndex(LukeState state) {
@@ -507,8 +507,6 @@ public final class OverviewPanelProvider implements Provider<JPanel> {
       topTermsTable.setModel(new TopTermsTableModel());
     }
 
-    private Observer() {
-    }
   }
 
 

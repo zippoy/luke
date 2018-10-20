@@ -36,4 +36,7 @@ public class StyleConstants {
 
   public static int TABLE_ROW_MARGIN_DEFAULT = 3;
 
+  private StyleConstants() {
+  }
+
 }

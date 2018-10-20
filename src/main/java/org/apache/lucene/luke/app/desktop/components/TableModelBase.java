@@ -17,16 +17,16 @@
 
 package org.apache.lucene.luke.app.desktop.components;
 
-import org.apache.lucene.luke.app.desktop.util.TableUtil;
+import org.apache.lucene.luke.app.desktop.util.TableUtils;
 
 import javax.swing.table.AbstractTableModel;
 import java.util.Map;
 
 public abstract class TableModelBase<T extends TableColumnInfo> extends AbstractTableModel {
 
-  private final Map<Integer, T> columnMap = TableUtil.columnMap(columnInfos());
+  private final Map<Integer, T> columnMap = TableUtils.columnMap(columnInfos());
 
-  private final String[] colNames = TableUtil.columnNames(columnInfos());
+  private final String[] colNames = TableUtils.columnNames(columnInfos());
 
   protected final Object[][] data;
 

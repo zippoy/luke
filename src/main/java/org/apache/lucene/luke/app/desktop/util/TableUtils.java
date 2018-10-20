@@ -29,7 +29,7 @@ import java.util.TreeMap;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
-public class TableUtil {
+public class TableUtils {
 
   public static void setupTable(JTable table, int selectionModel, TableModel model, MouseListener mouseListener,
                                 int... colWidth) {
@@ -78,7 +78,7 @@ public class TableUtil {
     return Arrays.stream(columns).collect(Collectors.toMap(T::getIndex, UnaryOperator.identity(), (e1, e2) -> e1, TreeMap::new));
   }
 
-  private TableUtil() {
+  private TableUtils() {
   }
 
 }

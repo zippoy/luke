@@ -59,7 +59,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class CheckIndexDialogFactory implements DialogOpener.DialogFactory {
+public final class CheckIndexDialogFactory implements DialogOpener.DialogFactory {
 
   private static final Logger logger = LoggerFactory.getLogger(CheckIndexDialogFactory.class);
 
@@ -202,7 +202,7 @@ public class CheckIndexDialogFactory implements DialogOpener.DialogFactory {
     return panel;
   }
 
-  class Observer implements IndexObserver, DirectoryObserver {
+  private class Observer implements IndexObserver, DirectoryObserver {
 
     @Override
     public void openIndex(LukeState state) {
@@ -231,7 +231,7 @@ public class CheckIndexDialogFactory implements DialogOpener.DialogFactory {
     }
   }
 
-  class ListenerFunctions {
+  private class ListenerFunctions {
 
     void checkIndex(ActionEvent e) {
       ExecutorService executor = Executors.newSingleThreadExecutor();

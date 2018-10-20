@@ -18,7 +18,7 @@
 package org.apache.lucene.luke.app.desktop.components.dialog.menubar;
 
 import org.apache.lucene.luke.app.desktop.util.DialogOpener;
-import org.apache.lucene.luke.app.desktop.util.FontUtil;
+import org.apache.lucene.luke.app.desktop.util.FontUtils;
 import org.apache.lucene.luke.app.desktop.util.ImageUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 import org.apache.lucene.luke.app.desktop.util.URLLabel;
@@ -48,7 +48,7 @@ import java.awt.Window;
 import java.io.IOException;
 import java.net.URISyntaxException;
 
-public class AboutDialogFactory implements DialogOpener.DialogFactory {
+public final class AboutDialogFactory implements DialogOpener.DialogFactory {
 
   private JDialog dialog;
 
@@ -97,7 +97,7 @@ public class AboutDialogFactory implements DialogOpener.DialogFactory {
     desc.add(subTitle);
 
     JPanel link = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 5));
-    JLabel linkLbl = FontUtil.toLinkText(new URLLabel("https://lucene.apache.org/"));
+    JLabel linkLbl = FontUtils.toLinkText(new URLLabel("https://lucene.apache.org/"));
     link.add(linkLbl);
     desc.add(link);
 

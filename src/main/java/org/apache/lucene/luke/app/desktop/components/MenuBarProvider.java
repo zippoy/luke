@@ -38,7 +38,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import java.awt.event.ActionEvent;
 
-public class MenuBarProvider implements Provider<JMenuBar> {
+public final class MenuBarProvider implements Provider<JMenuBar> {
 
   private final Preferences prefs;
 
@@ -165,7 +165,7 @@ public class MenuBarProvider implements Provider<JMenuBar> {
     return helpMenu;
   }
 
-  class ListenerFunctions {
+  private class ListenerFunctions {
 
     void showOpenIndexDialog(ActionEvent e) {
       OpenIndexDialogFactory.showOpenIndexDialog();
@@ -210,7 +210,7 @@ public class MenuBarProvider implements Provider<JMenuBar> {
 
   }
 
-  public class Observer implements IndexObserver, DirectoryObserver {
+  private class Observer implements IndexObserver, DirectoryObserver {
 
     @Override
     public void openDirectory(LukeState state) {
@@ -249,7 +249,5 @@ public class MenuBarProvider implements Provider<JMenuBar> {
       checkIndexMItem.setEnabled(false);
     }
 
-    private Observer() {
-    }
   }
 }

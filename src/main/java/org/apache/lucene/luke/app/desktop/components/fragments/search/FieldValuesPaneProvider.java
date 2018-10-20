@@ -23,7 +23,7 @@ import org.apache.lucene.luke.app.desktop.components.ComponentOperatorRegistry;
 import org.apache.lucene.luke.app.desktop.components.TableColumnInfo;
 import org.apache.lucene.luke.app.desktop.components.TableModelBase;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
-import org.apache.lucene.luke.app.desktop.util.TableUtil;
+import org.apache.lucene.luke.app.desktop.util.TableUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -41,7 +41,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-public class FieldValuesPaneProvider implements Provider<JScrollPane>, FieldValuesTabOperator {
+public final class FieldValuesPaneProvider implements Provider<JScrollPane>, FieldValuesTabOperator {
 
   private final JCheckBox loadAllCB = new JCheckBox();
 
@@ -77,7 +77,7 @@ public class FieldValuesPaneProvider implements Provider<JScrollPane>, FieldValu
     header.add(loadAllCB);
     panel.add(header, BorderLayout.PAGE_START);
 
-    TableUtil.setupTable(fieldsTable, ListSelectionModel.SINGLE_SELECTION, new FieldsTableModel(), null,
+    TableUtils.setupTable(fieldsTable, ListSelectionModel.SINGLE_SELECTION, new FieldsTableModel(), null,
         FieldsTableModel.Column.LOAD.getColumnWidth());
     fieldsTable.setShowGrid(true);
     fieldsTable.setPreferredScrollableViewportSize(fieldsTable.getPreferredSize());
@@ -132,7 +132,7 @@ public class FieldValuesPaneProvider implements Provider<JScrollPane>, FieldValu
 
 }
 
-class FieldsTableModel extends TableModelBase<FieldsTableModel.Column> {
+final class FieldsTableModel extends TableModelBase<FieldsTableModel.Column> {
 
   enum Column implements TableColumnInfo {
     LOAD("Load", 0, Boolean.class, 50),

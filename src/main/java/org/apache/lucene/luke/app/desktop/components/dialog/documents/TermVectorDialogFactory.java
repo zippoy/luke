@@ -21,7 +21,7 @@ import org.apache.lucene.luke.app.desktop.components.TableColumnInfo;
 import org.apache.lucene.luke.app.desktop.components.TableModelBase;
 import org.apache.lucene.luke.app.desktop.util.DialogOpener;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
-import org.apache.lucene.luke.app.desktop.util.TableUtil;
+import org.apache.lucene.luke.app.desktop.util.TableUtils;
 import org.apache.lucene.luke.models.documents.TermVectorEntry;
 
 import javax.swing.BorderFactory;
@@ -42,13 +42,13 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class TermVectorDialogFactory implements DialogOpener.DialogFactory {
+public final class TermVectorDialogFactory implements DialogOpener.DialogFactory {
 
   private JDialog dialog;
 
   private String field;
 
-  List<TermVectorEntry> tvEntries;
+  private List<TermVectorEntry> tvEntries;
 
   @Override
   public JDialog create(Window owner, String title, int width, int height) {
@@ -73,7 +73,7 @@ public class TermVectorDialogFactory implements DialogOpener.DialogFactory {
     panel.add(header, BorderLayout.PAGE_START);
 
     JTable tvTable = new JTable();
-    TableUtil.setupTable(tvTable, ListSelectionModel.SINGLE_SELECTION, new TermVectorTableModel(tvEntries), null, 100, 50, 100);
+    TableUtils.setupTable(tvTable, ListSelectionModel.SINGLE_SELECTION, new TermVectorTableModel(tvEntries), null, 100, 50, 100);
     JScrollPane scrollPane = new JScrollPane(tvTable);
     panel.add(scrollPane, BorderLayout.CENTER);
 
@@ -96,7 +96,7 @@ public class TermVectorDialogFactory implements DialogOpener.DialogFactory {
   }
 }
 
-class TermVectorTableModel extends TableModelBase<TermVectorTableModel.Column> {
+final class TermVectorTableModel extends TableModelBase<TermVectorTableModel.Column> {
 
   enum Column implements TableColumnInfo {
 

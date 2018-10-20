@@ -27,7 +27,7 @@ import org.apache.lucene.luke.models.overview.OverviewFactory;
 import org.apache.lucene.luke.models.search.SearchFactory;
 import org.apache.lucene.luke.models.tools.IndexToolsFactory;
 
-public class LukeModule extends AbstractModule {
+public final class LukeModule extends AbstractModule {
 
   @Override
   protected void configure() {
@@ -44,6 +44,4 @@ public class LukeModule extends AbstractModule {
     bind(Preferences.class).to(PreferencesImpl.class);
   }
 
-  public LukeModule() {
-  }
 }

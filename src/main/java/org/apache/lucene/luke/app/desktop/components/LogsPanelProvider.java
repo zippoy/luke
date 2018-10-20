@@ -31,7 +31,7 @@ import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.io.File;
 
-public class LogsPanelProvider implements Provider<JPanel> {
+public final class LogsPanelProvider implements Provider<JPanel> {
 
   private static final String LOG_FILE = System.getProperty("user.home") + File.separator + ".luke.d" + File.separator + "luke.log";
 

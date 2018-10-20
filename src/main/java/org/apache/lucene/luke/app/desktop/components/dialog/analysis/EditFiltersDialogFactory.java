@@ -24,7 +24,7 @@ import org.apache.lucene.luke.app.desktop.components.TableModelBase;
 import org.apache.lucene.luke.app.desktop.components.fragments.analysis.CustomAnalyzerPanelOperator;
 import org.apache.lucene.luke.app.desktop.util.DialogOpener;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
-import org.apache.lucene.luke.app.desktop.util.TableUtil;
+import org.apache.lucene.luke.app.desktop.util.TableUtils;
 import org.apache.lucene.luke.app.desktop.util.lang.Callable;
 
 import javax.swing.BorderFactory;
@@ -49,7 +49,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public class EditFiltersDialogFactory implements DialogOpener.DialogFactory {
+public final class EditFiltersDialogFactory implements DialogOpener.DialogFactory {
 
   private final ComponentOperatorRegistry operatorRegistry;
 
@@ -108,7 +108,7 @@ public class EditFiltersDialogFactory implements DialogOpener.DialogFactory {
     header.add(targetLbl);
     panel.add(header, BorderLayout.PAGE_START);
 
-    TableUtil.setupTable(filtersTable, ListSelectionModel.SINGLE_SELECTION, new FiltersTableModel(selectedFilters), tableListener,
+    TableUtils.setupTable(filtersTable, ListSelectionModel.SINGLE_SELECTION, new FiltersTableModel(selectedFilters), tableListener,
         FiltersTableModel.Column.DELETE.getColumnWidth(),
         FiltersTableModel.Column.ORDER.getColumnWidth());
     filtersTable.setShowGrid(true);
@@ -147,7 +147,7 @@ public class EditFiltersDialogFactory implements DialogOpener.DialogFactory {
     return panel;
   }
 
-  class ListenerFunctions {
+  private class ListenerFunctions {
 
     void showEditParamsDialog(MouseEvent e) {
       if (e.getClickCount() != 2 || e.isConsumed()) {
@@ -196,7 +196,7 @@ public class EditFiltersDialogFactory implements DialogOpener.DialogFactory {
     }
   }
 
-  class FiltersTableMouseListener extends MouseAdapter {
+  private class FiltersTableMouseListener extends MouseAdapter {
     @Override
     public void mouseClicked(MouseEvent e) {
       listeners.showEditParamsDialog(e);
@@ -208,7 +208,7 @@ public class EditFiltersDialogFactory implements DialogOpener.DialogFactory {
   }
 }
 
-class FiltersTableModel extends TableModelBase<FiltersTableModel.Column> {
+final class FiltersTableModel extends TableModelBase<FiltersTableModel.Column> {
 
   enum Column implements TableColumnInfo {
     DELETE("Delete", 0, Boolean.class, 50),
@@ -277,7 +277,7 @@ class FiltersTableModel extends TableModelBase<FiltersTableModel.Column> {
   }
 }
 
-class TypeCellRenderer implements TableCellRenderer {
+final class TypeCellRenderer implements TableCellRenderer {
 
   @Override
   public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {

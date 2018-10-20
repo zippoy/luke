@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
 
-public class DirectoryHandler extends AbstractHandler<DirectoryObserver> {
+public final class DirectoryHandler extends AbstractHandler<DirectoryObserver> {
 
   private LukeStateImpl state;
 

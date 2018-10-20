@@ -42,17 +42,18 @@ import org.apache.lucene.luke.app.LukeState;
 import org.apache.lucene.luke.app.desktop.components.AnalysisTabOperator;
 import org.apache.lucene.luke.app.desktop.components.ComponentOperatorRegistry;
 import org.apache.lucene.luke.app.desktop.components.DocumentsTabOperator;
+import org.apache.lucene.luke.app.desktop.components.TabSwitcherProxy;
 import org.apache.lucene.luke.app.desktop.components.TabbedPaneProvider;
 import org.apache.lucene.luke.app.desktop.components.TableColumnInfo;
 import org.apache.lucene.luke.app.desktop.components.TableModelBase;
 import org.apache.lucene.luke.app.desktop.components.dialog.HelpDialogFactory;
 import org.apache.lucene.luke.app.desktop.dto.documents.NewField;
 import org.apache.lucene.luke.app.desktop.util.DialogOpener;
-import org.apache.lucene.luke.app.desktop.util.FontUtil;
+import org.apache.lucene.luke.app.desktop.util.FontUtils;
 import org.apache.lucene.luke.app.desktop.util.HelpHeaderRenderer;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 import org.apache.lucene.luke.app.desktop.util.NumericUtils;
-import org.apache.lucene.luke.app.desktop.util.TableUtil;
+import org.apache.lucene.luke.app.desktop.util.TableUtils;
 import org.apache.lucene.luke.models.LukeException;
 import org.apache.lucene.luke.models.tools.IndexTools;
 import org.apache.lucene.luke.models.tools.IndexToolsFactory;
@@ -93,7 +94,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class AddDocumentDialogFactory implements DialogOpener.DialogFactory, AddDocumentDialogOperator {
+public final class AddDocumentDialogFactory implements DialogOpener.DialogFactory, AddDocumentDialogOperator {
 
   private final static Logger logger = LoggerFactory.getLogger(AddDocumentDialogFactory.class);
 
@@ -103,7 +104,7 @@ public class AddDocumentDialogFactory implements DialogOpener.DialogFactory, Add
 
   private final IndexToolsFactory toolsFactory;
 
-  private final TabbedPaneProvider.TabSwitcherProxy tabSwitcher;
+  private final TabSwitcherProxy tabSwitcher;
 
   private final ComponentOperatorRegistry operatorRegistry;
 
@@ -130,7 +131,7 @@ public class AddDocumentDialogFactory implements DialogOpener.DialogFactory, Add
   @Inject
   public AddDocumentDialogFactory(IndexOptionsDialogFactory indexOptionsDialogFactory, HelpDialogFactory helpDialogFactory,
                                   IndexHandler indexHandler, IndexToolsFactory toolsFactory,
-                                  TabbedPaneProvider.TabSwitcherProxy tabSwitcher,
+                                  TabSwitcherProxy tabSwitcher,
                                   ComponentOperatorRegistry operatorRegistry) {
     this.indexHandler = indexHandler;
     this.toolsFactory = toolsFactory;
@@ -196,7 +197,7 @@ public class AddDocumentDialogFactory implements DialogOpener.DialogFactory, Add
         tabSwitcher.switchTab(TabbedPaneProvider.Tab.ANALYZER);
       }
     });
-    analyzerHeader.add(FontUtil.toLinkText(changeLbl));
+    analyzerHeader.add(FontUtils.toLinkText(changeLbl));
     panel.add(analyzerHeader);
 
     return panel;
@@ -223,7 +224,7 @@ public class AddDocumentDialogFactory implements DialogOpener.DialogFactory, Add
 
   private JTable fieldsTable() {
     JTable fieldsTable = new JTable();
-    TableUtil.setupTable(fieldsTable, ListSelectionModel.SINGLE_SELECTION, new FieldsTableModel(newFieldList), null, 30, 150, 120, 80);
+    TableUtils.setupTable(fieldsTable, ListSelectionModel.SINGLE_SELECTION, new FieldsTableModel(newFieldList), null, 30, 150, 120, 80);
     fieldsTable.setShowGrid(true);
     JComboBox<Class> typesCombo = new JComboBox<>(presetFieldClasses);
     typesCombo.setRenderer((list, value, index, isSelected, cellHasFocus) -> new JLabel(value.getSimpleName()));
@@ -308,7 +309,7 @@ public class AddDocumentDialogFactory implements DialogOpener.DialogFactory, Add
     analyzerNameLbl.setText(analyzer.getClass().getName());
   }
 
-  class ListenerFunctions {
+  private class ListenerFunctions {
 
     void addDocument(ActionEvent e) {
       List<NewField> validFields = newFieldList.stream()
@@ -404,7 +405,7 @@ public class AddDocumentDialogFactory implements DialogOpener.DialogFactory, Add
 
   }
 
-  public class Observer implements IndexObserver {
+  private class Observer implements IndexObserver {
 
     @Override
     public void openIndex(LukeState state) {
@@ -419,7 +420,7 @@ public class AddDocumentDialogFactory implements DialogOpener.DialogFactory, Add
 
 }
 
-class FieldsTableModel extends TableModelBase<FieldsTableModel.Column> {
+final class FieldsTableModel extends TableModelBase<FieldsTableModel.Column> {
 
   enum Column implements TableColumnInfo {
     DEL("Del", 0, Boolean.class),
@@ -499,7 +500,7 @@ class FieldsTableModel extends TableModelBase<FieldsTableModel.Column> {
   }
 }
 
-class TypeCellRenderer implements TableCellRenderer {
+final class TypeCellRenderer implements TableCellRenderer {
 
   @Override
   public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
@@ -508,7 +509,7 @@ class TypeCellRenderer implements TableCellRenderer {
   }
 }
 
-class OptionsCellRenderer implements TableCellRenderer {
+final class OptionsCellRenderer implements TableCellRenderer {
 
   private JDialog dialog;
 
@@ -552,7 +553,7 @@ class OptionsCellRenderer implements TableCellRenderer {
             }
           }
         });
-        panel.add(FontUtil.toLinkText(optionsLbl));
+        panel.add(FontUtils.toLinkText(optionsLbl));
       }
     }
     return panel;
