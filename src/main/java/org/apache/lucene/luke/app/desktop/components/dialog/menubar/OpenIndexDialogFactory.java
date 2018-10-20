@@ -261,6 +261,7 @@ public final class OpenIndexDialogFactory implements DialogOpener.DialogFactory 
     void browseDirectory(ActionEvent e) {
       JFileChooser fc = new JFileChooser();
       fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+      fc.setFileHidingEnabled(false);
       int retVal = fc.showOpenDialog(dialog);
       if (retVal == JFileChooser.APPROVE_OPTION) {
         File dir = fc.getSelectedFile();
