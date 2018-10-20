@@ -74,12 +74,12 @@ public class SortPaneProvider implements Provider<JScrollPane>, SortTabOperator 
     JPanel panel = new JPanel(new GridLayout(1, 1));
     panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
-    panel.add(sortConfigs());
+    panel.add(initSortConfigsPanel());
 
     return new JScrollPane(panel);
   }
 
-  private JPanel sortConfigs() {
+  private JPanel initSortConfigsPanel() {
     JPanel panel = new JPanel(new GridLayout(5, 1));
     panel.setMaximumSize(new Dimension(500, 200));
 
@@ -164,7 +164,7 @@ public class SortPaneProvider implements Provider<JScrollPane>, SortTabOperator 
     if (!Strings.isNullOrEmpty((String) fieldCombo2.getSelectedItem())) {
       searchModel.getSortType((String) fieldCombo2.getSelectedItem(), (String) typeCombo2.getSelectedItem(), isReverse(orderCombo2)).ifPresent(li::add);
     }
-    return new Sort(li.toArray(new SortField[li.size()]));
+    return new Sort(li.toArray(new SortField[0]));
   }
 
   private boolean isReverse(JComboBox<String> order) {

@@ -60,12 +60,12 @@ public class FieldValuesPaneProvider implements Provider<JScrollPane>, FieldValu
     panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
     panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-    panel.add(fieldsConfig());
+    panel.add(initFieldsConfigPanel());
 
     return new JScrollPane(panel);
   }
 
-  private JPanel fieldsConfig() {
+  private JPanel initFieldsConfigPanel() {
     JPanel panel = new JPanel(new BorderLayout());
 
     JPanel header = new JPanel(new GridLayout(1, 2));

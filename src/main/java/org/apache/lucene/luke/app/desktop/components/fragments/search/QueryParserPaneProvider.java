@@ -53,7 +53,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 
-import static org.apache.lucene.luke.app.desktop.components.fragments.search.PointRangeQueryTableModel.NumType.INT;
+import static org.apache.lucene.luke.app.desktop.components.fragments.search.PointTypesTableModel.NumType.INT;
 
 public class QueryParserPaneProvider implements Provider<JScrollPane>, QueryParserTabOperator {
 
@@ -104,22 +104,22 @@ public class QueryParserPaneProvider implements Provider<JScrollPane>, QueryPars
     panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
     panel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
 
-    panel.add(selectParserPane());
+    panel.add(initSelectParserPane());
     panel.add(new JSeparator(JSeparator.HORIZONTAL));
-    panel.add(parserSettings());
+    panel.add(initParserSettingsPanel());
     panel.add(new JSeparator(JSeparator.HORIZONTAL));
-    panel.add(phraseQuerySettings());
+    panel.add(initPhraseQuerySettingsPanel());
     panel.add(new JSeparator(JSeparator.HORIZONTAL));
-    panel.add(fuzzyQuerySettings());
+    panel.add(initFuzzyQuerySettingsPanel());
     panel.add(new JSeparator(JSeparator.HORIZONTAL));
-    panel.add(dateRangeQuerySettings());
+    panel.add(initDateRangeQuerySettingsPanel());
     panel.add(new JSeparator(JSeparator.HORIZONTAL));
-    panel.add(pointRangeQuerySettings());
+    panel.add(initPointRangeQuerySettingsPanel());
 
     return new JScrollPane(panel);
   }
 
-  private JPanel selectParserPane() {
+  private JPanel initSelectParserPane() {
     JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEADING));
 
     standardRB.setText("StandardQueryParser");
@@ -139,7 +139,7 @@ public class QueryParserPaneProvider implements Provider<JScrollPane>, QueryPars
     return panel;
   }
 
-  private JPanel parserSettings() {
+  private JPanel initParserSettingsPanel() {
     JPanel panel = new JPanel(new GridLayout(3, 2));
 
     JPanel defField = new JPanel(new FlowLayout(FlowLayout.LEADING));
@@ -171,7 +171,7 @@ public class QueryParserPaneProvider implements Provider<JScrollPane>, QueryPars
     return panel;
   }
 
-  private JPanel phraseQuerySettings() {
+  private JPanel initPhraseQuerySettingsPanel() {
     JPanel panel = new JPanel();
     panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
 
@@ -206,7 +206,7 @@ public class QueryParserPaneProvider implements Provider<JScrollPane>, QueryPars
     return panel;
   }
 
-  private JPanel fuzzyQuerySettings() {
+  private JPanel initFuzzyQuerySettingsPanel() {
     JPanel panel = new JPanel();
     panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
 
@@ -237,7 +237,7 @@ public class QueryParserPaneProvider implements Provider<JScrollPane>, QueryPars
     return panel;
   }
 
-  private JPanel dateRangeQuerySettings() {
+  private JPanel initDateRangeQuerySettingsPanel() {
     JPanel panel = new JPanel();
     panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
 
@@ -271,7 +271,7 @@ public class QueryParserPaneProvider implements Provider<JScrollPane>, QueryPars
     return panel;
   }
 
-  private JPanel pointRangeQuerySettings() {
+  private JPanel initPointRangeQuerySettingsPanel() {
     JPanel panel = new JPanel();
     panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
     panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
@@ -284,7 +284,7 @@ public class QueryParserPaneProvider implements Provider<JScrollPane>, QueryPars
     headerNote.add(new JLabel(MessageUtils.getLocalizedMessage("search_parser.label.pointrange_hint")));
     panel.add(headerNote);
 
-    TableUtil.setupTable(pointRangeQueryTable, ListSelectionModel.SINGLE_SELECTION, new PointRangeQueryTableModel(), null, PointRangeQueryTableModel.Column.FIELD.getColumnWidth());
+    TableUtil.setupTable(pointRangeQueryTable, ListSelectionModel.SINGLE_SELECTION, new PointTypesTableModel(), null, PointTypesTableModel.Column.FIELD.getColumnWidth());
     pointRangeQueryTable.setShowGrid(true);
     JScrollPane scrollPane = new JScrollPane(pointRangeQueryTable);
     panel.add(scrollPane);
@@ -301,23 +301,23 @@ public class QueryParserPaneProvider implements Provider<JScrollPane>, QueryPars
 
   @Override
   public void setRangeSearchableFields(Collection<String> rangeSearchableFields) {
-    pointRangeQueryTable.setModel(new PointRangeQueryTableModel(rangeSearchableFields));
+    pointRangeQueryTable.setModel(new PointTypesTableModel(rangeSearchableFields));
     pointRangeQueryTable.setShowGrid(true);
-    String[] numTypes = Arrays.stream(PointRangeQueryTableModel.NumType.values())
-        .map(PointRangeQueryTableModel.NumType::name)
+    String[] numTypes = Arrays.stream(PointTypesTableModel.NumType.values())
+        .map(PointTypesTableModel.NumType::name)
         .toArray(String[]::new);
     JComboBox<String> numTypesCombo = new JComboBox<>(numTypes);
     numTypesCombo.setRenderer((list, value, index, isSelected, cellHasFocus) -> new JLabel(value));
-    pointRangeQueryTable.getColumnModel().getColumn(PointRangeQueryTableModel.Column.TYPE.getIndex()).setCellEditor(new DefaultCellEditor(numTypesCombo));
-    pointRangeQueryTable.getColumnModel().getColumn(PointRangeQueryTableModel.Column.TYPE.getIndex()).setCellRenderer(
+    pointRangeQueryTable.getColumnModel().getColumn(PointTypesTableModel.Column.TYPE.getIndex()).setCellEditor(new DefaultCellEditor(numTypesCombo));
+    pointRangeQueryTable.getColumnModel().getColumn(PointTypesTableModel.Column.TYPE.getIndex()).setCellRenderer(
         (table, value, isSelected, hasFocus, row, column) -> new JLabel((String) value)
     );
-    pointRangeQueryTable.getColumnModel().getColumn(PointRangeQueryTableModel.Column.FIELD.getIndex()).setPreferredWidth(PointRangeQueryTableModel.Column.FIELD.getColumnWidth());
+    pointRangeQueryTable.getColumnModel().getColumn(PointTypesTableModel.Column.FIELD.getIndex()).setPreferredWidth(PointTypesTableModel.Column.FIELD.getColumnWidth());
     pointRangeQueryTable.setPreferredScrollableViewportSize(pointRangeQueryTable.getPreferredSize());
 
     // set default type to Integer
     for (int i = 0; i < rangeSearchableFields.size(); i++) {
-      pointRangeQueryTable.setValueAt(INT.name(), i, PointRangeQueryTableModel.Column.TYPE.getIndex());
+      pointRangeQueryTable.setValueAt(INT.name(), i, PointTypesTableModel.Column.TYPE.getIndex());
     }
 
   }
@@ -330,9 +330,9 @@ public class QueryParserPaneProvider implements Provider<JScrollPane>, QueryPars
 
     Map<String, Class<? extends Number>> typeMap = new HashMap<>();
     for (int row = 0; row < pointRangeQueryTable.getModel().getRowCount(); row++) {
-      String field = (String) pointRangeQueryTable.getValueAt(row, PointRangeQueryTableModel.Column.FIELD.getIndex());
-      String type = (String) pointRangeQueryTable.getValueAt(row, PointRangeQueryTableModel.Column.TYPE.getIndex());
-      switch (PointRangeQueryTableModel.NumType.valueOf(type)) {
+      String field = (String) pointRangeQueryTable.getValueAt(row, PointTypesTableModel.Column.FIELD.getIndex());
+      String type = (String) pointRangeQueryTable.getValueAt(row, PointTypesTableModel.Column.TYPE.getIndex());
+      switch (PointTypesTableModel.NumType.valueOf(type)) {
         case INT:
           typeMap.put(field, Integer.class);
           break;
@@ -407,10 +407,9 @@ public class QueryParserPaneProvider implements Provider<JScrollPane>, QueryPars
 
   }
 
-
 }
 
-class PointRangeQueryTableModel extends TableModelBase<PointRangeQueryTableModel.Column> {
+class PointTypesTableModel extends TableModelBase<PointTypesTableModel.Column> {
 
   enum Column implements TableColumnInfo {
 
@@ -456,11 +455,11 @@ class PointRangeQueryTableModel extends TableModelBase<PointRangeQueryTableModel
 
   }
 
-  PointRangeQueryTableModel() {
+  PointTypesTableModel() {
     super();
   }
 
-  PointRangeQueryTableModel(Collection<String> rangeSearchableFields) {
+  PointTypesTableModel(Collection<String> rangeSearchableFields) {
     super(rangeSearchableFields.size());
     int i = 0;
     for (String field : rangeSearchableFields) {

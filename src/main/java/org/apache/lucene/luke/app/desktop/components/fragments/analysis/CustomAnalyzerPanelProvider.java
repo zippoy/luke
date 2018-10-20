@@ -148,14 +148,14 @@ public class CustomAnalyzerPanelProvider implements Provider<JPanel>, CustomAnal
       containerPanel.setLayout(new BorderLayout());
       containerPanel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
 
-      containerPanel.add(createCustomAnalyzerHeader(), BorderLayout.PAGE_START);
-      containerPanel.add(createCustomAnalyzerChain(), BorderLayout.CENTER);
+      containerPanel.add(initCustomAnalyzerHeaderPanel(), BorderLayout.PAGE_START);
+      containerPanel.add(initCustomAnalyzerChainPanel(), BorderLayout.CENTER);
     }
 
     return containerPanel;
   }
 
-  private JPanel createCustomAnalyzerHeader() {
+  private JPanel initCustomAnalyzerHeaderPanel() {
     JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEADING));
 
     panel.add(new JLabel(MessageUtils.getLocalizedMessage("analysis.label.config_dir")));
@@ -185,16 +185,16 @@ public class CustomAnalyzerPanelProvider implements Provider<JPanel>, CustomAnal
     return panel;
   }
 
-  private JPanel createCustomAnalyzerChain() {
+  private JPanel initCustomAnalyzerChainPanel() {
     JPanel panel = new JPanel(new GridLayout(1, 1));
     panel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
 
-    panel.add(createCustomChainConfig());
+    panel.add(initCustomChainConfigPanel());
 
     return panel;
   }
 
-  private JPanel createCustomChainConfig() {
+  private JPanel initCustomChainConfigPanel() {
     JPanel panel = new JPanel(new GridBagLayout());
     panel.setBorder(BorderFactory.createLineBorder(Color.black));
 
@@ -443,8 +443,6 @@ public class CustomAnalyzerPanelProvider implements Provider<JPanel>, CustomAnal
     if (ret == JFileChooser.APPROVE_OPTION) {
       File dir = fileChooser.getSelectedFile();
       confDirTF.setText(dir.getAbsolutePath());
-    } else {
-      // do nothing
     }
   }
 

@@ -82,18 +82,102 @@ public class OptimizeIndexDialogFactory implements DialogOpener.DialogFactory {
 
   private IndexTools toolsModel;
 
-  class Observer implements IndexObserver {
+  @Inject
+  public OptimizeIndexDialogFactory(IndexToolsFactory indexToolsFactory, IndexHandler indexHandler) {
+    this.indexToolsFactory = indexToolsFactory;
+    this.indexHandler = indexHandler;
+    indexHandler.addObserver(new Observer());
 
-    @Override
-    public void openIndex(LukeState state) {
-      toolsModel = indexToolsFactory.newInstance(state.getIndexReader(), state.useCompound(), state.keepAllCommits());
-    }
+    initialize();
+  }
 
-    @Override
-    public void closeIndex() {
-      toolsModel = null;
-    }
+  private void initialize() {
+    expungeCB.setText(MessageUtils.getLocalizedMessage("optimize.checkbox.expunge"));
 
+    maxSegSpnr.setModel(new SpinnerNumberModel(1, 1, 100, 1));
+    maxSegSpnr.setPreferredSize(new Dimension(100, 30));
+
+    indicatorLbl.setIcon(ImageUtils.createImageIcon("/img/indicator.gif", 20, 20));
+
+    logArea.setEditable(false);
+  }
+
+  @Override
+  public JDialog create(Window owner, String title, int width, int height) {
+    dialog = new JDialog(owner, title, Dialog.ModalityType.APPLICATION_MODAL);
+    dialog.add(content());
+    dialog.setSize(new Dimension(width, height));
+    dialog.setLocationRelativeTo(owner);
+    return dialog;
+  }
+
+  private JPanel content() {
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
+    panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+
+    panel.add(controller());
+    panel.add(new JSeparator(JSeparator.HORIZONTAL));
+    panel.add(logs());
+
+    return panel;
+  }
+
+  private JPanel controller() {
+    JPanel panel = new JPanel(new GridLayout(4, 1));
+
+    JPanel idxPath = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    idxPath.add(new JLabel(MessageUtils.getLocalizedMessage("optimize.label.index_path")));
+    JLabel idxPathLbl = new JLabel(indexHandler.getState().getIndexPath());
+    idxPathLbl.setToolTipText(indexHandler.getState().getIndexPath());
+    idxPath.add(idxPathLbl);
+    panel.add(idxPath);
+
+    JPanel expunge = new JPanel(new FlowLayout(FlowLayout.LEADING));
+
+    expunge.add(expungeCB);
+    panel.add(expunge);
+
+    JPanel maxSegs = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    maxSegs.add(new JLabel(MessageUtils.getLocalizedMessage("optimize.label.max_segments")));
+    maxSegs.add(maxSegSpnr);
+    panel.add(maxSegs);
+
+    JPanel execButtons = new JPanel(new FlowLayout(FlowLayout.TRAILING));
+    JButton optimizeBtn = new JButton(MessageUtils.getLocalizedMessage("optimize.button.optimize"),
+        ImageUtils.createImageIcon("/img/icon_balance.png", 20, 20));
+    optimizeBtn.setFont(new Font(optimizeBtn.getFont().getFontName(), Font.PLAIN, 15));
+    optimizeBtn.setMargin(new Insets(3, 3, 3, 3));
+    optimizeBtn.addActionListener(listeners::optimize);
+    execButtons.add(optimizeBtn);
+    JButton closeBtn = new JButton(MessageUtils.getLocalizedMessage("button.close"));
+    closeBtn.setFont(new Font(closeBtn.getFont().getFontName(), Font.PLAIN, 15));
+    closeBtn.setMargin(new Insets(3, 3, 3, 3));
+    closeBtn.addActionListener(e -> dialog.dispose());
+    execButtons.add(closeBtn);
+    panel.add(execButtons);
+
+    return panel;
+  }
+
+  private JPanel logs() {
+    JPanel panel = new JPanel(new BorderLayout());
+
+    JPanel header = new JPanel(new GridLayout(2, 1));
+    header.add(new JLabel(MessageUtils.getLocalizedMessage("optimize.label.note")));
+    JPanel status = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    status.add(new JLabel(MessageUtils.getLocalizedMessage("optimize.label.status")));
+    statusLbl.setText("Idle");
+    status.add(statusLbl);
+    indicatorLbl.setVisible(false);
+    status.add(indicatorLbl);
+    header.add(status);
+    panel.add(header, BorderLayout.PAGE_START);
+
+    logArea.setText("");
+    panel.add(new JScrollPane(logArea), BorderLayout.CENTER);
+
+    return panel;
   }
 
   class ListenerFunctions {
@@ -138,93 +222,18 @@ public class OptimizeIndexDialogFactory implements DialogOpener.DialogFactory {
 
   }
 
-  @Inject
-  public OptimizeIndexDialogFactory(IndexToolsFactory indexToolsFactory, IndexHandler indexHandler) {
-    this.indexToolsFactory = indexToolsFactory;
-    this.indexHandler = indexHandler;
-    indexHandler.addObserver(new Observer());
-  }
+  class Observer implements IndexObserver {
 
-  @Override
-  public JDialog create(Window owner, String title, int width, int height) {
-    dialog = new JDialog(owner, title, Dialog.ModalityType.APPLICATION_MODAL);
-    dialog.add(content());
-    dialog.setSize(new Dimension(width, height));
-    dialog.setLocationRelativeTo(owner);
-    return dialog;
-  }
+    @Override
+    public void openIndex(LukeState state) {
+      toolsModel = indexToolsFactory.newInstance(state.getIndexReader(), state.useCompound(), state.keepAllCommits());
+    }
 
-  private JPanel content() {
-    JPanel panel = new JPanel();
-    panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
-    panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+    @Override
+    public void closeIndex() {
+      toolsModel = null;
+    }
 
-    panel.add(controller());
-    panel.add(new JSeparator(JSeparator.HORIZONTAL));
-    panel.add(logs());
-
-    return panel;
-  }
-
-  private JPanel controller() {
-    JPanel panel = new JPanel(new GridLayout(4, 1));
-
-    JPanel idxPath = new JPanel(new FlowLayout(FlowLayout.LEADING));
-    idxPath.add(new JLabel(MessageUtils.getLocalizedMessage("optimize.label.index_path")));
-    JLabel idxPathLbl = new JLabel(indexHandler.getState().getIndexPath());
-    idxPathLbl.setToolTipText(indexHandler.getState().getIndexPath());
-    idxPath.add(idxPathLbl);
-    panel.add(idxPath);
-
-    JPanel expunge = new JPanel(new FlowLayout(FlowLayout.LEADING));
-    expungeCB.setText(MessageUtils.getLocalizedMessage("optimize.checkbox.expunge"));
-    expunge.add(expungeCB);
-    panel.add(expunge);
-
-    JPanel maxSegs = new JPanel(new FlowLayout(FlowLayout.LEADING));
-    maxSegs.add(new JLabel(MessageUtils.getLocalizedMessage("optimize.label.max_segments")));
-    maxSegSpnr.setModel(new SpinnerNumberModel(1, 1, 100, 1));
-    maxSegSpnr.setPreferredSize(new Dimension(100, 30));
-    maxSegs.add(maxSegSpnr);
-    panel.add(maxSegs);
-
-    JPanel execButtons = new JPanel(new FlowLayout(FlowLayout.TRAILING));
-    JButton optimizeBtn = new JButton(MessageUtils.getLocalizedMessage("optimize.button.optimize"),
-        ImageUtils.createImageIcon("/img/icon_balance.png", 20, 20));
-    optimizeBtn.setFont(new Font(optimizeBtn.getFont().getFontName(), Font.PLAIN, 15));
-    optimizeBtn.setMargin(new Insets(3, 3, 3, 3));
-    optimizeBtn.addActionListener(listeners::optimize);
-    execButtons.add(optimizeBtn);
-    JButton closeBtn = new JButton(MessageUtils.getLocalizedMessage("button.close"));
-    closeBtn.setFont(new Font(closeBtn.getFont().getFontName(), Font.PLAIN, 15));
-    closeBtn.setMargin(new Insets(3, 3, 3, 3));
-    closeBtn.addActionListener(e -> dialog.dispose());
-    execButtons.add(closeBtn);
-    panel.add(execButtons);
-
-    return panel;
-  }
-
-  private JPanel logs() {
-    JPanel panel = new JPanel(new BorderLayout());
-
-    JPanel header = new JPanel(new GridLayout(2, 1));
-    header.add(new JLabel(MessageUtils.getLocalizedMessage("optimize.label.note")));
-    JPanel status = new JPanel(new FlowLayout(FlowLayout.LEADING));
-    status.add(new JLabel(MessageUtils.getLocalizedMessage("optimize.label.status")));
-    statusLbl.setText("Idle");
-    status.add(statusLbl);
-    indicatorLbl.setIcon(ImageUtils.createImageIcon("/img/indicator.gif", 20, 20));
-    indicatorLbl.setVisible(false);
-    status.add(indicatorLbl);
-    header.add(status);
-    panel.add(header, BorderLayout.PAGE_START);
-
-    logArea.setText("");
-    logArea.setEditable(false);
-    panel.add(new JScrollPane(logArea), BorderLayout.CENTER);
-
-    return panel;
   }
 
 }

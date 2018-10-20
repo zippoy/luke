@@ -67,7 +67,7 @@ public class CheckIndexDialogFactory implements DialogOpener.DialogFactory {
 
   private final IndexHandler indexHandler;
 
-  private JLabel resultLbl = new JLabel();
+  private final JLabel resultLbl = new JLabel();
 
   private final JLabel statusLbl = new JLabel();
 
@@ -77,9 +77,13 @@ public class CheckIndexDialogFactory implements DialogOpener.DialogFactory {
 
   private final JTextArea logArea = new JTextArea();
 
+  private JDialog dialog;
+
   private LukeState lukeState;
 
   private CheckIndex.Status status;
+
+  private IndexTools toolsModel;
 
   private final ListenerFunctions listeners = new ListenerFunctions();
 
@@ -90,11 +94,23 @@ public class CheckIndexDialogFactory implements DialogOpener.DialogFactory {
 
     indexHandler.addObserver(new Observer());
     directoryHandler.addObserver(new Observer());
+
+    initialize();
   }
 
-  private JDialog dialog;
+  private void initialize() {
+    repairBtn.setText(MessageUtils.getLocalizedMessage("checkidx.button.fix"));
+    repairBtn.setIcon(ImageUtils.createImageIcon("/img/icon_tool.png", 20, 20));
+    repairBtn.setFont(new Font(repairBtn.getFont().getFontName(), Font.PLAIN, 15));
+    repairBtn.setMargin(new Insets(3, 3, 3, 3));
+    repairBtn.setEnabled(false);
+    repairBtn.addActionListener(listeners::repairIndex);
 
-  private IndexTools toolsModel;
+    indicatorLbl.setIcon(ImageUtils.createImageIcon("/img/indicator.gif", 20, 20));
+
+    logArea.setEditable(false);
+  }
+
 
   @Override
   public JDialog create(Window owner, String title, int width, int height) {
@@ -157,12 +173,6 @@ public class CheckIndexDialogFactory implements DialogOpener.DialogFactory {
     header.setLayout(new BoxLayout(header, BoxLayout.PAGE_AXIS));
 
     JPanel repair = new JPanel(new FlowLayout(FlowLayout.LEADING));
-    repairBtn.setText(MessageUtils.getLocalizedMessage("checkidx.button.fix"));
-    repairBtn.setIcon(ImageUtils.createImageIcon("/img/icon_tool.png", 20, 20));
-    repairBtn.setFont(new Font(repairBtn.getFont().getFontName(), Font.PLAIN, 15));
-    repairBtn.setMargin(new Insets(3, 3, 3, 3));
-    repairBtn.setEnabled(false);
-    repairBtn.addActionListener(listeners::repairIndex);
     repair.add(repairBtn);
 
     JTextArea warnArea = new JTextArea(MessageUtils.getLocalizedMessage("checkidx.label.warn"), 3, 30);
@@ -180,7 +190,6 @@ public class CheckIndexDialogFactory implements DialogOpener.DialogFactory {
     status.add(new JLabel(MessageUtils.getLocalizedMessage("checkidx.label.status")));
     statusLbl.setText("Idle");
     status.add(statusLbl);
-    indicatorLbl.setIcon(ImageUtils.createImageIcon("/img/indicator.gif", 20, 20));
     indicatorLbl.setVisible(false);
     status.add(indicatorLbl);
     header.add(status);
@@ -188,7 +197,6 @@ public class CheckIndexDialogFactory implements DialogOpener.DialogFactory {
     panel.add(header, BorderLayout.PAGE_START);
 
     logArea.setText("");
-    logArea.setEditable(false);
     panel.add(new JScrollPane(logArea), BorderLayout.CENTER);
 
     return panel;

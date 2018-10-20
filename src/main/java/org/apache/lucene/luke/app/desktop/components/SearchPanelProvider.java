@@ -198,20 +198,20 @@ public class SearchPanelProvider implements Provider<JPanel>, SearchTabOperator 
     JPanel panel = new JPanel(new GridLayout(1, 1));
     panel.setBorder(BorderFactory.createLineBorder(Color.gray));
 
-    JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, createUpperPanel(), createLowerPanel());
+    JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, initUpperPanel(), initLowerPanel());
     splitPane.setDividerLocation(350);
     panel.add(splitPane);
 
     return panel;
   }
 
-  private JSplitPane createUpperPanel() {
-    JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, createQuerySettingsPane(), createQueryPane());
+  private JSplitPane initUpperPanel() {
+    JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, initQuerySettingsPane(), initQueryPane());
     splitPane.setDividerLocation(570);
     return splitPane;
   }
 
-  private JPanel createQuerySettingsPane() {
+  private JPanel initQuerySettingsPane() {
     JPanel panel = new JPanel(new BorderLayout());
     panel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
 
@@ -229,7 +229,7 @@ public class SearchPanelProvider implements Provider<JPanel>, SearchTabOperator 
     return panel;
   }
 
-  private JPanel createQueryPane() {
+  private JPanel initQueryPane() {
     JPanel panel = new JPanel(new GridBagLayout());
     panel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
     GridBagConstraints c = new GridBagConstraints();
@@ -341,17 +341,17 @@ public class SearchPanelProvider implements Provider<JPanel>, SearchTabOperator 
     return panel;
   }
 
-  private JPanel createLowerPanel() {
+  private JPanel initLowerPanel() {
     JPanel panel = new JPanel(new BorderLayout());
     panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-    panel.add(createSearchResultsHeaderPane(), BorderLayout.PAGE_START);
-    panel.add(createSearchResultsTablePane(), BorderLayout.CENTER);
+    panel.add(initSearchResultsHeaderPane(), BorderLayout.PAGE_START);
+    panel.add(initSearchResultsTablePane(), BorderLayout.CENTER);
 
     return panel;
   }
 
-  private JPanel createSearchResultsHeaderPane() {
+  private JPanel initSearchResultsHeaderPane() {
     JPanel panel = new JPanel(new GridLayout(1, 2));
 
     JLabel label = new JLabel(MessageUtils.getLocalizedMessage("search.label.results"),
@@ -404,7 +404,7 @@ public class SearchPanelProvider implements Provider<JPanel>, SearchTabOperator 
     return panel;
   }
 
-  private JPanel createSearchResultsTablePane() {
+  private JPanel initSearchResultsTablePane() {
     JPanel panel = new JPanel(new BorderLayout());
 
     JPanel note = new JPanel(new FlowLayout(FlowLayout.LEADING, 5, 2));
@@ -602,7 +602,7 @@ public class SearchPanelProvider implements Provider<JPanel>, SearchTabOperator 
     delBtn.setEnabled(false);
   }
 
-  private JPopupMenu createResultsContextMenuPopup() {
+  private JPopupMenu setupResultsContextMenuPopup() {
     JPopupMenu popup = new JPopupMenu();
 
     // show explanation
@@ -677,8 +677,8 @@ public class SearchPanelProvider implements Provider<JPanel>, SearchTabOperator 
 
     void showContextMenuInResultsTable(MouseEvent e) {
       if (e.getClickCount() == 2 && !e.isConsumed()) {
-        SearchPanelProvider.this.createResultsContextMenuPopup().show(e.getComponent(), e.getX(), e.getY());
-        createResultsContextMenuPopup().show(e.getComponent(), e.getX(), e.getY());
+        SearchPanelProvider.this.setupResultsContextMenuPopup().show(e.getComponent(), e.getX(), e.getY());
+        setupResultsContextMenuPopup().show(e.getComponent(), e.getX(), e.getY());
       }
     }
 

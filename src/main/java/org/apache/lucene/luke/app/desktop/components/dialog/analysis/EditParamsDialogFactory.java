@@ -50,13 +50,7 @@ public class EditParamsDialogFactory implements DialogOpener.DialogFactory {
 
   private final ComponentOperatorRegistry operatorRegistry;
 
-  //private final JLabel targetLbl = new JLabel();
-
   private final JTable paramsTable = new JTable();
-
-  //private final JButton okBtn = new JButton();
-
-  //private final JButton cancelBtn = new JButton();
 
   private JDialog dialog;
 

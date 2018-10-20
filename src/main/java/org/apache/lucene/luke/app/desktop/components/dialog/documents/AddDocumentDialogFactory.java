@@ -143,6 +143,24 @@ public class AddDocumentDialogFactory implements DialogOpener.DialogFactory, Add
     operatorRegistry.register(AddDocumentDialogOperator.class, this);
     indexHandler.addObserver(new Observer());
 
+    initialize();
+  }
+
+  private void initialize() {
+    addBtn.setText(MessageUtils.getLocalizedMessage("add_document.button.add"));
+    addBtn.setMargin(new Insets(3, 3, 3, 3));
+    addBtn.setEnabled(true);
+    addBtn.addActionListener(listeners::addDocument);
+
+    closeBtn.setText(MessageUtils.getLocalizedMessage("button.cancel"));
+    closeBtn.setMargin(new Insets(3, 3, 3, 3));
+    closeBtn.addActionListener(e -> dialog.dispose());
+
+    infoTA.setRows(3);
+    infoTA.setLineWrap(true);
+    infoTA.setEditable(false);
+    infoTA.setText(MessageUtils.getLocalizedMessage("add_document.info"));
+    infoTA.setForeground(Color.gray);
   }
 
   @Override
@@ -196,20 +214,7 @@ public class AddDocumentDialogFactory implements DialogOpener.DialogFactory, Add
     panel.add(scrollPane, BorderLayout.CENTER);
 
     JPanel tableFooter = new JPanel(new FlowLayout(FlowLayout.TRAILING, 10, 5));
-    addBtn.setText(MessageUtils.getLocalizedMessage("add_document.button.add"));
-    addBtn.setMargin(new Insets(3, 3, 3, 3));
-    addBtn.setEnabled(true);
-    if (addBtn.getActionListeners().length == 0) {
-      // TODO: need refactoring
-      // avoid adding multiple listeners
-      addBtn.addActionListener(listeners::addDocument);
-    }
     tableFooter.add(addBtn);
-    closeBtn.setText(MessageUtils.getLocalizedMessage("button.cancel"));
-    closeBtn.setMargin(new Insets(3, 3, 3, 3));
-    if (closeBtn.getActionListeners().length == 0) {
-      closeBtn.addActionListener(e -> dialog.dispose());
-    }
     tableFooter.add(closeBtn);
     panel.add(tableFooter, BorderLayout.PAGE_END);
 
@@ -284,12 +289,6 @@ public class AddDocumentDialogFactory implements DialogOpener.DialogFactory, Add
   private JPanel footer() {
     JPanel panel = new JPanel(new GridLayout(1, 1));
     panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-
-    infoTA.setRows(3);
-    infoTA.setLineWrap(true);
-    infoTA.setEditable(false);
-    infoTA.setText(MessageUtils.getLocalizedMessage("add_document.info"));
-    infoTA.setForeground(Color.gray);
 
     JScrollPane scrollPane = new JScrollPane(infoTA);
     panel.add(scrollPane);

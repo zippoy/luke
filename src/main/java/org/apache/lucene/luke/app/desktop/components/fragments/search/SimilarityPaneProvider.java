@@ -62,12 +62,12 @@ public class SimilarityPaneProvider implements Provider<JScrollPane>, Similarity
     panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
     panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-    panel.add(similaritySettings());
+    panel.add(initSimilaritySettingsPanel());
 
     return new JScrollPane(panel);
   }
 
-  private JPanel similaritySettings() {
+  private JPanel initSimilaritySettingsPanel() {
     JPanel panel = new JPanel(new GridLayout(4, 1));
     panel.setMaximumSize(new Dimension(700, 220));
 

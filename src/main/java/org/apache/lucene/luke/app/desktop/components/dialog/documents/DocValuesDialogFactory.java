@@ -53,17 +53,17 @@ import java.util.Objects;
 
 public class DocValuesDialogFactory implements DialogOpener.DialogFactory {
 
-  private JDialog dialog;
-
-  private String field;
-
-  private DocValues docValues;
-
   private final JComboBox<String> decodersCombo = new JComboBox<>();
 
   private final JList<String> valueList = new JList<>();
 
   private final ListenerFunctions listeners = new ListenerFunctions();
+
+  private JDialog dialog;
+
+  private String field;
+
+  private DocValues docValues;
 
   @Override
   public JDialog create(Window owner, String title, int width, int height) {

@@ -106,7 +106,7 @@ public class CommitsPanelProvider implements Provider<JPanel> {
     JPanel panel = new JPanel(new GridLayout(1, 1));
     panel.setBorder(BorderFactory.createLineBorder(Color.gray));
 
-    JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, createUpperPanel(), createLowerPanel());
+    JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, initUpperPanel(), initLowerPanel());
     splitPane.setBorder(BorderFactory.createEmptyBorder());
     splitPane.setDividerLocation(120);
     panel.add(splitPane);
@@ -114,7 +114,7 @@ public class CommitsPanelProvider implements Provider<JPanel> {
     return panel;
   }
 
-  private JPanel createUpperPanel() {
+  private JPanel initUpperPanel() {
     JPanel panel = new JPanel(new BorderLayout(20, 0));
     panel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
 
@@ -176,18 +176,18 @@ public class CommitsPanelProvider implements Provider<JPanel> {
     return panel;
   }
 
-  private JPanel createLowerPanel() {
+  private JPanel initLowerPanel() {
     JPanel panel = new JPanel(new GridLayout(1, 1));
     panel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
 
-    JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, createFilesPanel(), createSegmentsPanel());
+    JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, initFilesPanel(), initSegmentsPanel());
     splitPane.setBorder(BorderFactory.createEmptyBorder());
     splitPane.setDividerLocation(300);
     panel.add(splitPane);
     return panel;
   }
 
-  private JPanel createFilesPanel() {
+  private JPanel initFilesPanel() {
     JPanel panel = new JPanel(new BorderLayout());
     panel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
 
@@ -195,13 +195,13 @@ public class CommitsPanelProvider implements Provider<JPanel> {
     header.add(new JLabel(MessageUtils.getLocalizedMessage("commits.label.files")));
     panel.add(header, BorderLayout.PAGE_START);
 
-    TableUtil.setupTable(filesTable, ListSelectionModel.SINGLE_SELECTION, new FileTableModel(), null, FileTableModel.Column.FILENAME.getColumnWidth());
+    TableUtil.setupTable(filesTable, ListSelectionModel.SINGLE_SELECTION, new FilesTableModel(), null, FilesTableModel.Column.FILENAME.getColumnWidth());
     panel.add(new JScrollPane(filesTable), BorderLayout.CENTER);
 
     return panel;
   }
 
-  private JPanel createSegmentsPanel() {
+  private JPanel initSegmentsPanel() {
     JPanel panel = new JPanel();
     panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
 
@@ -209,19 +209,19 @@ public class CommitsPanelProvider implements Provider<JPanel> {
     segments.add(new JLabel(MessageUtils.getLocalizedMessage("commits.label.segments")));
     panel.add(segments);
 
-    TableUtil.setupTable(segmentsTable, ListSelectionModel.SINGLE_SELECTION, new SegmentTableModel(),
+    TableUtil.setupTable(segmentsTable, ListSelectionModel.SINGLE_SELECTION, new SegmentsTableModel(),
         new MouseAdapter() {
           @Override
           public void mouseClicked(MouseEvent e) {
             listeners.showSegmentDetails(e);
           }
         },
-        SegmentTableModel.Column.NAME.getColumnWidth(),
-        SegmentTableModel.Column.MAXDOCS.getColumnWidth(),
-        SegmentTableModel.Column.DELS.getColumnWidth(),
-        SegmentTableModel.Column.DELGEN.getColumnWidth(),
-        SegmentTableModel.Column.VERSION.getColumnWidth(),
-        SegmentTableModel.Column.CODEC.getColumnWidth());
+        SegmentsTableModel.Column.NAME.getColumnWidth(),
+        SegmentsTableModel.Column.MAXDOCS.getColumnWidth(),
+        SegmentsTableModel.Column.DELS.getColumnWidth(),
+        SegmentsTableModel.Column.DELGEN.getColumnWidth(),
+        SegmentsTableModel.Column.VERSION.getColumnWidth(),
+        SegmentsTableModel.Column.CODEC.getColumnWidth());
     panel.add(new JScrollPane(segmentsTable));
 
     JPanel segDetails = new JPanel(new FlowLayout(FlowLayout.LEADING));
@@ -293,18 +293,18 @@ public class CommitsPanelProvider implements Provider<JPanel> {
       userDataTA.setText(commit.getUserData());
     });
 
-    filesTable.setModel(new FileTableModel(commitsModel.getFiles(commitGen)));
+    filesTable.setModel(new FilesTableModel(commitsModel.getFiles(commitGen)));
     filesTable.setShowGrid(true);
-    filesTable.getColumnModel().getColumn(FileTableModel.Column.FILENAME.getIndex()).setPreferredWidth(FileTableModel.Column.FILENAME.getColumnWidth());
+    filesTable.getColumnModel().getColumn(FilesTableModel.Column.FILENAME.getIndex()).setPreferredWidth(FilesTableModel.Column.FILENAME.getColumnWidth());
 
-    segmentsTable.setModel(new SegmentTableModel(commitsModel.getSegments(commitGen)));
+    segmentsTable.setModel(new SegmentsTableModel(commitsModel.getSegments(commitGen)));
     segmentsTable.setShowGrid(true);
-    segmentsTable.getColumnModel().getColumn(SegmentTableModel.Column.NAME.getIndex()).setPreferredWidth(SegmentTableModel.Column.NAME.getColumnWidth());
-    segmentsTable.getColumnModel().getColumn(SegmentTableModel.Column.MAXDOCS.getIndex()).setPreferredWidth(SegmentTableModel.Column.MAXDOCS.getColumnWidth());
-    segmentsTable.getColumnModel().getColumn(SegmentTableModel.Column.DELS.getIndex()).setPreferredWidth(SegmentTableModel.Column.DELS.getColumnWidth());
-    segmentsTable.getColumnModel().getColumn(SegmentTableModel.Column.DELGEN.getIndex()).setPreferredWidth(SegmentTableModel.Column.DELGEN.getColumnWidth());
-    segmentsTable.getColumnModel().getColumn(SegmentTableModel.Column.VERSION.getIndex()).setPreferredWidth(SegmentTableModel.Column.VERSION.getColumnWidth());
-    segmentsTable.getColumnModel().getColumn(SegmentTableModel.Column.CODEC.getIndex()).setPreferredWidth(SegmentTableModel.Column.CODEC.getColumnWidth());
+    segmentsTable.getColumnModel().getColumn(SegmentsTableModel.Column.NAME.getIndex()).setPreferredWidth(SegmentsTableModel.Column.NAME.getColumnWidth());
+    segmentsTable.getColumnModel().getColumn(SegmentsTableModel.Column.MAXDOCS.getIndex()).setPreferredWidth(SegmentsTableModel.Column.MAXDOCS.getColumnWidth());
+    segmentsTable.getColumnModel().getColumn(SegmentsTableModel.Column.DELS.getIndex()).setPreferredWidth(SegmentsTableModel.Column.DELS.getColumnWidth());
+    segmentsTable.getColumnModel().getColumn(SegmentsTableModel.Column.DELGEN.getIndex()).setPreferredWidth(SegmentsTableModel.Column.DELGEN.getColumnWidth());
+    segmentsTable.getColumnModel().getColumn(SegmentsTableModel.Column.VERSION.getIndex()).setPreferredWidth(SegmentsTableModel.Column.VERSION.getColumnWidth());
+    segmentsTable.getColumnModel().getColumn(SegmentsTableModel.Column.CODEC.getIndex()).setPreferredWidth(SegmentsTableModel.Column.CODEC.getColumnWidth());
   }
 
   private void showSegmentDetails() {
@@ -319,7 +319,7 @@ public class CommitsPanelProvider implements Provider<JPanel> {
     codecRB.setEnabled(true);
 
     long commitGen = (long) commitGenCombo.getSelectedItem();
-    String segName = (String) segmentsTable.getValueAt(selectedRow, SegmentTableModel.Column.NAME.getIndex());
+    String segName = (String) segmentsTable.getValueAt(selectedRow, SegmentsTableModel.Column.NAME.getIndex());
     ActionCommand command = ActionCommand.valueOf(rbGroup.getSelection().getActionCommand());
 
     final DefaultListModel<String> detailsModel = new DefaultListModel<>();
@@ -416,14 +416,14 @@ public class CommitsPanelProvider implements Provider<JPanel> {
       deletedLbl.setText("");
       segCntLbl.setText("");
       userDataTA.setText("");
-      TableUtil.setupTable(filesTable, ListSelectionModel.SINGLE_SELECTION, new FileTableModel(), null, FileTableModel.Column.FILENAME.getColumnWidth());
-      TableUtil.setupTable(segmentsTable, ListSelectionModel.SINGLE_SELECTION, new SegmentTableModel(), null,
-          SegmentTableModel.Column.NAME.getColumnWidth(),
-          SegmentTableModel.Column.MAXDOCS.getColumnWidth(),
-          SegmentTableModel.Column.DELS.getColumnWidth(),
-          SegmentTableModel.Column.DELGEN.getColumnWidth(),
-          SegmentTableModel.Column.VERSION.getColumnWidth(),
-          SegmentTableModel.Column.CODEC.getColumnWidth());
+      TableUtil.setupTable(filesTable, ListSelectionModel.SINGLE_SELECTION, new FilesTableModel(), null, FilesTableModel.Column.FILENAME.getColumnWidth());
+      TableUtil.setupTable(segmentsTable, ListSelectionModel.SINGLE_SELECTION, new SegmentsTableModel(), null,
+          SegmentsTableModel.Column.NAME.getColumnWidth(),
+          SegmentsTableModel.Column.MAXDOCS.getColumnWidth(),
+          SegmentsTableModel.Column.DELS.getColumnWidth(),
+          SegmentsTableModel.Column.DELGEN.getColumnWidth(),
+          SegmentsTableModel.Column.VERSION.getColumnWidth(),
+          SegmentsTableModel.Column.CODEC.getColumnWidth());
       diagRB.setEnabled(false);
       attrRB.setEnabled(false);
       codecRB.setEnabled(false);
@@ -437,7 +437,7 @@ public class CommitsPanelProvider implements Provider<JPanel> {
 
 }
 
-class FileTableModel extends TableModelBase<FileTableModel.Column> {
+class FilesTableModel extends TableModelBase<FilesTableModel.Column> {
 
   enum Column implements TableColumnInfo {
 
@@ -477,11 +477,11 @@ class FileTableModel extends TableModelBase<FileTableModel.Column> {
     }
   }
 
-  FileTableModel() {
+  FilesTableModel() {
     super();
   }
 
-  FileTableModel(List<File> files) {
+  FilesTableModel(List<File> files) {
     super(files.size());
     for (int i = 0; i < files.size(); i++) {
       File file = files.get(i);
@@ -496,7 +496,7 @@ class FileTableModel extends TableModelBase<FileTableModel.Column> {
   }
 }
 
-class SegmentTableModel extends TableModelBase<SegmentTableModel.Column> {
+class SegmentsTableModel extends TableModelBase<SegmentsTableModel.Column> {
 
   enum Column implements TableColumnInfo {
 
@@ -541,11 +541,11 @@ class SegmentTableModel extends TableModelBase<SegmentTableModel.Column> {
     }
   }
 
-  SegmentTableModel() {
+  SegmentsTableModel() {
     super();
   }
 
-  SegmentTableModel(List<Segment> segments) {
+  SegmentsTableModel(List<Segment> segments) {
     super(segments.size());
     for (int i = 0; i < segments.size(); i++) {
       Segment segment = segments.get(i);

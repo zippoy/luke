@@ -110,7 +110,6 @@ public class DesktopModule extends AbstractModule {
 
     bind(JFrame.class).toProvider(LukeWindowProvider.class);
 
-    bind(OpenIndexDialogFactory.class).toInstance(new OpenIndexDialogFactory());
     bind(IndexOptionsDialogFactory.class).toInstance(new IndexOptionsDialogFactory());
     bind(TermVectorDialogFactory.class).toInstance(new TermVectorDialogFactory());
     bind(DocValuesDialogFactory.class).toInstance(new DocValuesDialogFactory());
@@ -119,6 +118,13 @@ public class DesktopModule extends AbstractModule {
     bind(AboutDialogFactory.class).toInstance(new AboutDialogFactory());
     bind(HelpDialogFactory.class).toInstance(new HelpDialogFactory());
     bind(ConfirmDialogFactory.class).toInstance(new ConfirmDialogFactory());
+  }
+
+  @Provides
+  @Singleton
+  public OpenIndexDialogFactory provideOpenIndexDialogFactory(
+      DirectoryHandler directoryHandler, IndexHandler indexHandler, Preferences prefs) {
+    return new OpenIndexDialogFactory(directoryHandler, indexHandler, prefs);
   }
 
   @Provides

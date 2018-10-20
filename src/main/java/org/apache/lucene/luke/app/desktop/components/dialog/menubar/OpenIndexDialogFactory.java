@@ -17,6 +17,7 @@
 
 package org.apache.lucene.luke.app.desktop.components.dialog.menubar;
 
+import com.google.inject.Inject;
 import com.google.inject.Injector;
 import org.apache.lucene.luke.app.DirectoryHandler;
 import org.apache.lucene.luke.app.IndexHandler;
@@ -92,10 +93,45 @@ public class OpenIndexDialogFactory implements DialogOpener.DialogFactory {
 
   private Preferences prefs;
 
-  private void init(DirectoryHandler directoryHandler, IndexHandler indexHandler, Preferences prefs) {
+  @Inject
+  public OpenIndexDialogFactory(DirectoryHandler directoryHandler, IndexHandler indexHandler, Preferences prefs) {
     this.directoryHandler = directoryHandler;
     this.indexHandler = indexHandler;
     this.prefs = prefs;
+
+    initialize();
+  }
+
+  private void initialize() {
+    idxPathCombo.setPreferredSize(new Dimension(360, 35));
+
+    browseBtn.setText(MessageUtils.getLocalizedMessage("button.browse"));
+    browseBtn.setIcon(ImageUtils.createImageIcon("/img/icon_folder-open_alt.png", 20, 20));
+    browseBtn.setPreferredSize(new Dimension(120, 35));
+    browseBtn.addActionListener(listeners::browseDirectory);
+
+    readOnlyCB.setText(MessageUtils.getLocalizedMessage("openindex.checkbox.readonly"));
+    readOnlyCB.setSelected(prefs.isReadOnly());
+    readOnlyCB.addActionListener(listeners::toggleReadOnly);
+
+    for (String clazzName : supportedDirImpls()) {
+      dirImplCombo.addItem(clazzName);
+    }
+    dirImplCombo.setPreferredSize(new Dimension(350, 30));
+    dirImplCombo.setSelectedItem(prefs.getDirImpl());
+
+    noReaderCB.setText(MessageUtils.getLocalizedMessage("openindex.checkbox.no_reader"));
+    noReaderCB.setSelected(prefs.isNoReader());
+
+    useCompoundCB.setText(MessageUtils.getLocalizedMessage("openindex.checkbox.use_compound"));
+    useCompoundCB.setSelected(prefs.isUseCompound());
+
+    keepLastCommitRB.setText(MessageUtils.getLocalizedMessage("openindex.radio.keep_only_last_commit"));
+    keepLastCommitRB.setSelected(!prefs.isKeepAllCommits());
+
+    keepAllCommitsRB.setText(MessageUtils.getLocalizedMessage("openindex.radio.keep_all_commits"));
+    keepAllCommitsRB.setSelected(prefs.isKeepAllCommits());
+
   }
 
   @Override
@@ -127,24 +163,17 @@ public class OpenIndexDialogFactory implements DialogOpener.DialogFactory {
     JPanel idxPath = new JPanel(new FlowLayout(FlowLayout.LEADING));
     idxPath.add(new JLabel(MessageUtils.getLocalizedMessage("openindex.label.index_path")));
 
+    idxPathCombo.removeAllItems();
     for (String path : prefs.getHistory()) {
       idxPathCombo.addItem(path);
     }
-    idxPathCombo.setPreferredSize(new Dimension(360, 35));
     idxPath.add(idxPathCombo);
 
-    browseBtn.setText(MessageUtils.getLocalizedMessage("button.browse"));
-    browseBtn.setIcon(ImageUtils.createImageIcon("/img/icon_folder-open_alt.png", 20, 20));
-    browseBtn.setPreferredSize(new Dimension(120, 35));
-    browseBtn.addActionListener(listeners::browseDirectory);
     idxPath.add(browseBtn);
 
     panel.add(idxPath);
 
     JPanel readOnly = new JPanel(new FlowLayout(FlowLayout.LEADING));
-    readOnlyCB.setText(MessageUtils.getLocalizedMessage("openindex.checkbox.readonly"));
-    readOnlyCB.setSelected(prefs.isReadOnly());
-    readOnlyCB.addActionListener(listeners::toggleReadOnly);
     readOnly.add(readOnlyCB);
     JLabel roIconLB = new JLabel(ImageUtils.createImageIcon("/img/icon_lock.png", 12, 12));
     readOnly.add(roIconLB);
@@ -162,17 +191,10 @@ public class OpenIndexDialogFactory implements DialogOpener.DialogFactory {
 
     JPanel dirImpl = new JPanel(new FlowLayout(FlowLayout.LEADING));
     dirImpl.add(new JLabel(MessageUtils.getLocalizedMessage("openindex.label.dir_impl")));
-    for (String clazzName : supportedDirImpls()) {
-      dirImplCombo.addItem(clazzName);
-    }
-    dirImplCombo.setPreferredSize(new Dimension(350, 30));
-    dirImplCombo.setSelectedItem(prefs.getDirImpl());
     dirImpl.add(dirImplCombo);
     panel.add(dirImpl);
 
     JPanel noReader = new JPanel(new FlowLayout(FlowLayout.LEADING));
-    noReaderCB.setText(MessageUtils.getLocalizedMessage("openindex.checkbox.no_reader"));
-    noReaderCB.setSelected(prefs.isNoReader());
     noReader.add(noReaderCB);
     JLabel noReaderIcon = new JLabel(ImageUtils.createImageIcon("/img/icon_cone.png", 12, 12));
     noReader.add(noReaderIcon);
@@ -184,18 +206,12 @@ public class OpenIndexDialogFactory implements DialogOpener.DialogFactory {
 
     JPanel compound = new JPanel(new FlowLayout(FlowLayout.LEADING));
     compound.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
-    useCompoundCB.setText(MessageUtils.getLocalizedMessage("openindex.checkbox.use_compound"));
-    useCompoundCB.setSelected(prefs.isUseCompound());
     compound.add(useCompoundCB);
     panel.add(compound);
 
     JPanel keepCommits = new JPanel(new FlowLayout(FlowLayout.LEADING));
     keepCommits.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
-    keepLastCommitRB.setText(MessageUtils.getLocalizedMessage("openindex.radio.keep_only_last_commit"));
-    keepLastCommitRB.setSelected(!prefs.isKeepAllCommits());
     keepCommits.add(keepLastCommitRB);
-    keepAllCommitsRB.setText(MessageUtils.getLocalizedMessage("openindex.radio.keep_all_commits"));
-    keepAllCommitsRB.setSelected(prefs.isKeepAllCommits());
     keepCommits.add(keepAllCommitsRB);
 
     ButtonGroup group = new ButtonGroup();
@@ -324,15 +340,9 @@ public class OpenIndexDialogFactory implements DialogOpener.DialogFactory {
 
   public static void showOpenIndexDialog() {
     Injector injector = DesktopModule.getIngector();
-    DirectoryHandler directoryHandler = injector.getInstance(DirectoryHandler.class);
-    IndexHandler indexHandler = injector.getInstance(IndexHandler.class);
-    Preferences prefs = injector.getInstance(Preferences.class);
-
-    OpenIndexDialogFactory openIndexDialogFactory = new OpenIndexDialogFactory();
+    OpenIndexDialogFactory openIndexDialogFactory = injector.getInstance(OpenIndexDialogFactory.class);
     new DialogOpener<>(openIndexDialogFactory).open(MessageUtils.getLocalizedMessage("openindex.dialog.title"), 600, 420,
-        (factory) -> {
-          factory.init(directoryHandler, indexHandler, prefs);
-        });
+        (factory) -> {});
   }
 
 }

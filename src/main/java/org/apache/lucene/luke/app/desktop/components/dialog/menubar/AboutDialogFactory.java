@@ -106,26 +106,6 @@ public class AboutDialogFactory implements DialogOpener.DialogFactory {
     return panel;
   }
 
-  private static final String LICENSE_NOTICE =
-      "<p>Created by Andrzej Bialecki &lt;ab@getopt.org&gt; <br>" +
-          "Further developed by: Dmitry Kan &lt;dmitry.lucene@gmail.com&gt;, Tomoko Uchida &lt;tomoko.uchida.1111@gmail.com&gt; <br>" +
-          "Backed by pull-requests from our fantastic community.</p>" +
-          "<p>[License]</p>" +
-          "<p>Luke is distributed under <a href=\"http://www.apache.org/licenses/LICENSE-2.0\">Apache License Version 2.0</a> (http://www.apache.org/licenses/LICENSE-2.0) " +
-          "and includes <a href=\"https://www.elegantthemes.com/blog/resources/elegant-icon-font\">The Elegant Icon Font</a> (https://www.elegantthemes.com/blog/resources/elegant-icon-font) " +
-          "licensed under <a href=\"https://opensource.org/licenses/MIT\">MIT</a> (https://opensource.org/licenses/MIT)</p>";
-
-  private static final HyperlinkListener hyperlinkListener = e -> {
-    if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED)
-      if (Desktop.isDesktopSupported()) {
-        try {
-          Desktop.getDesktop().browse(e.getURL().toURI());
-        } catch (IOException | URISyntaxException ex) {
-          throw new LukeException(ex.getMessage(), ex);
-        }
-      }
-  };
-
   private JScrollPane center() {
     JEditorPane editorPane = new JEditorPane();
     editorPane.setMargin(new Insets(5, 5, 5, 5));
@@ -148,5 +128,26 @@ public class AboutDialogFactory implements DialogOpener.DialogFactory {
     panel.add(closeBtn);
     return panel;
   }
+
+  private static final String LICENSE_NOTICE =
+      "<p>Created by Andrzej Bialecki &lt;ab@getopt.org&gt; <br>" +
+          "Further developed by: Dmitry Kan &lt;dmitry.lucene@gmail.com&gt;, Tomoko Uchida &lt;tomoko.uchida.1111@gmail.com&gt; <br>" +
+          "Backed by pull-requests from our fantastic community.</p>" +
+          "<p>[License]</p>" +
+          "<p>Luke is distributed under <a href=\"http://www.apache.org/licenses/LICENSE-2.0\">Apache License Version 2.0</a> (http://www.apache.org/licenses/LICENSE-2.0) " +
+          "and includes <a href=\"https://www.elegantthemes.com/blog/resources/elegant-icon-font\">The Elegant Icon Font</a> (https://www.elegantthemes.com/blog/resources/elegant-icon-font) " +
+          "licensed under <a href=\"https://opensource.org/licenses/MIT\">MIT</a> (https://opensource.org/licenses/MIT)</p>";
+
+  private static final HyperlinkListener hyperlinkListener = e -> {
+    if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED)
+      if (Desktop.isDesktopSupported()) {
+        try {
+          Desktop.getDesktop().browse(e.getURL().toURI());
+        } catch (IOException | URISyntaxException ex) {
+          throw new LukeException(ex.getMessage(), ex);
+        }
+      }
+  };
+
 
 }

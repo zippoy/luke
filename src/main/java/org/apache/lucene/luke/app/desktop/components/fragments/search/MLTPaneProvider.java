@@ -86,16 +86,16 @@ public class MLTPaneProvider implements Provider<JScrollPane>, MLTTabOperator {
     panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
     panel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
 
-    panel.add(mltParams());
+    panel.add(initMltParamsPanel());
     panel.add(new JSeparator(JSeparator.HORIZONTAL));
-    panel.add(analyzerNamePane());
+    panel.add(initAnalyzerNamePanel());
     panel.add(new JSeparator(JSeparator.HORIZONTAL));
-    panel.add(fieldsSettings());
+    panel.add(initFieldsSettingsPanel());
 
     return new JScrollPane(panel);
   }
 
-  private JPanel mltParams() {
+  private JPanel initMltParamsPanel() {
     JPanel panel = new JPanel(new GridLayout(3, 1));
 
     JPanel maxDocFreq = new JPanel(new FlowLayout(FlowLayout.LEADING));
@@ -126,7 +126,7 @@ public class MLTPaneProvider implements Provider<JScrollPane>, MLTTabOperator {
     return panel;
   }
 
-  private JPanel analyzerNamePane() {
+  private JPanel initAnalyzerNamePanel() {
     JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEADING));
 
     panel.add(new JLabel(MessageUtils.getLocalizedMessage("search_mlt.label.analyzer")));
@@ -145,7 +145,7 @@ public class MLTPaneProvider implements Provider<JScrollPane>, MLTTabOperator {
     return panel;
   }
 
-  private JPanel fieldsSettings() {
+  private JPanel initFieldsSettingsPanel() {
     JPanel panel = new JPanel(new BorderLayout());
     panel.setPreferredSize(new Dimension(500, 300));
     panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -159,7 +159,7 @@ public class MLTPaneProvider implements Provider<JScrollPane>, MLTTabOperator {
     header.add(loadAllCB);
     panel.add(header, BorderLayout.PAGE_START);
 
-    TableUtil.setupTable(fieldsTable, ListSelectionModel.SINGLE_SELECTION, new MLTFieldTableModel(), null, MLTFieldTableModel.Column.SELECT.getColumnWidth());
+    TableUtil.setupTable(fieldsTable, ListSelectionModel.SINGLE_SELECTION, new MLTFieldsTableModel(), null, MLTFieldsTableModel.Column.SELECT.getColumnWidth());
     fieldsTable.setPreferredScrollableViewportSize(fieldsTable.getPreferredSize());
     panel.add(new JScrollPane(fieldsTable), BorderLayout.CENTER);
 
@@ -173,9 +173,9 @@ public class MLTPaneProvider implements Provider<JScrollPane>, MLTTabOperator {
 
   @Override
   public void setFields(Collection<String> fields) {
-    fieldsTable.setModel(new MLTFieldTableModel(fields));
-    fieldsTable.getColumnModel().getColumn(MLTFieldTableModel.Column.SELECT.getIndex()).setMinWidth(MLTFieldTableModel.Column.SELECT.getColumnWidth());
-    fieldsTable.getColumnModel().getColumn(MLTFieldTableModel.Column.SELECT.getIndex()).setMaxWidth(MLTFieldTableModel.Column.SELECT.getColumnWidth());
+    fieldsTable.setModel(new MLTFieldsTableModel(fields));
+    fieldsTable.getColumnModel().getColumn(MLTFieldsTableModel.Column.SELECT.getIndex()).setMinWidth(MLTFieldsTableModel.Column.SELECT.getColumnWidth());
+    fieldsTable.getColumnModel().getColumn(MLTFieldsTableModel.Column.SELECT.getIndex()).setMaxWidth(MLTFieldsTableModel.Column.SELECT.getColumnWidth());
     fieldsTable.getModel().addTableModelListener(listeners::tableDataChenged);
   }
 
@@ -183,9 +183,9 @@ public class MLTPaneProvider implements Provider<JScrollPane>, MLTTabOperator {
   public MLTConfig getConfig() {
     List<String> fields = new ArrayList<>();
     for (int row = 0; row < fieldsTable.getRowCount(); row++) {
-      boolean selected = (boolean) fieldsTable.getValueAt(row, MLTFieldTableModel.Column.SELECT.getIndex());
+      boolean selected = (boolean) fieldsTable.getValueAt(row, MLTFieldsTableModel.Column.SELECT.getIndex());
       if (selected) {
-        fields.add((String) fieldsTable.getValueAt(row, MLTFieldTableModel.Column.FIELD.getIndex()));
+        fields.add((String) fieldsTable.getValueAt(row, MLTFieldsTableModel.Column.FIELD.getIndex()));
       }
     }
 
@@ -223,7 +223,7 @@ public class MLTPaneProvider implements Provider<JScrollPane>, MLTTabOperator {
 
 }
 
-class MLTFieldTableModel extends TableModelBase<MLTFieldTableModel.Column> {
+class MLTFieldsTableModel extends TableModelBase<MLTFieldsTableModel.Column> {
 
   enum Column implements TableColumnInfo {
     SELECT("Select", 0, Boolean.class, 50),
@@ -262,11 +262,11 @@ class MLTFieldTableModel extends TableModelBase<MLTFieldTableModel.Column> {
     }
   }
 
-  MLTFieldTableModel() {
+  MLTFieldsTableModel() {
     super();
   }
 
-  MLTFieldTableModel(Collection<String> fields) {
+  MLTFieldsTableModel(Collection<String> fields) {
     super(fields.size());
     int i = 0;
     for (String field : fields) {

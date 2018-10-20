@@ -17,6 +17,7 @@
 
 package org.apache.lucene.luke.app.desktop.components.dialog.documents;
 
+import com.google.inject.Inject;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldType;
 import org.apache.lucene.document.StringField;
@@ -72,6 +73,24 @@ public class IndexOptionsDialogFactory implements DialogOpener.DialogFactory {
 
   private NewField nf;
 
+  @Inject
+  public IndexOptionsDialogFactory() {
+    initialize();
+  }
+
+  private void initialize() {
+    storedCB.setText(MessageUtils.getLocalizedMessage("idx_options.checkbox.stored"));
+    tokenizedCB.setText(MessageUtils.getLocalizedMessage("idx_options.checkbox.tokenized"));
+    omitNormsCB.setText(MessageUtils.getLocalizedMessage("idx_options.checkbox.omit_norm"));
+    idxOptCombo.setPreferredSize(new Dimension(300, idxOptCombo.getPreferredSize().height));
+    storeTVCB.setText(MessageUtils.getLocalizedMessage("idx_options.checkbox.store_tv"));
+    storeTVPosCB.setText(MessageUtils.getLocalizedMessage("idx_options.checkbox.store_tv_pos"));
+    storeTVOffCB.setText(MessageUtils.getLocalizedMessage("idx_options.checkbox.store_tv_off"));
+    storeTVPayCB.setText(MessageUtils.getLocalizedMessage("idx_options.checkbox.store_tv_pay"));
+    dimCountTF.setColumns(4);
+    dimNumBytesTF.setColumns(4);
+  }
+
   @Override
   public JDialog create(Window owner, String title, int width, int height) {
     dialog = new JDialog(owner, title, Dialog.ModalityType.APPLICATION_MODAL);
@@ -103,18 +122,15 @@ public class IndexOptionsDialogFactory implements DialogOpener.DialogFactory {
     panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
 
     JPanel inner1 = new JPanel(new FlowLayout(FlowLayout.LEADING, 10, 5));
-    storedCB.setText(MessageUtils.getLocalizedMessage("idx_options.checkbox.stored"));
     inner1.add(storedCB);
-    tokenizedCB.setText(MessageUtils.getLocalizedMessage("idx_options.checkbox.tokenized"));
+
     inner1.add(tokenizedCB);
-    omitNormsCB.setText(MessageUtils.getLocalizedMessage("idx_options.checkbox.omit_norm"));
     inner1.add(omitNormsCB);
     panel.add(inner1);
 
     JPanel inner2 = new JPanel(new FlowLayout(FlowLayout.LEADING, 10, 1));
     JLabel idxOptLbl = new JLabel(MessageUtils.getLocalizedMessage("idx_options.label.index_options"));
     inner2.add(idxOptLbl);
-    idxOptCombo.setPreferredSize(new Dimension(300, idxOptCombo.getPreferredSize().height));
     inner2.add(idxOptCombo);
     panel.add(inner2);
 
@@ -126,17 +142,13 @@ public class IndexOptionsDialogFactory implements DialogOpener.DialogFactory {
     panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
 
     JPanel inner1 = new JPanel(new FlowLayout(FlowLayout.LEADING, 10, 2));
-    storeTVCB.setText(MessageUtils.getLocalizedMessage("idx_options.checkbox.store_tv"));
     inner1.add(storeTVCB);
     panel.add(inner1);
 
     JPanel inner2 = new JPanel(new FlowLayout(FlowLayout.LEADING, 10, 2));
     inner2.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
-    storeTVPosCB.setText(MessageUtils.getLocalizedMessage("idx_options.checkbox.store_tv_pos"));
     inner2.add(storeTVPosCB);
-    storeTVOffCB.setText(MessageUtils.getLocalizedMessage("idx_options.checkbox.store_tv_off"));
     inner2.add(storeTVOffCB);
-    storeTVPayCB.setText(MessageUtils.getLocalizedMessage("idx_options.checkbox.store_tv_pay"));
     inner2.add(storeTVPayCB);
     panel.add(inner2);
 
@@ -162,10 +174,8 @@ public class IndexOptionsDialogFactory implements DialogOpener.DialogFactory {
     JPanel inner2 = new JPanel(new FlowLayout(FlowLayout.LEADING, 10, 2));
     inner2.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
     inner2.add(new JLabel(MessageUtils.getLocalizedMessage("idx_options.label.point_dc")));
-    dimCountTF.setColumns(4);
     inner2.add(dimCountTF);
     inner2.add(new JLabel(MessageUtils.getLocalizedMessage("idx_options.label.point_nb")));
-    dimNumBytesTF.setColumns(4);
     inner2.add(dimNumBytesTF);
     panel.add(inner2);
 

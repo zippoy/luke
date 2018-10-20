@@ -126,24 +126,24 @@ public class AnalysisPanelProvider implements Provider<JPanel>, AnalysisTabOpera
     JPanel panel = new JPanel(new GridLayout(1, 1));
     panel.setBorder(BorderFactory.createLineBorder(Color.gray));
 
-    JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, createUpperPanel(), createLowerPanel());
+    JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, initUpperPanel(), initLowerPanel());
     splitPane.setDividerLocation(320);
     panel.add(splitPane);
 
     return panel;
   }
 
-  private JPanel createUpperPanel() {
+  private JPanel initUpperPanel() {
     mainPanel.setLayout(new BorderLayout());
     mainPanel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
 
-    mainPanel.add(switcher(), BorderLayout.PAGE_START);
+    mainPanel.add(initSwitcherPanel(), BorderLayout.PAGE_START);
     mainPanel.add(preset, BorderLayout.CENTER);
 
     return mainPanel;
   }
 
-  private JPanel switcher() {
+  private JPanel initSwitcherPanel() {
     JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEADING));
 
     presetRB.setText(MessageUtils.getLocalizedMessage("analysis.radio.preset"));
@@ -166,7 +166,7 @@ public class AnalysisPanelProvider implements Provider<JPanel>, AnalysisTabOpera
     return panel;
   }
 
-  private JPanel createLowerPanel() {
+  private JPanel initLowerPanel() {
     JPanel inner1 = new JPanel(new BorderLayout());
 
     JPanel analyzerName = new JPanel(new FlowLayout(FlowLayout.LEADING));
@@ -204,15 +204,15 @@ public class AnalysisPanelProvider implements Provider<JPanel>, AnalysisTabOpera
     inner2.add(hint, BorderLayout.PAGE_START);
 
 
-    TableUtil.setupTable(tokensTable, ListSelectionModel.SINGLE_SELECTION, new TokenTableModel(),
+    TableUtil.setupTable(tokensTable, ListSelectionModel.SINGLE_SELECTION, new TokensTableModel(),
         new MouseAdapter() {
           @Override
           public void mouseClicked(MouseEvent e) {
             listeners.showAttributeValues(e);
           }
         },
-        TokenTableModel.Column.TERM.getColumnWidth(),
-        TokenTableModel.Column.ATTR.getColumnWidth());
+        TokensTableModel.Column.TERM.getColumnWidth(),
+        TokensTableModel.Column.ATTR.getColumnWidth());
     inner2.add(new JScrollPane(tokensTable), BorderLayout.CENTER);
 
     JPanel panel = new JPanel(new BorderLayout());
@@ -255,10 +255,10 @@ public class AnalysisPanelProvider implements Provider<JPanel>, AnalysisTabOpera
     }
 
     tokens = analysisModel.analyze(text);
-    tokensTable.setModel(new TokenTableModel(tokens));
+    tokensTable.setModel(new TokensTableModel(tokens));
     tokensTable.setShowGrid(true);
-    tokensTable.getColumnModel().getColumn(TokenTableModel.Column.TERM.getIndex()).setPreferredWidth(TokenTableModel.Column.TERM.getColumnWidth());
-    tokensTable.getColumnModel().getColumn(TokenTableModel.Column.ATTR.getIndex()).setPreferredWidth(TokenTableModel.Column.ATTR.getColumnWidth());
+    tokensTable.getColumnModel().getColumn(TokensTableModel.Column.TERM.getIndex()).setPreferredWidth(TokensTableModel.Column.TERM.getColumnWidth());
+    tokensTable.getColumnModel().getColumn(TokensTableModel.Column.ATTR.getIndex()).setPreferredWidth(TokensTableModel.Column.ATTR.getColumnWidth());
   }
 
   void showAttributeValues(int selectedIndex) {
@@ -326,7 +326,7 @@ public class AnalysisPanelProvider implements Provider<JPanel>, AnalysisTabOpera
 
 }
 
-class TokenTableModel extends TableModelBase<TokenTableModel.Column> {
+class TokensTableModel extends TableModelBase<TokensTableModel.Column> {
 
   enum Column implements TableColumnInfo {
     TERM("Term", 0, String.class, 150),
@@ -365,11 +365,11 @@ class TokenTableModel extends TableModelBase<TokenTableModel.Column> {
     }
   }
 
-  TokenTableModel() {
+  TokensTableModel() {
     super();
   }
 
-  TokenTableModel(List<Analysis.Token> tokens) {
+  TokensTableModel(List<Analysis.Token> tokens) {
     super(tokens.size());
     for (int i = 0; i < tokens.size(); i++) {
       Analysis.Token token = tokens.get(i);

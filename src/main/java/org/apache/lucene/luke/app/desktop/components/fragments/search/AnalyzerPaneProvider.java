@@ -72,15 +72,15 @@ public class AnalyzerPaneProvider implements Provider<JScrollPane>, AnalyzerTabO
     panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
     panel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
 
-    panel.add(analyzerNamePane());
+    panel.add(initAnalyzerNamePanel());
     panel.add(new JSeparator(JSeparator.HORIZONTAL));
-    panel.add(analysisChanePane());
+    panel.add(initAnalysisChainPanel());
 
     tokenizerTF.setEditable(false);
     return new JScrollPane(panel);
   }
 
-  private JPanel analyzerNamePane() {
+  private JPanel initAnalyzerNamePanel() {
     JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEADING));
 
     panel.add(new JLabel(MessageUtils.getLocalizedMessage("search_analyzer.label.name")));
@@ -99,7 +99,7 @@ public class AnalyzerPaneProvider implements Provider<JScrollPane>, AnalyzerTabO
     return panel;
   }
 
-  private JPanel analysisChanePane() {
+  private JPanel initAnalysisChainPanel() {
     JPanel panel = new JPanel(new BorderLayout());
 
     JPanel top = new JPanel(new FlowLayout(FlowLayout.LEADING));

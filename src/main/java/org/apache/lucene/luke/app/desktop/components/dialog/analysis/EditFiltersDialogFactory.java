@@ -71,62 +71,6 @@ public class EditFiltersDialogFactory implements DialogOpener.DialogFactory {
 
   private EditFiltersMode mode;
 
-  class ListenerFunctions {
-
-    void showEditParamsDialog(MouseEvent e) {
-      if (e.getClickCount() != 2 || e.isConsumed()) {
-        return;
-      }
-      int selectedIndex = filtersTable.rowAtPoint(e.getPoint());
-      if (selectedIndex < 0 || selectedIndex >= selectedFilters.size()) {
-        return;
-      }
-
-      switch (mode) {
-        case CHARFILTER:
-          showEditParamsCharFilterDialog(selectedIndex);
-          break;
-        case TOKENFILTER:
-          showEditParamsTokenFilterDialog(selectedIndex);
-          break;
-        default:
-      }
-    }
-
-    private void showEditParamsCharFilterDialog(int selectedIndex) {
-      int targetIndex = filtersTable.getSelectedRow();
-      String selectedItem = (String) filtersTable.getValueAt(selectedIndex, FiltersTableModel.Column.TYPE.getIndex());
-      Map<String, String> params = operatorRegistry.get(CustomAnalyzerPanelOperator.class).map(operator -> operator.getCharFilterParams(targetIndex)).orElse(Collections.emptyMap());
-      new DialogOpener<>(editParamsDialogFactory).open(dialog, MessageUtils.getLocalizedMessage("analysis.dialog.title.char_filter_params"), 400, 300,
-          factory -> {
-            factory.setMode(EditParamsDialogFactory.EditParamsMode.CHARFILTER);
-            factory.setTargetIndex(targetIndex);
-            factory.setTarget(selectedItem);
-            factory.setParams(params);
-          });
-    }
-
-    private void showEditParamsTokenFilterDialog(int selectedIndex) {
-      int targetIndex = filtersTable.getSelectedRow();
-      String selectedItem = (String) filtersTable.getValueAt(selectedIndex, FiltersTableModel.Column.TYPE.getIndex());
-      Map<String, String> params = operatorRegistry.get(CustomAnalyzerPanelOperator.class).map(operator -> operator.getTokenFilterParams(targetIndex)).orElse(Collections.emptyMap());
-      new DialogOpener<>(editParamsDialogFactory).open(dialog, MessageUtils.getLocalizedMessage("analysis.dialog.title.char_filter_params"), 400, 300,
-          factory -> {
-            factory.setMode(EditParamsDialogFactory.EditParamsMode.TOKENFILTER);
-            factory.setTargetIndex(targetIndex);
-            factory.setTarget(selectedItem);
-            factory.setParams(params);
-          });
-    }
-  }
-
-  class FiltersTableMouseListener extends MouseAdapter {
-    @Override
-    public void mouseClicked(MouseEvent e) {
-      listeners.showEditParamsDialog(e);
-    }
-  }
-
   @Inject
   public EditFiltersDialogFactory(ComponentOperatorRegistry operatorRegistry,
                                   EditParamsDialogFactory editParamsDialogFactory) {
@@ -201,6 +145,62 @@ public class EditFiltersDialogFactory implements DialogOpener.DialogFactory {
     panel.add(footer, BorderLayout.PAGE_END);
 
     return panel;
+  }
+
+  class ListenerFunctions {
+
+    void showEditParamsDialog(MouseEvent e) {
+      if (e.getClickCount() != 2 || e.isConsumed()) {
+        return;
+      }
+      int selectedIndex = filtersTable.rowAtPoint(e.getPoint());
+      if (selectedIndex < 0 || selectedIndex >= selectedFilters.size()) {
+        return;
+      }
+
+      switch (mode) {
+        case CHARFILTER:
+          showEditParamsCharFilterDialog(selectedIndex);
+          break;
+        case TOKENFILTER:
+          showEditParamsTokenFilterDialog(selectedIndex);
+          break;
+        default:
+      }
+    }
+
+    private void showEditParamsCharFilterDialog(int selectedIndex) {
+      int targetIndex = filtersTable.getSelectedRow();
+      String selectedItem = (String) filtersTable.getValueAt(selectedIndex, FiltersTableModel.Column.TYPE.getIndex());
+      Map<String, String> params = operatorRegistry.get(CustomAnalyzerPanelOperator.class).map(operator -> operator.getCharFilterParams(targetIndex)).orElse(Collections.emptyMap());
+      new DialogOpener<>(editParamsDialogFactory).open(dialog, MessageUtils.getLocalizedMessage("analysis.dialog.title.char_filter_params"), 400, 300,
+          factory -> {
+            factory.setMode(EditParamsDialogFactory.EditParamsMode.CHARFILTER);
+            factory.setTargetIndex(targetIndex);
+            factory.setTarget(selectedItem);
+            factory.setParams(params);
+          });
+    }
+
+    private void showEditParamsTokenFilterDialog(int selectedIndex) {
+      int targetIndex = filtersTable.getSelectedRow();
+      String selectedItem = (String) filtersTable.getValueAt(selectedIndex, FiltersTableModel.Column.TYPE.getIndex());
+      Map<String, String> params = operatorRegistry.get(CustomAnalyzerPanelOperator.class).map(operator -> operator.getTokenFilterParams(targetIndex)).orElse(Collections.emptyMap());
+      new DialogOpener<>(editParamsDialogFactory).open(dialog, MessageUtils.getLocalizedMessage("analysis.dialog.title.char_filter_params"), 400, 300,
+          factory -> {
+            factory.setMode(EditParamsDialogFactory.EditParamsMode.TOKENFILTER);
+            factory.setTargetIndex(targetIndex);
+            factory.setTarget(selectedItem);
+            factory.setParams(params);
+          });
+    }
+  }
+
+  class FiltersTableMouseListener extends MouseAdapter {
+    @Override
+    public void mouseClicked(MouseEvent e) {
+      listeners.showEditParamsDialog(e);
+    }
   }
 
   public enum EditFiltersMode {

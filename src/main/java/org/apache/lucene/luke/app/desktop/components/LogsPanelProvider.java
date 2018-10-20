@@ -56,7 +56,6 @@ public class LogsPanelProvider implements Provider<JPanel> {
     panel.add(header, BorderLayout.PAGE_START);
 
     panel.add(new JScrollPane(logTextArea), BorderLayout.CENTER);
-
     return panel;
   }
 

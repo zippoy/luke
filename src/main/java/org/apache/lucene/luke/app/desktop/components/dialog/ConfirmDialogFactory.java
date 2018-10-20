@@ -20,6 +20,7 @@ package org.apache.lucene.luke.app.desktop.components.dialog;
 import org.apache.lucene.luke.app.desktop.util.DialogOpener;
 import org.apache.lucene.luke.app.desktop.util.ImageUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
+import org.apache.lucene.luke.app.desktop.util.lang.Callable;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -40,13 +41,13 @@ public class ConfirmDialogFactory implements DialogOpener.DialogFactory {
 
   private String message;
 
-  private Callback callback;
+  private Callable callback;
 
   public void setMessage(String message) {
     this.message = message;
   }
 
-  public void setCallback(Callback callback) {
+  public void setCallback(Callable callback) {
     this.callback = callback;
   }
 
@@ -75,7 +76,7 @@ public class ConfirmDialogFactory implements DialogOpener.DialogFactory {
     JPanel footer = new JPanel(new FlowLayout(FlowLayout.TRAILING));
     JButton okBtn = new JButton(MessageUtils.getLocalizedMessage("button.ok"));
     okBtn.addActionListener(e -> {
-      callback.execute();
+      callback.call();
       dialog.dispose();
     });
     footer.add(okBtn);
@@ -87,8 +88,4 @@ public class ConfirmDialogFactory implements DialogOpener.DialogFactory {
     return panel;
   }
 
-  @FunctionalInterface
-  public interface Callback {
-    void execute();
-  }
 }

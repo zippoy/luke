@@ -48,8 +48,6 @@ public class ExplainDialogProvider implements DialogOpener.DialogFactory {
 
   private JDialog dialog;
 
-  private JTree tree;
-
   private int docid = -1;
 
   private Explanation explanation;
@@ -113,7 +111,7 @@ public class ExplainDialogProvider implements DialogOpener.DialogFactory {
     DefaultMutableTreeNode top = createNode(explanation);
     traverse(top, explanation.getDetails());
 
-    tree = new JTree(top);
+    JTree tree = new JTree(top);
     tree.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
     DefaultTreeCellRenderer renderer = new DefaultTreeCellRenderer();
     renderer.setOpenIcon(null);

@@ -191,7 +191,7 @@ public class DocumentsPanelProvider implements Provider<JPanel>, DocumentsTabOpe
     JPanel panel = new JPanel(new GridLayout(1, 1));
     panel.setBorder(BorderFactory.createLineBorder(Color.gray));
 
-    JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, createUpperPanel(), createLowerPanel());
+    JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, initUpperPanel(), initLowerPanel());
     splitPane.setDividerLocation(0.4);
     panel.add(splitPane);
 
@@ -200,7 +200,7 @@ public class DocumentsPanelProvider implements Provider<JPanel>, DocumentsTabOpe
     return panel;
   }
 
-  private JPanel createUpperPanel() {
+  private JPanel initUpperPanel() {
     JPanel panel = new JPanel(new GridBagLayout());
     GridBagConstraints c = new GridBagConstraints();
 
@@ -209,19 +209,19 @@ public class DocumentsPanelProvider implements Provider<JPanel>, DocumentsTabOpe
     c.weightx = 0.5;
     c.anchor = GridBagConstraints.FIRST_LINE_START;
     c.fill = GridBagConstraints.HORIZONTAL;
-    panel.add(browseTermsPanel(), c);
+    panel.add(initBrowseTermsPanel(), c);
 
     c.gridx = 1;
     c.gridy = 0;
     c.weightx = 0.5;
     c.anchor = GridBagConstraints.FIRST_LINE_START;
     c.fill = GridBagConstraints.HORIZONTAL;
-    panel.add(browseDocsByTermPanel(), c);
+    panel.add(initBrowseDocsByTermPanel(), c);
 
     return panel;
   }
 
-  private JPanel browseTermsPanel() {
+  private JPanel initBrowseTermsPanel() {
     JPanel panel = new JPanel(new BorderLayout());
     panel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
 
@@ -284,7 +284,7 @@ public class DocumentsPanelProvider implements Provider<JPanel>, DocumentsTabOpe
     return panel;
   }
 
-  private JPanel browseDocsByTermPanel() {
+  private JPanel initBrowseDocsByTermPanel() {
     JPanel panel = new JPanel(new BorderLayout());
     panel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
 
@@ -362,13 +362,13 @@ public class DocumentsPanelProvider implements Provider<JPanel>, DocumentsTabOpe
     return panel;
   }
 
-  private JPanel createLowerPanel() {
+  private JPanel initLowerPanel() {
     JPanel panel = new JPanel(new BorderLayout());
     panel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
 
     JPanel browseDocsPanel = new JPanel();
     browseDocsPanel.setLayout(new BoxLayout(browseDocsPanel, BoxLayout.PAGE_AXIS));
-    browseDocsPanel.add(createBrowseDocsBar());
+    browseDocsPanel.add(initBrowseDocsBar());
 
     JPanel browseDocsNote1 = new JPanel(new FlowLayout(FlowLayout.LEADING));
     browseDocsNote1.add(new JLabel(MessageUtils.getLocalizedMessage("documents.label.doc_table_note1")));
@@ -380,20 +380,20 @@ public class DocumentsPanelProvider implements Provider<JPanel>, DocumentsTabOpe
 
     panel.add(browseDocsPanel, BorderLayout.PAGE_START);
 
-    TableUtil.setupTable(documentTable, ListSelectionModel.MULTIPLE_INTERVAL_SELECTION, new DocumentTableModel(), new MouseAdapter() {
+    TableUtil.setupTable(documentTable, ListSelectionModel.MULTIPLE_INTERVAL_SELECTION, new DocumentsTableModel(), new MouseAdapter() {
           @Override
           public void mouseClicked(MouseEvent e) {
             listeners.showDocumentContextMenu(e);
           }
         },
-        DocumentTableModel.Column.FIELD.getColumnWidth(),
-        DocumentTableModel.Column.FLAGS.getColumnWidth(),
-        DocumentTableModel.Column.NORM.getColumnWidth(),
-        DocumentTableModel.Column.VALUE.getColumnWidth());
+        DocumentsTableModel.Column.FIELD.getColumnWidth(),
+        DocumentsTableModel.Column.FLAGS.getColumnWidth(),
+        DocumentsTableModel.Column.NORM.getColumnWidth(),
+        DocumentsTableModel.Column.VALUE.getColumnWidth());
     JPanel flagsHeader = new JPanel(new FlowLayout(FlowLayout.CENTER));
     flagsHeader.add(new JLabel("Flags"));
     flagsHeader.add(new JLabel("Help"));
-    documentTable.getColumnModel().getColumn(DocumentTableModel.Column.FLAGS.getIndex()).setHeaderValue(flagsHeader);
+    documentTable.getColumnModel().getColumn(DocumentsTableModel.Column.FLAGS.getIndex()).setHeaderValue(flagsHeader);
 
     JScrollPane scrollPane = new JScrollPane(documentTable);
     scrollPane.getHorizontalScrollBar().setAutoscrolls(false);
@@ -402,7 +402,7 @@ public class DocumentsPanelProvider implements Provider<JPanel>, DocumentsTabOpe
     return panel;
   }
 
-  private JPanel createBrowseDocsBar() {
+  private JPanel initBrowseDocsBar() {
     JPanel panel = new JPanel(new GridLayout(1, 2));
     panel.setBorder(BorderFactory.createEmptyBorder(5, 0, 0, 5));
 
@@ -608,7 +608,7 @@ public class DocumentsPanelProvider implements Provider<JPanel>, DocumentsTabOpe
 
   private void showTermVectorDialog() {
     int docid = (Integer) docNumSpnr.getValue();
-    String field = (String) documentTable.getModel().getValueAt(documentTable.getSelectedRow(), DocumentTableModel.Column.FIELD.getIndex());
+    String field = (String) documentTable.getModel().getValueAt(documentTable.getSelectedRow(), DocumentsTableModel.Column.FIELD.getIndex());
     List<TermVectorEntry> tvEntries = documentsModel.getTermVectors(docid, field);
     if (tvEntries.isEmpty()) {
       messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("documents.termvector.message.not_available", field, docid));
@@ -626,7 +626,7 @@ public class DocumentsPanelProvider implements Provider<JPanel>, DocumentsTabOpe
 
   private void showDocValuesDialog() {
     int docid = (Integer) docNumSpnr.getValue();
-    String field = (String) documentTable.getModel().getValueAt(documentTable.getSelectedRow(), DocumentTableModel.Column.FIELD.getIndex());
+    String field = (String) documentTable.getModel().getValueAt(documentTable.getSelectedRow(), DocumentsTableModel.Column.FIELD.getIndex());
     Optional<DocValues> docValues = documentsModel.getDocValues(docid, field);
     if (docValues.isPresent()) {
       new DialogOpener<>(dvDialogFactory).open(
@@ -642,8 +642,8 @@ public class DocumentsPanelProvider implements Provider<JPanel>, DocumentsTabOpe
 
   private void showStoredValueDialog() {
     int docid = (Integer) docNumSpnr.getValue();
-    String field = (String) documentTable.getModel().getValueAt(documentTable.getSelectedRow(), DocumentTableModel.Column.FIELD.getIndex());
-    String value = (String) documentTable.getModel().getValueAt(documentTable.getSelectedRow(), DocumentTableModel.Column.VALUE.getIndex());
+    String field = (String) documentTable.getModel().getValueAt(documentTable.getSelectedRow(), DocumentsTableModel.Column.FIELD.getIndex());
+    String value = (String) documentTable.getModel().getValueAt(documentTable.getSelectedRow(), DocumentsTableModel.Column.VALUE.getIndex());
     if (Objects.isNull(value)) {
       messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("documents.stored.message.not_availabe", field, docid));
       return;
@@ -659,8 +659,8 @@ public class DocumentsPanelProvider implements Provider<JPanel>, DocumentsTabOpe
 
   private void copyStoredValue() {
     int docid = (Integer) docNumSpnr.getValue();
-    String field = (String) documentTable.getModel().getValueAt(documentTable.getSelectedRow(), DocumentTableModel.Column.FIELD.getIndex());
-    String value = (String) documentTable.getModel().getValueAt(documentTable.getSelectedRow(), DocumentTableModel.Column.VALUE.getIndex());
+    String field = (String) documentTable.getModel().getValueAt(documentTable.getSelectedRow(), DocumentsTableModel.Column.FIELD.getIndex());
+    String value = (String) documentTable.getModel().getValueAt(documentTable.getSelectedRow(), DocumentsTableModel.Column.VALUE.getIndex());
     if (Objects.isNull(value)) {
       messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("documents.stored.message.not_availabe", field, docid));
       return;
@@ -686,7 +686,7 @@ public class DocumentsPanelProvider implements Provider<JPanel>, DocumentsTabOpe
   private StringSelection copyAllValues() {
     StringBuilder sb = new StringBuilder();
     for (int i = 0; i < documentTable.getRowCount(); i++) {
-      String value = (String) documentTable.getModel().getValueAt(i, DocumentTableModel.Column.VALUE.getIndex());
+      String value = (String) documentTable.getModel().getValueAt(i, DocumentsTableModel.Column.VALUE.getIndex());
       if (Objects.nonNull(value)) {
         sb.append((i == 0) ? value : System.lineSeparator() + value);
       }
@@ -698,7 +698,7 @@ public class DocumentsPanelProvider implements Provider<JPanel>, DocumentsTabOpe
     StringBuilder sb = new StringBuilder();
     boolean isFirst = true;
     for (int rowIndex : documentTable.getSelectedRows()) {
-      String value = (String) documentTable.getModel().getValueAt(rowIndex, DocumentTableModel.Column.VALUE.getIndex());
+      String value = (String) documentTable.getModel().getValueAt(rowIndex, DocumentsTableModel.Column.VALUE.getIndex());
       if (Objects.nonNull(value)) {
         sb.append(isFirst ? value : System.lineSeparator() + value);
         isFirst = false;
@@ -732,15 +732,15 @@ public class DocumentsPanelProvider implements Provider<JPanel>, DocumentsTabOpe
     docNumSpnr.setValue(docid);
 
     List<DocumentField> doc = documentsModel.getDocumentFields(docid);
-    documentTable.setModel(new DocumentTableModel(doc));
+    documentTable.setModel(new DocumentsTableModel(doc));
     documentTable.setFont(StyleConstants.FONT_MONOSPACE_LARGE);
-    documentTable.getColumnModel().getColumn(DocumentTableModel.Column.FIELD.getIndex()).setPreferredWidth(DocumentTableModel.Column.FIELD.getColumnWidth());
-    documentTable.getColumnModel().getColumn(DocumentTableModel.Column.FLAGS.getIndex()).setMinWidth(DocumentTableModel.Column.FLAGS.getColumnWidth());
-    documentTable.getColumnModel().getColumn(DocumentTableModel.Column.FLAGS.getIndex()).setMaxWidth(DocumentTableModel.Column.FIELD.getColumnWidth());
-    documentTable.getColumnModel().getColumn(DocumentTableModel.Column.NORM.getIndex()).setMinWidth(DocumentTableModel.Column.NORM.getColumnWidth());
-    documentTable.getColumnModel().getColumn(DocumentTableModel.Column.NORM.getIndex()).setMaxWidth(DocumentTableModel.Column.NORM.getColumnWidth());
-    documentTable.getColumnModel().getColumn(DocumentTableModel.Column.VALUE.getIndex()).setPreferredWidth(DocumentTableModel.Column.VALUE.getColumnWidth());
-    documentTable.getColumnModel().getColumn(DocumentTableModel.Column.FLAGS.getIndex()).setHeaderRenderer(tableHeaderRenderer);
+    documentTable.getColumnModel().getColumn(DocumentsTableModel.Column.FIELD.getIndex()).setPreferredWidth(DocumentsTableModel.Column.FIELD.getColumnWidth());
+    documentTable.getColumnModel().getColumn(DocumentsTableModel.Column.FLAGS.getIndex()).setMinWidth(DocumentsTableModel.Column.FLAGS.getColumnWidth());
+    documentTable.getColumnModel().getColumn(DocumentsTableModel.Column.FLAGS.getIndex()).setMaxWidth(DocumentsTableModel.Column.FIELD.getColumnWidth());
+    documentTable.getColumnModel().getColumn(DocumentsTableModel.Column.NORM.getIndex()).setMinWidth(DocumentsTableModel.Column.NORM.getColumnWidth());
+    documentTable.getColumnModel().getColumn(DocumentsTableModel.Column.NORM.getIndex()).setMaxWidth(DocumentsTableModel.Column.NORM.getColumnWidth());
+    documentTable.getColumnModel().getColumn(DocumentsTableModel.Column.VALUE.getIndex()).setPreferredWidth(DocumentsTableModel.Column.VALUE.getColumnWidth());
+    documentTable.getColumnModel().getColumn(DocumentsTableModel.Column.FLAGS.getIndex()).setHeaderRenderer(tableHeaderRenderer);
 
     messageBroker.clearStatusMessage();
   }
@@ -845,7 +845,7 @@ public class DocumentsPanelProvider implements Provider<JPanel>, DocumentsTabOpe
       termDocIdxTF.setText("");
 
       posTable.setModel(new PosTableModel());
-      documentTable.setModel(new DocumentTableModel());
+      documentTable.setModel(new DocumentsTableModel());
     }
   }
 
@@ -922,7 +922,7 @@ class PosTableModel extends TableModelBase<PosTableModel.Column> {
   }
 }
 
-class DocumentTableModel extends TableModelBase<DocumentTableModel.Column> {
+class DocumentsTableModel extends TableModelBase<DocumentsTableModel.Column> {
 
   enum Column implements TableColumnInfo {
     FIELD("Field", 0, String.class, 150),
@@ -963,11 +963,11 @@ class DocumentTableModel extends TableModelBase<DocumentTableModel.Column> {
     }
   }
 
-  DocumentTableModel() {
+  DocumentsTableModel() {
     super();
   }
 
-  DocumentTableModel(List<DocumentField> doc) {
+  DocumentsTableModel(List<DocumentField> doc) {
     super(doc.size());
 
     for (int i = 0; i < doc.size(); i++) {
