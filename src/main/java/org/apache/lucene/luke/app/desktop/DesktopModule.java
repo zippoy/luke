@@ -39,6 +39,7 @@ import org.apache.lucene.luke.app.desktop.components.TabSwitcherProxy;
 import org.apache.lucene.luke.app.desktop.components.TabbedPaneProvider;
 import org.apache.lucene.luke.app.desktop.components.dialog.ConfirmDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.HelpDialogFactory;
+import org.apache.lucene.luke.app.desktop.components.dialog.analysis.AnalysisChainDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.analysis.EditFiltersDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.analysis.EditParamsDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.analysis.TokenAttributeDialogFactory;
@@ -115,6 +116,7 @@ public final class DesktopModule extends AbstractModule {
     bind(TermVectorDialogFactory.class).toInstance(new TermVectorDialogFactory());
     bind(DocValuesDialogFactory.class).toInstance(new DocValuesDialogFactory());
     bind(StoredValueDialogFactory.class).toInstance(new StoredValueDialogFactory());
+    bind(AnalysisChainDialogFactory.class).toInstance(new AnalysisChainDialogFactory());
     bind(TokenAttributeDialogFactory.class).toInstance(new TokenAttributeDialogFactory());
     bind(AboutDialogFactory.class).toInstance(new AboutDialogFactory());
     bind(HelpDialogFactory.class).toInstance(new HelpDialogFactory());

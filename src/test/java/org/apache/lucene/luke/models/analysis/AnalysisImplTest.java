@@ -48,45 +48,24 @@ public class AnalysisImplTest extends AnalysisTestBase {
   }
 
   @Test
-  public void testGetAvailableCharFilterFactories() {
+  public void testGetAvailableCharFilters() {
     AnalysisImpl analysis = new AnalysisImpl();
-    Collection<Class<? extends CharFilterFactory>> charFilterFactories = analysis.getAvailableCharFilterFactories();
-    assertNotNull(charFilterFactories);
+    Collection<String> charFilters = analysis.getAvailableCharFilters();
+    assertNotNull(charFilters);
   }
 
   @Test
-  public void testGetCharFilterFactorySPIName() {
+  public void testGetAvailableTokenizers() {
     AnalysisImpl analysis = new AnalysisImpl();
-    analysis.getAvailableCharFilterFactories();
-    assertEquals("mapping", analysis.getCharFilterFactorySPIName("org.apache.lucene.analysis.charfilter.MappingCharFilterFactory").orElse(""));
+    Collection<String> tokenizers = analysis.getAvailableTokenizers();
+    assertNotNull(tokenizers);
   }
 
   @Test
-  public void testGetAvailableTokenizerFactories() {
+  public void testGetAvailableTokenFilters() {
     AnalysisImpl analysis = new AnalysisImpl();
-    Collection<Class<? extends TokenizerFactory>> tokenizerFactories = analysis.getAvailableTokenizerFactories();
-    assertNotNull(tokenizerFactories);
-  }
-
-  @Test
-  public void testGetTokenizerFactorySPIName() {
-    AnalysisImpl analysis = new AnalysisImpl();
-    analysis.getAvailableTokenizerFactories();
-    assertEquals("keyword", analysis.getTokenizerFactorySPIName("org.apache.lucene.analysis.core.KeywordTokenizerFactory").orElse(""));
-  }
-
-  @Test
-  public void testGetAvailableTokenFilterFactories() {
-    AnalysisImpl analysis = new AnalysisImpl();
-    Collection<Class<? extends TokenFilterFactory>> tokenFilterFactories = analysis.getAvailableTokenFilterFactories();
-    assertNotNull(tokenFilterFactories);
-  }
-
-  @Test
-  public void testGetTokenFilterFactorySPIName() {
-    AnalysisImpl analysis = new AnalysisImpl();
-    analysis.getAvailableTokenFilterFactories();
-    assertEquals("lowercase", analysis.getTokenFilterFactorySPIName("org.apache.lucene.analysis.core.LowerCaseFilterFactory").orElse(""));
+    Collection<String> tokenFilters = analysis.getAvailableTokenFilters();
+    assertNotNull(tokenFilters);
   }
 
   @Test

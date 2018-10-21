@@ -96,40 +96,19 @@ public interface Analysis {
   Collection<Class<? extends Analyzer>> getPresetAnalyzerTypes();
 
   /**
-   * Returns available {@link CharFilterFactory}s.
+   * Returns available char filter names.
    */
-  Collection<Class<? extends CharFilterFactory>> getAvailableCharFilterFactories();
+  Collection<String> getAvailableCharFilters();
 
   /**
-   * Returns the corresponding SPI name for a CharFilterFactory class name.
-   * @param className - class name
-   * @return name of the char filter factory, or empty if the factory class is not found in the current context.
+   * Returns available tokenizer names.
    */
-  Optional<String> getCharFilterFactorySPIName(String className);
+  Collection<String> getAvailableTokenizers();
 
   /**
-   * Returns available {@link TokenizerFactory}s.
+   * Returns available token filter names.
    */
-  Collection<Class<? extends TokenizerFactory>> getAvailableTokenizerFactories();
-
-  /**
-   * Returns the corresponding SPI name for a TokenizerFactory class name.
-   * @param className - class name
-   * @return name of the tokenizer factory, or empty if the factory class is not found in the current context.
-   */
-  Optional<String> getTokenizerFactorySPIName(String className);
-
-  /**
-   * Returns available {@link TokenFilterFactory}s.
-   */
-  Collection<Class<? extends TokenFilterFactory>> getAvailableTokenFilterFactories();
-
-  /**
-   * Returns the corresponding SPI name for a TokenFilterFactory class name.
-   * @param className - class name
-   * @return name of the token filter factory, or empty if the factory class is not found in the current context.
-   */
-  Optional<String> getTokenFilterFactorySPIName(String className);
+  Collection<String> getAvailableTokenFilters();
 
   /**
    * Creates new Analyzer instance for the specified class name.
