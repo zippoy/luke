@@ -58,15 +58,7 @@ import java.util.stream.Collectors;
 
 public final class AnalysisImpl implements Analysis {
 
-  private static final Logger logger = LoggerFactory.getLogger(AnalysisImpl.class);
-
   private final List<Class<? extends Analyzer>> presetAnalyzerTypes;
-
-  private Map<String, String> tokenizerSPINameMap = new HashMap<>();
-
-  private Map<String, String> charFilterSPINameMap = new HashMap<>();
-
-  private Map<String, String> tokenFilterSPINameMap = new HashMap<>();
 
   private Analyzer analyzer;
 
@@ -113,42 +105,18 @@ public final class AnalysisImpl implements Analysis {
   }
 
   @Override
-  public Collection<Class<? extends CharFilterFactory>> getAvailableCharFilterFactories() {
-    Map<Class<? extends CharFilterFactory>, String> nameMap = CharFilterFactory.availableCharFilters().stream()
-        .collect(Collectors.toMap(CharFilterFactory::lookupClass, Function.identity()));
-    charFilterSPINameMap = nameMap.keySet().stream().collect(Collectors.toMap(Class::getName, nameMap::get));
-    return nameMap.keySet().stream().sorted(Comparator.comparing(Class::getName)).collect(Collectors.toList());
+  public Collection<String> getAvailableCharFilters() {
+    return CharFilterFactory.availableCharFilters().stream().sorted().collect(Collectors.toList());
   }
 
   @Override
-  public Optional<String> getCharFilterFactorySPIName(String className) {
-    return Optional.ofNullable(charFilterSPINameMap.get(className));
+  public Collection<String> getAvailableTokenizers() {
+    return TokenizerFactory.availableTokenizers().stream().sorted().collect(Collectors.toList());
   }
 
   @Override
-  public Collection<Class<? extends TokenizerFactory>> getAvailableTokenizerFactories() {
-    Map<Class<? extends TokenizerFactory>, String> nameMap = TokenizerFactory.availableTokenizers().stream()
-        .collect(Collectors.toMap(TokenizerFactory::lookupClass, Function.identity()));
-    tokenizerSPINameMap = nameMap.keySet().stream().collect(Collectors.toMap(Class::getName, nameMap::get));
-    return nameMap.keySet().stream().sorted(Comparator.comparing(Class::getName)).collect(Collectors.toList());
-  }
-
-  @Override
-  public Optional<String> getTokenizerFactorySPIName(String className) {
-    return Optional.ofNullable(tokenizerSPINameMap.get(className));
-  }
-
-  @Override
-  public Collection<Class<? extends TokenFilterFactory>> getAvailableTokenFilterFactories() {
-    Map<Class<? extends TokenFilterFactory>, String> nameMap = TokenFilterFactory.availableTokenFilters().stream()
-        .collect(Collectors.toMap(TokenFilterFactory::lookupClass, Function.identity()));
-    tokenFilterSPINameMap = nameMap.keySet().stream().collect(Collectors.toMap(Class::getName, nameMap::get));
-    return nameMap.keySet().stream().sorted(Comparator.comparing(Class::getName)).collect(Collectors.toList());
-  }
-
-  @Override
-  public Optional<String> getTokenFilterFactorySPIName(String className) {
-    return Optional.ofNullable(tokenFilterSPINameMap.get(className));
+  public Collection<String> getAvailableTokenFilters() {
+    return TokenFilterFactory.availableTokenFilters().stream().sorted().collect(Collectors.toList());
   }
 
   private <T> List<Class<? extends T>> getInstantiableSubTypesBuiltIn(Class<T> superType) {

@@ -21,8 +21,10 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.name.Named;
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.custom.CustomAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.luke.app.desktop.MessageBroker;
+import org.apache.lucene.luke.app.desktop.components.dialog.analysis.AnalysisChainDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.analysis.TokenAttributeDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.documents.AddDocumentDialogOperator;
 import org.apache.lucene.luke.app.desktop.components.fragments.analysis.CustomAnalyzerPanelOperator;
@@ -30,6 +32,7 @@ import org.apache.lucene.luke.app.desktop.components.fragments.analysis.PresetAn
 import org.apache.lucene.luke.app.desktop.components.fragments.search.AnalyzerTabOperator;
 import org.apache.lucene.luke.app.desktop.components.fragments.search.MLTTabOperator;
 import org.apache.lucene.luke.app.desktop.util.DialogOpener;
+import org.apache.lucene.luke.app.desktop.util.FontUtils;
 import org.apache.lucene.luke.app.desktop.util.ImageUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 import org.apache.lucene.luke.app.desktop.util.TableUtils;
@@ -70,6 +73,8 @@ public final class AnalysisPanelProvider implements Provider<JPanel>, AnalysisTa
 
   private final ComponentOperatorRegistry operatorRegistry;
 
+  private final AnalysisChainDialogFactory analysisChainDialogFactory;
+
   private final TokenAttributeDialogFactory tokenAttrDialogFactory;
 
   private final MessageBroker messageBroker;
@@ -86,6 +91,8 @@ public final class AnalysisPanelProvider implements Provider<JPanel>, AnalysisTa
 
   private final JLabel analyzerNameLbl = new JLabel();
 
+  private final JLabel showChainLbl = new JLabel();
+
   private final JTextArea inputArea = new JTextArea();
 
   private final JTable tokensTable = new JTable();
@@ -99,6 +106,7 @@ public final class AnalysisPanelProvider implements Provider<JPanel>, AnalysisTa
   @Inject
   public AnalysisPanelProvider(AnalysisFactory analysisFactory,
                                ComponentOperatorRegistry operatorRegistry,
+                               AnalysisChainDialogFactory analysisChainDialogFactory,
                                TokenAttributeDialogFactory tokenAttrDialogFactory,
                                MessageBroker messageBroker,
                                @Named("analysis_preset") JPanel preset,
@@ -107,6 +115,7 @@ public final class AnalysisPanelProvider implements Provider<JPanel>, AnalysisTa
     this.custom = custom;
 
     this.operatorRegistry = operatorRegistry;
+    this.analysisChainDialogFactory = analysisChainDialogFactory;
     this.tokenAttrDialogFactory = tokenAttrDialogFactory;
     this.messageBroker = messageBroker;
 
@@ -169,10 +178,19 @@ public final class AnalysisPanelProvider implements Provider<JPanel>, AnalysisTa
   private JPanel initLowerPanel() {
     JPanel inner1 = new JPanel(new BorderLayout());
 
-    JPanel analyzerName = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    JPanel analyzerName = new JPanel(new FlowLayout(FlowLayout.LEADING, 10, 2));
     analyzerName.add(new JLabel(MessageUtils.getLocalizedMessage("analysis.label.selected_analyzer")));
     analyzerNameLbl.setText(analysisModel.currentAnalyzer().getClass().getName());
     analyzerName.add(analyzerNameLbl);
+    showChainLbl.setText(MessageUtils.getLocalizedMessage("analysis.label.show_chain"));
+    showChainLbl.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        listeners.showAnalysisChain(e);
+      }
+    });
+    showChainLbl.setVisible(analysisModel.currentAnalyzer() instanceof CustomAnalyzer);
+    analyzerName.add(FontUtils.toLinkText(showChainLbl));
     inner1.add(analyzerName, BorderLayout.PAGE_START);
 
     JPanel input = new JPanel(new FlowLayout(FlowLayout.LEADING, 5, 2));
@@ -261,6 +279,16 @@ public final class AnalysisPanelProvider implements Provider<JPanel>, AnalysisTa
     tokensTable.getColumnModel().getColumn(TokensTableModel.Column.ATTR.getIndex()).setPreferredWidth(TokensTableModel.Column.ATTR.getColumnWidth());
   }
 
+  void showAnalysisChainDialog() {
+    if (getCurrentAnalyzer() instanceof CustomAnalyzer) {
+      CustomAnalyzer analyzer = (CustomAnalyzer) getCurrentAnalyzer();
+      new DialogOpener<>(analysisChainDialogFactory).open("Analysis chain", 600, 320,
+          (factory) -> {
+            factory.setAnalyzer(analyzer);
+          });
+    }
+  }
+
   void showAttributeValues(int selectedIndex) {
     String term = tokens.get(selectedIndex).getTerm();
     List<Analysis.TokenAttribute> attributes = tokens.get(selectedIndex).getAttributes();
@@ -276,6 +304,7 @@ public final class AnalysisPanelProvider implements Provider<JPanel>, AnalysisTa
   public void setAnalyzerByType(String analyzerType) {
     analysisModel.createAnalyzerFromClassName(analyzerType);
     analyzerNameLbl.setText(analysisModel.currentAnalyzer().getClass().getName());
+    showChainLbl.setVisible(false);
     operatorRegistry.get(AnalyzerTabOperator.class).ifPresent(operator ->
         operator.setAnalyzer(analysisModel.currentAnalyzer()));
     operatorRegistry.get(MLTTabOperator.class).ifPresent(operator ->
@@ -288,6 +317,7 @@ public final class AnalysisPanelProvider implements Provider<JPanel>, AnalysisTa
   public void setAnalyzerByCustomConfiguration(CustomAnalyzerConfig config) {
     analysisModel.buildCustomAnalyzer(config);
     analyzerNameLbl.setText(analysisModel.currentAnalyzer().getClass().getName());
+    showChainLbl.setVisible(true);
     operatorRegistry.get(AnalyzerTabOperator.class).ifPresent(operator ->
         operator.setAnalyzer(analysisModel.currentAnalyzer()));
     operatorRegistry.get(MLTTabOperator.class).ifPresent(operator ->
@@ -305,6 +335,10 @@ public final class AnalysisPanelProvider implements Provider<JPanel>, AnalysisTa
 
     void toggleMainPanel(ActionEvent e) {
       AnalysisPanelProvider.this.toggleMainPanel(e.getActionCommand());
+    }
+
+    void showAnalysisChain(MouseEvent e) {
+      AnalysisPanelProvider.this.showAnalysisChainDialog();
     }
 
     void executeAnalysis(ActionEvent e) {
