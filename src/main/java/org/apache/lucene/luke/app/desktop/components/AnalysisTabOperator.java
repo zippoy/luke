@@ -28,6 +28,5 @@ public interface AnalysisTabOperator extends ComponentOperatorRegistry.Component
 
   Analyzer getCurrentAnalyzer();
 
-  void showAnalysisChainDialog();
 }
 

@@ -279,8 +279,7 @@ public final class AnalysisPanelProvider implements Provider<JPanel>, AnalysisTa
     tokensTable.getColumnModel().getColumn(TokensTableModel.Column.ATTR.getIndex()).setPreferredWidth(TokensTableModel.Column.ATTR.getColumnWidth());
   }
 
-  @Override
-  public void showAnalysisChainDialog() {
+  void showAnalysisChainDialog() {
     if (getCurrentAnalyzer() instanceof CustomAnalyzer) {
       CustomAnalyzer analyzer = (CustomAnalyzer) getCurrentAnalyzer();
       new DialogOpener<>(analysisChainDialogFactory).open("Analysis chain", 600, 320,

@@ -479,7 +479,6 @@ public final class CustomAnalyzerPanelProvider implements Provider<JPanel>, Cust
 
     operatorRegistry.get(AnalysisTabOperator.class).ifPresent(operator -> {
       operator.setAnalyzerByCustomConfiguration(config);
-      //operator.showAnalysisChainDialog();
       messageBroker.showStatusMessage(MessageUtils.getLocalizedMessage("analysis.message.build_success"));
       buildBtn.setEnabled(false);
     });
