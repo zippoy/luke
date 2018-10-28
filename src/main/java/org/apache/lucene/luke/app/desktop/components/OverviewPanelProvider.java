@@ -303,7 +303,8 @@ public final class OverviewPanelProvider implements Provider<JPanel> {
     innerPanel1.add(new JLabel(MessageUtils.getLocalizedMessage("overview.label.selected_field")));
     innerPanel.add(innerPanel1);
 
-    selectedField.setColumns(10);
+    selectedField.setColumns(20);
+    selectedField.setPreferredSize(new Dimension(100, 30));
     selectedField.setFont(StyleConstants.FONT_MONOSPACE_LARGE);
     selectedField.setEditable(false);
     selectedField.setBackground(Color.white);
@@ -313,7 +314,7 @@ public final class OverviewPanelProvider implements Provider<JPanel> {
 
     showTopTermsBtn.setText(MessageUtils.getLocalizedMessage("overview.button.show_terms"));
     showTopTermsBtn.setPreferredSize(new Dimension(170, 40));
-    showTopTermsBtn.setFont(StyleConstants.BUTTON_FONT_LARGE);
+    showTopTermsBtn.setFont(StyleConstants.FONT_BUTTON_LARGE);
     showTopTermsBtn.addActionListener(listeners::showTopTerms);
     showTopTermsBtn.setEnabled(false);
     JPanel innerPanel3 = new JPanel(new FlowLayout(FlowLayout.LEADING));
@@ -325,6 +326,7 @@ public final class OverviewPanelProvider implements Provider<JPanel> {
     innerPanel.add(innerPanel4);
 
     SpinnerNumberModel numberModel = new SpinnerNumberModel(50, 0, 1000, 1);
+    numTopTermsSpnr.setPreferredSize(new Dimension(80, 30));
     numTopTermsSpnr.setModel(numberModel);
     JPanel innerPanel5 = new JPanel(new FlowLayout(FlowLayout.LEADING));
     innerPanel5.add(numTopTermsSpnr);
@@ -500,7 +502,6 @@ public final class OverviewPanelProvider implements Provider<JPanel> {
 
       selectedField.setText("");
       showTopTermsBtn.setEnabled(false);
-      numTopTermsSpnr.setEnabled(false);
 
       termCountsTable.setRowSorter(null);
       termCountsTable.setModel(new TermCountsTableModel());

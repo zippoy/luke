@@ -18,7 +18,7 @@
 package org.apache.lucene.luke.app.desktop.components.dialog.documents;
 
 import org.apache.lucene.luke.app.desktop.util.DialogOpener;
-import org.apache.lucene.luke.app.desktop.util.ImageUtils;
+import org.apache.lucene.luke.app.desktop.util.FontUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 
 import javax.swing.BorderFactory;
@@ -87,8 +87,7 @@ public final class StoredValueDialogFactory implements DialogOpener.DialogFactor
 
     JPanel footer = new JPanel(new FlowLayout(FlowLayout.TRAILING, 5, 5));
 
-    JButton copyBtn = new JButton(MessageUtils.getLocalizedMessage("button.copy"),
-        ImageUtils.createImageIcon("/img/icon_clipboard.png", 20, 20));
+    JButton copyBtn = new JButton(FontUtils.elegantIconHtml("&#xe0e6;", MessageUtils.getLocalizedMessage("button.copy")));
     copyBtn.setMargin(new Insets(3, 3, 3, 3));
     copyBtn.addActionListener(e -> {
       Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();

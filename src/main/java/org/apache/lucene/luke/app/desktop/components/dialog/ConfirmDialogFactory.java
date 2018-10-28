@@ -18,7 +18,7 @@
 package org.apache.lucene.luke.app.desktop.components.dialog;
 
 import org.apache.lucene.luke.app.desktop.util.DialogOpener;
-import org.apache.lucene.luke.app.desktop.util.ImageUtils;
+import org.apache.lucene.luke.app.desktop.util.FontUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 import org.apache.lucene.luke.app.desktop.util.lang.Callable;
 
@@ -32,6 +32,7 @@ import java.awt.Color;
 import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.Window;
 
@@ -65,7 +66,10 @@ public final class ConfirmDialogFactory implements DialogOpener.DialogFactory {
     panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
     JPanel header = new JPanel(new FlowLayout(FlowLayout.LEADING));
-    header.add(new JLabel(ImageUtils.createImageIcon("/img/icon_error-oct_alt.png", 30, 30)));
+    JLabel alertIconLbl = new JLabel(FontUtils.elegantIconHtml("&#x71;"));
+    alertIconLbl.setHorizontalAlignment(JLabel.CENTER);
+    alertIconLbl.setFont(new Font(alertIconLbl.getFont().getFontName(), Font.PLAIN, 25));
+    header.add(alertIconLbl);
     panel.add(header, BorderLayout.PAGE_START);
 
     JPanel center = new JPanel(new GridLayout(1, 1));

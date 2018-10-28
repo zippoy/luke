@@ -18,7 +18,7 @@
 package org.apache.lucene.luke.app.desktop.components.dialog.documents;
 
 import org.apache.lucene.luke.app.desktop.util.DialogOpener;
-import org.apache.lucene.luke.app.desktop.util.ImageUtils;
+import org.apache.lucene.luke.app.desktop.util.FontUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 import org.apache.lucene.luke.models.documents.DocValues;
 import org.apache.lucene.luke.util.BytesRefUtils;
@@ -160,14 +160,13 @@ public final class DocValuesDialogFactory implements DialogOpener.DialogFactory 
   private JPanel footerPanel() {
     JPanel footer = new JPanel(new FlowLayout(FlowLayout.TRAILING, 5, 5));
 
-    JButton copyBtn = new JButton(MessageUtils.getLocalizedMessage("button.copy"),
-        ImageUtils.createImageIcon("/img/icon_clipboard.png", 20, 20));
-    copyBtn.setMargin(new Insets(3, 3, 3, 3));
+    JButton copyBtn = new JButton(FontUtils.elegantIconHtml("&#xe0e6;", MessageUtils.getLocalizedMessage("button.copy")));
+    copyBtn.setMargin(new Insets(3, 0, 3, 0));
     copyBtn.addActionListener(listeners::copyValues);
     footer.add(copyBtn);
 
     JButton closeBtn = new JButton(MessageUtils.getLocalizedMessage("button.close"));
-    closeBtn.setMargin(new Insets(3, 3, 3, 3));
+    closeBtn.setMargin(new Insets(3, 0, 3, 0));
     closeBtn.addActionListener(e -> dialog.dispose());
     footer.add(closeBtn);
 

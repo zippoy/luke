@@ -24,8 +24,9 @@ import org.apache.lucene.luke.app.IndexHandler;
 import org.apache.lucene.luke.app.desktop.DesktopModule;
 import org.apache.lucene.luke.app.desktop.Preferences;
 import org.apache.lucene.luke.app.desktop.util.DialogOpener;
-import org.apache.lucene.luke.app.desktop.util.ImageUtils;
+import org.apache.lucene.luke.app.desktop.util.FontUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
+import org.apache.lucene.luke.app.desktop.util.StyleConstants;
 import org.apache.lucene.luke.models.LukeException;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.MMapDirectory;
@@ -103,11 +104,11 @@ public final class OpenIndexDialogFactory implements DialogOpener.DialogFactory 
   }
 
   private void initialize() {
-    idxPathCombo.setPreferredSize(new Dimension(360, 35));
+    idxPathCombo.setPreferredSize(new Dimension(360, 40));
 
-    browseBtn.setText(MessageUtils.getLocalizedMessage("button.browse"));
-    browseBtn.setIcon(ImageUtils.createImageIcon("/img/icon_folder-open_alt.png", 20, 20));
-    browseBtn.setPreferredSize(new Dimension(120, 35));
+    browseBtn.setText(FontUtils.elegantIconHtml("&#x6e;", MessageUtils.getLocalizedMessage("button.browse")));
+    browseBtn.setFont(StyleConstants.FONT_BUTTON_LARGE);
+    browseBtn.setPreferredSize(new Dimension(120, 40));
     browseBtn.addActionListener(listeners::browseDirectory);
 
     readOnlyCB.setText(MessageUtils.getLocalizedMessage("openindex.checkbox.readonly"));
@@ -175,7 +176,7 @@ public final class OpenIndexDialogFactory implements DialogOpener.DialogFactory 
 
     JPanel readOnly = new JPanel(new FlowLayout(FlowLayout.LEADING));
     readOnly.add(readOnlyCB);
-    JLabel roIconLB = new JLabel(ImageUtils.createImageIcon("/img/icon_lock.png", 12, 12));
+    JLabel roIconLB = new JLabel(FontUtils.elegantIconHtml("&#xe06c;"));
     readOnly.add(roIconLB);
     panel.add(readOnly);
 
@@ -196,7 +197,7 @@ public final class OpenIndexDialogFactory implements DialogOpener.DialogFactory 
 
     JPanel noReader = new JPanel(new FlowLayout(FlowLayout.LEADING));
     noReader.add(noReaderCB);
-    JLabel noReaderIcon = new JLabel(ImageUtils.createImageIcon("/img/icon_cone.png", 12, 12));
+    JLabel noReaderIcon = new JLabel(FontUtils.elegantIconHtml("&#xe077;"));
     noReader.add(noReaderIcon);
     panel.add(noReader);
 

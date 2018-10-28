@@ -22,7 +22,7 @@ import java.awt.Font;
 
 public class StyleConstants {
 
-  public static Font BUTTON_FONT_LARGE = new Font("SanSerif", Font.PLAIN, 15);
+  public static Font FONT_BUTTON_LARGE = new Font("SanSerif", Font.PLAIN, 15);
 
   public static Font FONT_MONOSPACE_LARGE = new Font("monospaced", Font.PLAIN, 12);
 

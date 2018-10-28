@@ -36,8 +36,9 @@ import org.apache.lucene.luke.app.desktop.components.fragments.search.QueryParse
 import org.apache.lucene.luke.app.desktop.components.fragments.search.SimilarityTabOperator;
 import org.apache.lucene.luke.app.desktop.components.fragments.search.SortTabOperator;
 import org.apache.lucene.luke.app.desktop.util.DialogOpener;
-import org.apache.lucene.luke.app.desktop.util.ImageUtils;
+import org.apache.lucene.luke.app.desktop.util.FontUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
+import org.apache.lucene.luke.app.desktop.util.StyleConstants;
 import org.apache.lucene.luke.app.desktop.util.TableUtils;
 import org.apache.lucene.luke.models.LukeException;
 import org.apache.lucene.luke.models.search.MLTConfig;
@@ -72,7 +73,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -281,10 +281,9 @@ public final class SearchPanelProvider implements Provider<JPanel>, SearchTabOpe
     c.insets = new Insets(2, 0, 2, 2);
     panel.add(new JScrollPane(parsedQueryTA), c);
 
-    parseBtn.setText(MessageUtils.getLocalizedMessage("search.button.parse"));
-    parseBtn.setIcon(ImageUtils.createImageIcon("/img/icon_flowchart_alt.png", 20, 20));
-    parseBtn.setFont(new Font(parseBtn.getFont().getFontName(), Font.PLAIN, 15));
-    parseBtn.setMargin(new Insets(2, 2, 2, 2));
+    parseBtn.setText(FontUtils.elegantIconHtml("&#xe0df;", MessageUtils.getLocalizedMessage("search.button.parse")));
+    parseBtn.setFont(StyleConstants.FONT_BUTTON_LARGE);
+    parseBtn.setMargin(new Insets(3, 0, 3, 0));
     parseBtn.addActionListener(listeners::execParse);
     c.gridx = 0;
     c.gridy = 4;
@@ -301,10 +300,9 @@ public final class SearchPanelProvider implements Provider<JPanel>, SearchTabOpe
     c.insets = new Insets(5, 0, 0, 2);
     panel.add(rewriteCB, c);
 
-    searchBtn.setText(MessageUtils.getLocalizedMessage("search.button.search"));
-    searchBtn.setIcon(ImageUtils.createImageIcon("/img/icon_search2.png", 20, 20));
-    searchBtn.setFont(new Font(searchBtn.getFont().getFontName(), Font.PLAIN, 15));
-    searchBtn.setMargin(new Insets(2, 2, 2, 2));
+    searchBtn.setText(FontUtils.elegantIconHtml("&#x55;", MessageUtils.getLocalizedMessage("search.button.search")));
+    searchBtn.setFont(StyleConstants.FONT_BUTTON_LARGE);
+    searchBtn.setMargin(new Insets(3, 0, 3, 0));
     searchBtn.addActionListener(listeners::execSearch);
     c.gridx = 0;
     c.gridy = 5;
@@ -313,10 +311,9 @@ public final class SearchPanelProvider implements Provider<JPanel>, SearchTabOpe
     c.insets = new Insets(5, 0, 5, 0);
     panel.add(searchBtn, c);
 
-    mltBtn.setText(MessageUtils.getLocalizedMessage("search.button.mlt"));
-    mltBtn.setIcon(ImageUtils.createImageIcon("/img/icon_heart_alt.png", 20, 20));
-    mltBtn.setFont(new Font(mltBtn.getFont().getFontName(), Font.PLAIN, 15));
-    mltBtn.setMargin(new Insets(2, 2, 2, 2));
+    mltBtn.setText(FontUtils.elegantIconHtml("&#xe030;", MessageUtils.getLocalizedMessage("search.button.mlt")));
+    mltBtn.setFont(StyleConstants.FONT_BUTTON_LARGE);
+    mltBtn.setMargin(new Insets(3, 0, 3, 0));
     mltBtn.addActionListener(listeners::execMLTSearch);
     c.gridx = 0;
     c.gridy = 6;
@@ -354,9 +351,8 @@ public final class SearchPanelProvider implements Provider<JPanel>, SearchTabOpe
   private JPanel initSearchResultsHeaderPane() {
     JPanel panel = new JPanel(new GridLayout(1, 2));
 
-    JLabel label = new JLabel(MessageUtils.getLocalizedMessage("search.label.results"),
-        ImageUtils.createImageIcon("/img/icon_table.png", 20, 20),
-        JLabel.LEFT);
+    JLabel label = new JLabel(FontUtils.elegantIconHtml("&#xe025;", MessageUtils.getLocalizedMessage("search.label.results")));
+    label.setHorizontalTextPosition(JLabel.LEFT);
     label.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 0));
     panel.add(label);
 
@@ -368,7 +364,7 @@ public final class SearchPanelProvider implements Provider<JPanel>, SearchTabOpe
     totalHitsLbl.setText("?");
     resultsInfo.add(totalHitsLbl);
 
-    prevBtn.setIcon(ImageUtils.createImageIcon("/img/arrow_triangle-left.png", 20, 20));
+    prevBtn.setText(FontUtils.elegantIconHtml("&#x44;"));
     prevBtn.setMargin(new Insets(3, 3, 3, 3));
     prevBtn.setEnabled(false);
     prevBtn.addActionListener(listeners::prevPage);
@@ -382,7 +378,7 @@ public final class SearchPanelProvider implements Provider<JPanel>, SearchTabOpe
     endLbl.setText("0");
     resultsInfo.add(endLbl);
 
-    nextBtn.setIcon(ImageUtils.createImageIcon("/img/arrow_triangle-right.png", 20, 20));
+    nextBtn.setText(FontUtils.elegantIconHtml("&#x45;"));
     nextBtn.setMargin(new Insets(3, 3, 3, 3));
     nextBtn.setEnabled(false);
     nextBtn.addActionListener(listeners::nextPage);
@@ -392,8 +388,7 @@ public final class SearchPanelProvider implements Provider<JPanel>, SearchTabOpe
     sep.setPreferredSize(new Dimension(5, 1));
     resultsInfo.add(sep);
 
-    delBtn.setText(MessageUtils.getLocalizedMessage("search.button.del_all"));
-    delBtn.setIcon(ImageUtils.createImageIcon("/img/icon_trash.png", 20, 20));
+    delBtn.setText(FontUtils.elegantIconHtml("&#xe07d;", MessageUtils.getLocalizedMessage("search.button.del_all")));
     delBtn.setMargin(new Insets(3, 3, 3, 3));
     delBtn.setEnabled(false);
     delBtn.addActionListener(listeners::confirmDeletion);

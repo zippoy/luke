@@ -25,8 +25,10 @@ import org.apache.lucene.luke.app.IndexHandler;
 import org.apache.lucene.luke.app.IndexObserver;
 import org.apache.lucene.luke.app.LukeState;
 import org.apache.lucene.luke.app.desktop.util.DialogOpener;
+import org.apache.lucene.luke.app.desktop.util.FontUtils;
 import org.apache.lucene.luke.app.desktop.util.ImageUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
+import org.apache.lucene.luke.app.desktop.util.StyleConstants;
 import org.apache.lucene.luke.app.desktop.util.TextAreaPrintStream;
 import org.apache.lucene.luke.models.tools.IndexTools;
 import org.apache.lucene.luke.models.tools.IndexToolsFactory;
@@ -48,7 +50,6 @@ import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.Window;
@@ -99,9 +100,8 @@ public final class CheckIndexDialogFactory implements DialogOpener.DialogFactory
   }
 
   private void initialize() {
-    repairBtn.setText(MessageUtils.getLocalizedMessage("checkidx.button.fix"));
-    repairBtn.setIcon(ImageUtils.createImageIcon("/img/icon_tool.png", 20, 20));
-    repairBtn.setFont(new Font(repairBtn.getFont().getFontName(), Font.PLAIN, 15));
+    repairBtn.setText(FontUtils.elegantIconHtml("&#xe036;", MessageUtils.getLocalizedMessage("checkidx.button.fix")));
+    repairBtn.setFont(StyleConstants.FONT_BUTTON_LARGE);
     repairBtn.setMargin(new Insets(3, 3, 3, 3));
     repairBtn.setEnabled(false);
     repairBtn.addActionListener(listeners::repairIndex);
@@ -150,15 +150,15 @@ public final class CheckIndexDialogFactory implements DialogOpener.DialogFactory
     panel.add(results);
 
     JPanel execButtons = new JPanel(new FlowLayout(FlowLayout.TRAILING));
-    JButton checkBtn = new JButton(MessageUtils.getLocalizedMessage("checkidx.button.check"), ImageUtils.createImageIcon("/img/icon_search_alt.png", 20, 20));
-    checkBtn.setFont(new Font(checkBtn.getFont().getFontName(), Font.PLAIN, 15));
-    checkBtn.setMargin(new Insets(3, 3, 3, 3));
+    JButton checkBtn = new JButton(FontUtils.elegantIconHtml("&#xe0f7;", MessageUtils.getLocalizedMessage("checkidx.button.check")));
+    checkBtn.setFont(StyleConstants.FONT_BUTTON_LARGE);
+    checkBtn.setMargin(new Insets(3, 0, 3, 0));
     checkBtn.addActionListener(listeners::checkIndex);
     execButtons.add(checkBtn);
 
     JButton closeBtn = new JButton(MessageUtils.getLocalizedMessage("button.close"));
-    closeBtn.setFont(new Font(closeBtn.getFont().getFontName(), Font.PLAIN, 15));
-    closeBtn.setMargin(new Insets(3, 3, 3, 3));
+    closeBtn.setFont(StyleConstants.FONT_BUTTON_LARGE);
+    closeBtn.setMargin(new Insets(3, 0, 3, 0));
     closeBtn.addActionListener(e -> dialog.dispose());
     execButtons.add(closeBtn);
     panel.add(execButtons);

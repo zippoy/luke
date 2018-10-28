@@ -26,6 +26,7 @@ import org.apache.lucene.luke.app.IndexHandler;
 import org.apache.lucene.luke.app.IndexObserver;
 import org.apache.lucene.luke.app.LukeState;
 import org.apache.lucene.luke.app.desktop.MessageBroker;
+import org.apache.lucene.luke.app.desktop.util.FontUtils;
 import org.apache.lucene.luke.app.desktop.util.ImageUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 import org.apache.lucene.util.Version;
@@ -94,7 +95,7 @@ public final class LukeWindowProvider implements Provider<JFrame> {
     frame.add(initMainPanel(), BorderLayout.CENTER);
     frame.add(initMessagePanel(), BorderLayout.PAGE_END);
 
-    frame.setPreferredSize(new Dimension(900, 680));
+    frame.setPreferredSize(new Dimension(950, 680));
     frame.pack();
 
     return frame;
@@ -132,18 +133,18 @@ public final class LukeWindowProvider implements Provider<JFrame> {
 
     JPanel iconPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 
-    multiIcon.setIcon(ImageUtils.createImageIcon("/img/icon_grid-2x2.png", "multi reader", 16, 16));
+    multiIcon.setText(FontUtils.elegantIconHtml("&#xe08c;"));
     multiIcon.setToolTipText(MessageUtils.getLocalizedMessage("tooltip.multi_reader"));
     multiIcon.setVisible(false);
     iconPanel.add(multiIcon);
 
 
-    readOnlyIcon.setIcon(ImageUtils.createImageIcon("/img/icon_lock.png", "read only", 16, 16));
+    readOnlyIcon.setText(FontUtils.elegantIconHtml("&#xe06c;"));
     readOnlyIcon.setToolTipText(MessageUtils.getLocalizedMessage("tooltip.read_only"));
     readOnlyIcon.setVisible(false);
     iconPanel.add(readOnlyIcon);
 
-    noReaderIcon.setIcon(ImageUtils.createImageIcon("/img/icon_cone.png", "no reader", 16, 16));
+    noReaderIcon.setText(FontUtils.elegantIconHtml("&#xe077;"));
     noReaderIcon.setToolTipText(MessageUtils.getLocalizedMessage("tooltip.no_reader"));
     noReaderIcon.setVisible(false);
     iconPanel.add(noReaderIcon);
