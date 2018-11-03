@@ -18,12 +18,9 @@
 package org.apache.lucene.luke.app.desktop.components.dialog.menubar;
 
 import com.google.inject.Inject;
-import com.google.inject.Injector;
 import org.apache.lucene.luke.app.DirectoryHandler;
 import org.apache.lucene.luke.app.IndexHandler;
-import org.apache.lucene.luke.app.desktop.DesktopModule;
 import org.apache.lucene.luke.app.desktop.Preferences;
-import org.apache.lucene.luke.app.desktop.util.DialogOpener;
 import org.apache.lucene.luke.app.desktop.util.FontUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 import org.apache.lucene.luke.app.desktop.util.StyleConstants;

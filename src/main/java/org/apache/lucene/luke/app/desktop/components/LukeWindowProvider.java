@@ -30,7 +30,6 @@ import org.apache.lucene.luke.app.desktop.Preferences;
 import org.apache.lucene.luke.app.desktop.util.FontUtils;
 import org.apache.lucene.luke.app.desktop.util.ImageUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
-import org.apache.lucene.luke.models.LukeException;
 import org.apache.lucene.util.Version;
 
 import javax.swing.BorderFactory;
@@ -47,7 +46,6 @@ import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
-import java.io.IOException;
 
 
 public final class LukeWindowProvider implements Provider<JFrame>, LukeWindowOperator {

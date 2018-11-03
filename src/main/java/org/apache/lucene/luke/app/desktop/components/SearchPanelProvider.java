@@ -30,7 +30,6 @@ import org.apache.lucene.luke.app.LukeState;
 import org.apache.lucene.luke.app.desktop.MessageBroker;
 import org.apache.lucene.luke.app.desktop.components.dialog.ConfirmDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.search.ExplainDialogFactory;
-import org.apache.lucene.luke.app.desktop.components.dialog.search.ExplainDialogFactoryImpl;
 import org.apache.lucene.luke.app.desktop.components.fragments.search.FieldValuesTabOperator;
 import org.apache.lucene.luke.app.desktop.components.fragments.search.MLTTabOperator;
 import org.apache.lucene.luke.app.desktop.components.fragments.search.QueryParserTabOperator;

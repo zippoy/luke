@@ -18,7 +18,6 @@
 package org.apache.lucene.luke.app;
 
 import com.google.inject.AbstractModule;
-import com.google.inject.Scope;
 import com.google.inject.Singleton;
 import org.apache.lucene.luke.app.desktop.Preferences;
 import org.apache.lucene.luke.app.desktop.PreferencesImpl;
