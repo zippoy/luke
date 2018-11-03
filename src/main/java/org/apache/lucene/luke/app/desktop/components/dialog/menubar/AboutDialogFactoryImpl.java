@@ -149,13 +149,21 @@ public final class AboutDialogFactoryImpl implements AboutDialogFactory {
   }
 
   private static final String LICENSE_NOTICE =
-      "<p>Created by Andrzej Bialecki &lt;ab@getopt.org&gt; <br>" +
-          "Further developed by: Dmitry Kan &lt;dmitry.lucene@gmail.com&gt;, Tomoko Uchida &lt;tomoko.uchida.1111@gmail.com&gt; <br>" +
-          "Backed by pull-requests from our fantastic community.</p>" +
-          "<p>[License]</p>" +
+      "<p>[License]</p>" +
           "<p>Luke is distributed under <a href=\"http://www.apache.org/licenses/LICENSE-2.0\">Apache License Version 2.0</a> (http://www.apache.org/licenses/LICENSE-2.0) " +
           "and includes <a href=\"https://www.elegantthemes.com/blog/resources/elegant-icon-font\">The Elegant Icon Font</a> (https://www.elegantthemes.com/blog/resources/elegant-icon-font) " +
-          "licensed under <a href=\"https://opensource.org/licenses/MIT\">MIT</a> (https://opensource.org/licenses/MIT)</p>";
+          "licensed under <a href=\"https://opensource.org/licenses/MIT\">MIT</a> (https://opensource.org/licenses/MIT)</p>" +
+          "<p>[Brief history]</p>" +
+          "<ul>" +
+          "<li>The original author is Andrzej Bialecki</li>" +
+          "<li>The project has been mavenized by Neil Ireson</li>" +
+          "<li>The project has been ported to Lucene trunk (marked as 5.0 at the time) by Dmitry Kan\n</li>" +
+          "<li>The project has been back-ported to Lucene 4.3 by sonarname</li>" +
+          "<li>There are updates to the (non-mavenized) project done by tarzanek</li>" +
+          "<li>The UI and core components has been re-implemented on top of Swing by Tomoko Uchida</li>" +
+          "</ul>"
+      ;
+
 
   private static final HyperlinkListener hyperlinkListener = e -> {
     if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED)
