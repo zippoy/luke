@@ -26,6 +26,8 @@ import org.apache.lucene.luke.app.IndexHandler;
 import org.apache.lucene.luke.app.IndexObserver;
 import org.apache.lucene.luke.app.LukeState;
 import org.apache.lucene.luke.app.desktop.MessageBroker;
+import org.apache.lucene.luke.app.desktop.Preferences;
+import org.apache.lucene.luke.app.desktop.util.FontUtils;
 import org.apache.lucene.luke.app.desktop.util.ImageUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 import org.apache.lucene.util.Version;
@@ -46,9 +48,11 @@ import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 
 
-public final class LukeWindowProvider implements Provider<JFrame> {
+public final class LukeWindowProvider implements Provider<JFrame>, LukeWindowOperator {
 
   private static final String WINDOW_TITLE = MessageUtils.getLocalizedMessage("window.title") + " - v" + Version.LATEST.toString();
+
+  private final Preferences prefs;
 
   private final MessageBroker messageBroker;
 
@@ -66,18 +70,24 @@ public final class LukeWindowProvider implements Provider<JFrame> {
 
   private final JLabel noReaderIcon = new JLabel();
 
+  private JFrame frame = new JFrame();
+
   @Inject
-  public LukeWindowProvider(JMenuBar menuBar,
+  public LukeWindowProvider(Preferences prefs,
+                            ComponentOperatorRegistry operatorRegistry,
+                            JMenuBar menuBar,
                             @Named("main") JTabbedPane tabbedPane,
                             DirectoryHandler directoryHandler,
                             IndexHandler indexHandler,
                             MessageBroker messageBroker,
                             TabSwitcherProxy tabSwitcher) {
+    this.prefs = prefs;
     this.menuBar = menuBar;
     this.tabbedPane = tabbedPane;
     this.messageBroker = messageBroker;
     this.tabSwitcher = tabSwitcher;
 
+    operatorRegistry.register(LukeWindowOperator.class, this);
     Observer observer = new Observer();
     directoryHandler.addObserver(observer);
     indexHandler.addObserver(observer);
@@ -87,15 +97,15 @@ public final class LukeWindowProvider implements Provider<JFrame> {
 
   @Override
   public JFrame get() {
-    JFrame frame = new JFrame(WINDOW_TITLE);
+    frame.setTitle(WINDOW_TITLE);
     frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
     frame.setJMenuBar(menuBar);
     frame.add(initMainPanel(), BorderLayout.CENTER);
     frame.add(initMessagePanel(), BorderLayout.PAGE_END);
 
-    frame.setPreferredSize(new Dimension(900, 680));
-    frame.pack();
+    frame.setPreferredSize(new Dimension(950, 680));
+    frame.getContentPane().setBackground(prefs.getColorTheme().getBackgroundColor());
 
     return frame;
   }
@@ -110,19 +120,23 @@ public final class LukeWindowProvider implements Provider<JFrame> {
 
     panel.add(tabbedPane);
 
+    panel.setOpaque(false);
     return panel;
   }
 
   private JPanel initMessagePanel() {
     JPanel panel = new JPanel(new GridLayout(1, 1));
+    panel.setOpaque(false);
     panel.setBorder(BorderFactory.createEmptyBorder(0, 2, 2, 2));
 
     JPanel innerPanel = new JPanel(new GridBagLayout());
+    innerPanel.setOpaque(false);
     innerPanel.setBorder(BorderFactory.createLineBorder(Color.gray));
     GridBagConstraints c = new GridBagConstraints();
     c.fill = GridBagConstraints.HORIZONTAL;
 
     JPanel msgPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    msgPanel.setOpaque(false);
     msgPanel.add(messageLbl);
 
     c.gridx = 0;
@@ -131,19 +145,20 @@ public final class LukeWindowProvider implements Provider<JFrame> {
     innerPanel.add(msgPanel, c);
 
     JPanel iconPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+    iconPanel.setOpaque(false);
 
-    multiIcon.setIcon(ImageUtils.createImageIcon("/img/icon_grid-2x2.png", "multi reader", 16, 16));
+    multiIcon.setText(FontUtils.elegantIconHtml("&#xe08c;"));
     multiIcon.setToolTipText(MessageUtils.getLocalizedMessage("tooltip.multi_reader"));
     multiIcon.setVisible(false);
     iconPanel.add(multiIcon);
 
 
-    readOnlyIcon.setIcon(ImageUtils.createImageIcon("/img/icon_lock.png", "read only", 16, 16));
+    readOnlyIcon.setText(FontUtils.elegantIconHtml("&#xe06c;"));
     readOnlyIcon.setToolTipText(MessageUtils.getLocalizedMessage("tooltip.read_only"));
     readOnlyIcon.setVisible(false);
     iconPanel.add(readOnlyIcon);
 
-    noReaderIcon.setIcon(ImageUtils.createImageIcon("/img/icon_cone.png", "no reader", 16, 16));
+    noReaderIcon.setText(FontUtils.elegantIconHtml("&#xe077;"));
     noReaderIcon.setToolTipText(MessageUtils.getLocalizedMessage("tooltip.no_reader"));
     noReaderIcon.setVisible(false);
     iconPanel.add(noReaderIcon);
@@ -158,6 +173,11 @@ public final class LukeWindowProvider implements Provider<JFrame> {
     panel.add(innerPanel);
 
     return panel;
+  }
+
+  @Override
+  public void setColorTheme(Preferences.ColorTheme theme) {
+    frame.getContentPane().setBackground(theme.getBackgroundColor());
   }
 
   private class Observer implements IndexObserver, DirectoryObserver {

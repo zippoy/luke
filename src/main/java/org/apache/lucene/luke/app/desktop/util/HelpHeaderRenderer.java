@@ -78,9 +78,8 @@ public final class HelpHeaderRenderer implements TableCellRenderer {
 
         // add label with mouse click listener
         // when the label is clicked, help dialog will be displayed.
-        JLabel helpLabel = new JLabel(MessageUtils.getLocalizedMessage("label.help"),
-            ImageUtils.createImageIcon("/img/icon_question_alt2.png", 12, 12),
-            JLabel.LEFT);
+        JLabel helpLabel = new JLabel(FontUtils.elegantIconHtml("&#x74;", MessageUtils.getLocalizedMessage("label.help")));
+        helpLabel.setHorizontalAlignment(JLabel.LEFT);
         helpLabel.setIconTextGap(5);
         panel.add(FontUtils.toLinkText(helpLabel));
 

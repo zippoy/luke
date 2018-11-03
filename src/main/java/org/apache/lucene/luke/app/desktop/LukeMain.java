@@ -21,11 +21,15 @@ import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.name.Names;
 import org.apache.lucene.luke.app.desktop.components.dialog.menubar.OpenIndexDialogFactory;
+import org.apache.lucene.luke.app.desktop.util.DialogOpener;
+import org.apache.lucene.luke.app.desktop.util.FontUtils;
+import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 import org.apache.lucene.luke.app.desktop.util.TextAreaAppender;
 
 import javax.swing.JFrame;
 import javax.swing.JTextArea;
 import javax.swing.UIManager;
+import java.awt.GraphicsEnvironment;
 
 import static org.apache.lucene.luke.app.desktop.util.ExceptionHandler.handle;
 
@@ -50,13 +54,18 @@ public class LukeMain {
     JTextArea textArea = injector.getInstance(Key.get(JTextArea.class, Names.named("log_area")));
     TextAreaAppender.setTextArea(textArea);
 
+
     frame = injector.getInstance(JFrame.class);
     frame.setLocation(200, 100);
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     frame.pack();
     frame.setVisible(true);
 
-    OpenIndexDialogFactory.showOpenIndexDialog();
+    // show open index dialog
+    OpenIndexDialogFactory openIndexDialogFactory = injector.getInstance(OpenIndexDialogFactory.class);
+    new DialogOpener<>(openIndexDialogFactory).open(MessageUtils.getLocalizedMessage("openindex.dialog.title"), 600, 420,
+        (factory) -> {
+        });
   }
 
   public static void main(String[] args) throws Exception {
@@ -67,6 +76,9 @@ public class LukeMain {
       lookAndFeelClassName = "javax.swing.plaf.metal.MetalLookAndFeel";
     }
     UIManager.setLookAndFeel(lookAndFeelClassName);
+
+    GraphicsEnvironment genv = GraphicsEnvironment.getLocalGraphicsEnvironment();
+    genv.registerFont(FontUtils.createElegantIconFont());
 
     javax.swing.SwingUtilities.invokeLater(LukeMain::createAndShowGUI);
 

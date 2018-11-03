@@ -15,14 +15,13 @@
  * limitations under the License.
  */
 
-package org.apache.lucene.luke.app.desktop.components.dialog;
+package org.apache.lucene.luke.app.desktop.components.dialog.search;
 
 import org.apache.lucene.luke.app.desktop.util.DialogOpener;
+import org.apache.lucene.search.Explanation;
 
-import javax.swing.JComponent;
+public interface ExplainDialogFactory extends DialogOpener.DialogFactory {
+  void setDocid(int docid);
 
-public interface HelpDialogFactory extends DialogOpener.DialogFactory {
-  void setDesc(String desc);
-
-  void setContent(JComponent helpContent);
+  void setExplanation(Explanation explanation);
 }

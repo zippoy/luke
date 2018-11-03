@@ -72,20 +72,26 @@ public final class SortPaneProvider implements Provider<JScrollPane>, SortTabOpe
   @Override
   public JScrollPane get() {
     JPanel panel = new JPanel(new GridLayout(1, 1));
+    panel.setOpaque(false);
     panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
     panel.add(initSortConfigsPanel());
 
-    return new JScrollPane(panel);
+    JScrollPane scrollPane = new JScrollPane(panel);
+    scrollPane.setOpaque(false);
+    scrollPane.getViewport().setOpaque(false);
+    return scrollPane;
   }
 
   private JPanel initSortConfigsPanel() {
     JPanel panel = new JPanel(new GridLayout(5, 1));
+    panel.setOpaque(false);
     panel.setMaximumSize(new Dimension(500, 200));
 
     panel.add(new JLabel(MessageUtils.getLocalizedMessage("search_sort.label.primary")));
 
     JPanel primary = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    primary.setOpaque(false);
     primary.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
     primary.add(new JLabel(MessageUtils.getLocalizedMessage("search_sort.label.field")));
     fieldCombo1.setPreferredSize(new Dimension(150, 30));
@@ -106,6 +112,7 @@ public final class SortPaneProvider implements Provider<JScrollPane>, SortTabOpe
     panel.add(new JLabel(MessageUtils.getLocalizedMessage("search_sort.label.secondary")));
 
     JPanel secondary = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    secondary.setOpaque(false);
     secondary.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
     secondary.add(new JLabel(MessageUtils.getLocalizedMessage("search_sort.label.field")));
     fieldCombo2.setPreferredSize(new Dimension(150, 30));
@@ -124,6 +131,7 @@ public final class SortPaneProvider implements Provider<JScrollPane>, SortTabOpe
     panel.add(secondary);
 
     JPanel clear = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    clear.setOpaque(false);
     JButton clearBtn = new JButton(MessageUtils.getLocalizedMessage("search_sort.button.clear"));
     clearBtn.addActionListener(listeners::clear);
     clear.add(clearBtn);

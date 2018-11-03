@@ -19,7 +19,10 @@ package org.apache.lucene.luke.app.desktop.util;
 
 import javax.swing.JLabel;
 import java.awt.Font;
+import java.awt.FontFormatException;
 import java.awt.font.TextAttribute;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Map;
 
 public class FontUtils {
@@ -32,6 +35,31 @@ public class FontUtils {
     attributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
     label.setFont(font.deriveFont(attributes));
     return label;
+  }
+
+  public static Font createElegantIconFont() throws IOException, FontFormatException {
+    InputStream is = FontUtils.class.getClassLoader().getResourceAsStream("font/ElegantIcons.ttf");
+    return Font.createFont(Font.TRUETYPE_FONT, is);
+  }
+
+  /**
+   * Generates HTML text with embedded Elegant Icon Font.
+   * See: https://www.elegantthemes.com/blog/resources/elegant-icon-font
+   *
+   * @param iconRef HTML numeric character reference of the icon
+   */
+  public static String elegantIconHtml(String iconRef) {
+    return "<html><font face=\"ElegantIcons\">" + iconRef + "</font></html>";
+  }
+
+  /**
+   * Generates HTML text with embedded Elegant Icon Font.
+   *
+   * @param iconRef HTML numeric character reference of the icon
+   * @param text
+   */
+  public static String elegantIconHtml(String iconRef, String text) {
+    return "<html><font face=\"ElegantIcons\">" + iconRef + "</font>&nbsp;" + text + "</html>";
   }
 
   private FontUtils() {

@@ -33,8 +33,8 @@ import org.apache.lucene.luke.app.desktop.components.fragments.search.AnalyzerTa
 import org.apache.lucene.luke.app.desktop.components.fragments.search.MLTTabOperator;
 import org.apache.lucene.luke.app.desktop.util.DialogOpener;
 import org.apache.lucene.luke.app.desktop.util.FontUtils;
-import org.apache.lucene.luke.app.desktop.util.ImageUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
+import org.apache.lucene.luke.app.desktop.util.StyleConstants;
 import org.apache.lucene.luke.app.desktop.util.TableUtils;
 import org.apache.lucene.luke.models.analysis.Analysis;
 import org.apache.lucene.luke.models.analysis.AnalysisFactory;
@@ -54,7 +54,6 @@ import javax.swing.ListSelectionModel;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
-import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
@@ -133,9 +132,11 @@ public final class AnalysisPanelProvider implements Provider<JPanel>, AnalysisTa
   @Override
   public JPanel get() {
     JPanel panel = new JPanel(new GridLayout(1, 1));
+    panel.setOpaque(false);
     panel.setBorder(BorderFactory.createLineBorder(Color.gray));
 
     JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, initUpperPanel(), initLowerPanel());
+    splitPane.setOpaque(false);
     splitPane.setDividerLocation(320);
     panel.add(splitPane);
 
@@ -143,6 +144,7 @@ public final class AnalysisPanelProvider implements Provider<JPanel>, AnalysisTa
   }
 
   private JPanel initUpperPanel() {
+    mainPanel.setOpaque(false);
     mainPanel.setLayout(new BorderLayout());
     mainPanel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
 
@@ -154,6 +156,7 @@ public final class AnalysisPanelProvider implements Provider<JPanel>, AnalysisTa
 
   private JPanel initSwitcherPanel() {
     JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    panel.setOpaque(false);
 
     presetRB.setText(MessageUtils.getLocalizedMessage("analysis.radio.preset"));
     presetRB.setActionCommand(TYPE_PRESET);
@@ -177,8 +180,10 @@ public final class AnalysisPanelProvider implements Provider<JPanel>, AnalysisTa
 
   private JPanel initLowerPanel() {
     JPanel inner1 = new JPanel(new BorderLayout());
+    inner1.setOpaque(false);
 
     JPanel analyzerName = new JPanel(new FlowLayout(FlowLayout.LEADING, 10, 2));
+    analyzerName.setOpaque(false);
     analyzerName.add(new JLabel(MessageUtils.getLocalizedMessage("analysis.label.selected_analyzer")));
     analyzerNameLbl.setText(analysisModel.currentAnalyzer().getClass().getName());
     analyzerName.add(analyzerNameLbl);
@@ -194,6 +199,7 @@ public final class AnalysisPanelProvider implements Provider<JPanel>, AnalysisTa
     inner1.add(analyzerName, BorderLayout.PAGE_START);
 
     JPanel input = new JPanel(new FlowLayout(FlowLayout.LEADING, 5, 2));
+    input.setOpaque(false);
     inputArea.setRows(3);
     inputArea.setColumns(50);
     inputArea.setLineWrap(true);
@@ -201,23 +207,31 @@ public final class AnalysisPanelProvider implements Provider<JPanel>, AnalysisTa
     inputArea.setText(MessageUtils.getLocalizedMessage("analysis.textarea.prompt"));
     input.add(new JScrollPane(inputArea));
 
-    JButton executeBtn = new JButton(MessageUtils.getLocalizedMessage("analysis.button.test"), ImageUtils.createImageIcon("/img/icon_lightbulb_alt.png", 20, 20));
-    executeBtn.setFont(new Font(executeBtn.getFont().getFontName(), Font.PLAIN, 15));
+    JButton executeBtn = new JButton(FontUtils.elegantIconHtml("&#xe007;", MessageUtils.getLocalizedMessage("analysis.button.test")));
+    executeBtn.setFont(StyleConstants.FONT_BUTTON_LARGE);
     executeBtn.setMargin(new Insets(3, 3, 3, 3));
     executeBtn.addActionListener(listeners::executeAnalysis);
     input.add(executeBtn);
 
     JButton clearBtn = new JButton(MessageUtils.getLocalizedMessage("analysis.button.clear"));
-    clearBtn.setFont(new Font(clearBtn.getFont().getFontName(), Font.PLAIN, 15));
+    clearBtn.setFont(StyleConstants.FONT_BUTTON_LARGE);
     clearBtn.setMargin(new Insets(5, 5, 5, 5));
-    clearBtn.addActionListener(e -> inputArea.setText(""));
+    clearBtn.addActionListener(e -> {
+      inputArea.setText("");
+      TableUtils.setupTable(tokensTable, ListSelectionModel.SINGLE_SELECTION, new TokensTableModel(),
+          null,
+          TokensTableModel.Column.TERM.getColumnWidth(),
+          TokensTableModel.Column.ATTR.getColumnWidth());
+    });
     input.add(clearBtn);
 
     inner1.add(input, BorderLayout.CENTER);
 
     JPanel inner2 = new JPanel(new BorderLayout());
+    inner2.setOpaque(false);
 
     JPanel hint = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    hint.setOpaque(false);
     hint.add(new JLabel(MessageUtils.getLocalizedMessage("analysis.hint.show_attributes")));
     inner2.add(hint, BorderLayout.PAGE_START);
 
@@ -234,6 +248,7 @@ public final class AnalysisPanelProvider implements Provider<JPanel>, AnalysisTa
     inner2.add(new JScrollPane(tokensTable), BorderLayout.CENTER);
 
     JPanel panel = new JPanel(new BorderLayout());
+    panel.setOpaque(false);
     panel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
     panel.add(inner1, BorderLayout.PAGE_START);
     panel.add(inner2, BorderLayout.CENTER);

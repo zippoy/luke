@@ -15,14 +15,8 @@
  * limitations under the License.
  */
 
-package org.apache.lucene.luke.app.desktop.components.dialog;
+package org.apache.lucene.luke.app.desktop.components.dialog.analysis;
 
-import org.apache.lucene.luke.app.desktop.util.DialogOpener;
-
-import javax.swing.JComponent;
-
-public interface HelpDialogFactory extends DialogOpener.DialogFactory {
-  void setDesc(String desc);
-
-  void setContent(JComponent helpContent);
+public enum EditParamsMode {
+  CHARFILTER, TOKENIZER, TOKENFILTER;
 }

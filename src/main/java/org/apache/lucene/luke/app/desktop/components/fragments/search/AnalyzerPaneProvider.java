@@ -70,6 +70,7 @@ public final class AnalyzerPaneProvider implements Provider<JScrollPane>, Analyz
   @Override
   public JScrollPane get() {
     JPanel panel = new JPanel();
+    panel.setOpaque(false);
     panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
     panel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
 
@@ -78,11 +79,16 @@ public final class AnalyzerPaneProvider implements Provider<JScrollPane>, Analyz
     panel.add(initAnalysisChainPanel());
 
     tokenizerTF.setEditable(false);
-    return new JScrollPane(panel);
+
+    JScrollPane scrollPane = new JScrollPane(panel);
+    scrollPane.setOpaque(false);
+    scrollPane.getViewport().setOpaque(false);
+    return scrollPane;
   }
 
   private JPanel initAnalyzerNamePanel() {
     JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    panel.setOpaque(false);
 
     panel.add(new JLabel(MessageUtils.getLocalizedMessage("search_analyzer.label.name")));
 
@@ -102,13 +108,16 @@ public final class AnalyzerPaneProvider implements Provider<JScrollPane>, Analyz
 
   private JPanel initAnalysisChainPanel() {
     JPanel panel = new JPanel(new BorderLayout());
+    panel.setOpaque(false);
 
     JPanel top = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    top.setOpaque(false);
     top.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
     top.add(new JLabel(MessageUtils.getLocalizedMessage("search_analyzer.label.chain")));
     panel.add(top, BorderLayout.PAGE_START);
 
     JPanel center = new JPanel(new GridBagLayout());
+    center.setOpaque(false);
 
     GridBagConstraints c = new GridBagConstraints();
     c.fill = GridBagConstraints.BOTH;

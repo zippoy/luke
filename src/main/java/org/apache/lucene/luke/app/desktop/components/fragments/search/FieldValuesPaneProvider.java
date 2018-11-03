@@ -57,18 +57,24 @@ public final class FieldValuesPaneProvider implements Provider<JScrollPane>, Fie
   @Override
   public JScrollPane get() {
     JPanel panel = new JPanel();
+    panel.setOpaque(false);
     panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
     panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
     panel.add(initFieldsConfigPanel());
 
-    return new JScrollPane(panel);
+    JScrollPane scrollPane = new JScrollPane(panel);
+    scrollPane.setOpaque(false);
+    scrollPane.getViewport().setOpaque(false);
+    return scrollPane;
   }
 
   private JPanel initFieldsConfigPanel() {
     JPanel panel = new JPanel(new BorderLayout());
+    panel.setOpaque(false);
 
     JPanel header = new JPanel(new GridLayout(1, 2));
+    header.setOpaque(false);
     header.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
     header.add(new JLabel(MessageUtils.getLocalizedMessage("search_values.label.description")));
     loadAllCB.setText(MessageUtils.getLocalizedMessage("search_values.checkbox.load_all"));

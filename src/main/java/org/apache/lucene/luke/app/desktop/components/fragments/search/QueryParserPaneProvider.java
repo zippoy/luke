@@ -101,6 +101,7 @@ public final class QueryParserPaneProvider implements Provider<JScrollPane>, Que
   @Override
   public JScrollPane get() {
     JPanel panel = new JPanel();
+    panel.setOpaque(false);
     panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
     panel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
 
@@ -116,11 +117,15 @@ public final class QueryParserPaneProvider implements Provider<JScrollPane>, Que
     panel.add(new JSeparator(JSeparator.HORIZONTAL));
     panel.add(initPointRangeQuerySettingsPanel());
 
-    return new JScrollPane(panel);
+    JScrollPane scrollPane = new JScrollPane(panel);
+    scrollPane.setOpaque(false);
+    scrollPane.getViewport().setOpaque(false);
+    return scrollPane;
   }
 
   private JPanel initSelectParserPane() {
     JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    panel.setOpaque(false);
 
     standardRB.setText("StandardQueryParser");
     standardRB.setSelected(true);
@@ -141,14 +146,17 @@ public final class QueryParserPaneProvider implements Provider<JScrollPane>, Que
 
   private JPanel initParserSettingsPanel() {
     JPanel panel = new JPanel(new GridLayout(3, 2));
+    panel.setOpaque(false);
 
     JPanel defField = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    defField.setOpaque(false);
     JLabel dfLabel = new JLabel(MessageUtils.getLocalizedMessage("search_parser.label.df"));
     defField.add(dfLabel);
     defField.add(dfCB);
     panel.add(defField);
 
     JPanel defOp = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    defOp.setOpaque(false);
     JLabel defOpLabel = new JLabel(MessageUtils.getLocalizedMessage("search_parser.label.dop"));
     defOp.add(defOpLabel);
     defOpCombo.setSelectedItem(config.getDefaultOperator().name());
@@ -173,13 +181,16 @@ public final class QueryParserPaneProvider implements Provider<JScrollPane>, Que
 
   private JPanel initPhraseQuerySettingsPanel() {
     JPanel panel = new JPanel();
+    panel.setOpaque(false);
     panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
 
     JPanel header = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    header.setOpaque(false);
     header.add(new JLabel(MessageUtils.getLocalizedMessage("search_parser.label.phrase_query")));
     panel.add(header);
 
     JPanel genPQ = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    genPQ.setOpaque(false);
     genPQ.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
     genPhraseQueryCB.setText(MessageUtils.getLocalizedMessage("search_parser.checkbox.gen_pq"));
     genPhraseQueryCB.setEnabled(config.isAutoGeneratePhraseQueries());
@@ -187,6 +198,7 @@ public final class QueryParserPaneProvider implements Provider<JScrollPane>, Que
     panel.add(genPQ);
 
     JPanel genMTPQ = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    genMTPQ.setOpaque(false);
     genMTPQ.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
     genMultiTermSynonymsPhraseQueryCB.setText(MessageUtils.getLocalizedMessage("search_parser.checkbox.gen_mts"));
     genMultiTermSynonymsPhraseQueryCB.setEnabled(config.isAutoGenerateMultiTermSynonymsPhraseQuery());
@@ -194,6 +206,7 @@ public final class QueryParserPaneProvider implements Provider<JScrollPane>, Que
     panel.add(genMTPQ);
 
     JPanel slop = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    slop.setOpaque(false);
     slop.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
     JLabel slopLabel = new JLabel(MessageUtils.getLocalizedMessage("search_parser.label.phrase_slop"));
     slop.add(slopLabel);
@@ -208,13 +221,16 @@ public final class QueryParserPaneProvider implements Provider<JScrollPane>, Que
 
   private JPanel initFuzzyQuerySettingsPanel() {
     JPanel panel = new JPanel();
+    panel.setOpaque(false);
     panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
 
     JPanel header = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    header.setOpaque(false);
     header.add(new JLabel(MessageUtils.getLocalizedMessage("search_parser.label.fuzzy_query")));
     panel.add(header);
 
     JPanel minSim = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    minSim.setOpaque(false);
     minSim.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
     JLabel minSimLabel = new JLabel(MessageUtils.getLocalizedMessage("search_parser.label.fuzzy_minsim"));
     minSim.add(minSimLabel);
@@ -225,6 +241,7 @@ public final class QueryParserPaneProvider implements Provider<JScrollPane>, Que
     panel.add(minSim);
 
     JPanel prefLen = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    prefLen.setOpaque(false);
     prefLen.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
     JLabel prefLenLabel = new JLabel(MessageUtils.getLocalizedMessage("search_parser.label.fuzzy_preflen"));
     prefLen.add(prefLenLabel);
@@ -239,13 +256,16 @@ public final class QueryParserPaneProvider implements Provider<JScrollPane>, Que
 
   private JPanel initDateRangeQuerySettingsPanel() {
     JPanel panel = new JPanel();
+    panel.setOpaque(false);
     panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
 
     JPanel header = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    header.setOpaque(false);
     header.add(new JLabel(MessageUtils.getLocalizedMessage("search_parser.label.daterange_query")));
     panel.add(header);
 
     JPanel resolution = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    resolution.setOpaque(false);
     resolution.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
     JLabel resLabel = new JLabel(MessageUtils.getLocalizedMessage("search_parser.label.date_res"));
     resolution.add(resLabel);
@@ -255,6 +275,7 @@ public final class QueryParserPaneProvider implements Provider<JScrollPane>, Que
     panel.add(resolution);
 
     JPanel locale = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    locale.setOpaque(false);
     locale.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
     JLabel locLabel = new JLabel(MessageUtils.getLocalizedMessage("search_parser.label.locale"));
     locale.add(locLabel);
@@ -273,14 +294,17 @@ public final class QueryParserPaneProvider implements Provider<JScrollPane>, Que
 
   private JPanel initPointRangeQuerySettingsPanel() {
     JPanel panel = new JPanel();
+    panel.setOpaque(false);
     panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
     panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
     JPanel header = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    header.setOpaque(false);
     header.add(new JLabel(MessageUtils.getLocalizedMessage("search_parser.label.pointrange_query")));
     panel.add(header);
 
     JPanel headerNote = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    headerNote.setOpaque(false);
     headerNote.add(new JLabel(MessageUtils.getLocalizedMessage("search_parser.label.pointrange_hint")));
     panel.add(headerNote);
 

@@ -26,7 +26,7 @@ import org.apache.lucene.luke.app.IndexHandler;
 import org.apache.lucene.luke.app.IndexObserver;
 import org.apache.lucene.luke.app.LukeState;
 import org.apache.lucene.luke.app.desktop.MessageBroker;
-import org.apache.lucene.luke.app.desktop.util.ImageUtils;
+import org.apache.lucene.luke.app.desktop.util.FontUtils;
 
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
@@ -78,13 +78,14 @@ public final class TabbedPaneProvider implements Provider<JTabbedPane>, TabSwitc
 
   @Override
   public JTabbedPane get() {
-    tabbedPane.addTab("Overview", ImageUtils.createImageIcon("/img/icon_house_alt.png", 20, 20), overviewPanel);
-    tabbedPane.addTab("Documents", ImageUtils.createImageIcon("/img/icon_documents_alt.png", 20, 20), documentsPanel);
-    tabbedPane.addTab("Search", ImageUtils.createImageIcon("/img/icon_search.png", 20, 20), searchPanel);
-    tabbedPane.addTab("Analysis", ImageUtils.createImageIcon("/img/icon_pencil-edit_alt.png", 20, 20), analysisPanel);
-    tabbedPane.addTab("Commits", ImageUtils.createImageIcon("/img/icon_drive.png", 20, 20), commitsPanel);
-    tabbedPane.addTab("Logs", ImageUtils.createImageIcon("/img/icon_document.png", 20, 20), logsPanel);
+    tabbedPane.addTab(FontUtils.elegantIconHtml("&#xe009;", "Overview"), overviewPanel);
+    tabbedPane.addTab(FontUtils.elegantIconHtml("&#x69;", "Documents"), documentsPanel);
+    tabbedPane.addTab(FontUtils.elegantIconHtml("&#xe101;", "Search"), searchPanel);
+    tabbedPane.addTab(FontUtils.elegantIconHtml("&#xe104;", "Analysis"), analysisPanel);
+    tabbedPane.addTab(FontUtils.elegantIconHtml("&#xe0ea;", "Commits"), commitsPanel);
+    tabbedPane.addTab(FontUtils.elegantIconHtml("&#xe058;", "Logs"), logsPanel);
 
+    tabbedPane.setOpaque(false);
     return tabbedPane;
   }
 

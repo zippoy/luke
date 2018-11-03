@@ -104,9 +104,11 @@ public final class CommitsPanelProvider implements Provider<JPanel> {
   @Override
   public JPanel get() {
     JPanel panel = new JPanel(new GridLayout(1, 1));
+    panel.setOpaque(false);
     panel.setBorder(BorderFactory.createLineBorder(Color.gray));
 
     JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, initUpperPanel(), initLowerPanel());
+    splitPane.setOpaque(false);
     splitPane.setBorder(BorderFactory.createEmptyBorder());
     splitPane.setDividerLocation(120);
     panel.add(splitPane);
@@ -116,15 +118,18 @@ public final class CommitsPanelProvider implements Provider<JPanel> {
 
   private JPanel initUpperPanel() {
     JPanel panel = new JPanel(new BorderLayout(20, 0));
+    panel.setOpaque(false);
     panel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
 
     JPanel left = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    left.setOpaque(false);
     left.add(new JLabel(MessageUtils.getLocalizedMessage("commits.label.select_gen")));
     commitGenCombo.addActionListener(listeners::selectGeneration);
     left.add(commitGenCombo);
     panel.add(left, BorderLayout.LINE_START);
 
     JPanel right = new JPanel(new GridBagLayout());
+    right.setOpaque(false);
     GridBagConstraints c1 = new GridBagConstraints();
     c1.ipadx = 5;
     c1.ipady = 5;
@@ -178,9 +183,11 @@ public final class CommitsPanelProvider implements Provider<JPanel> {
 
   private JPanel initLowerPanel() {
     JPanel panel = new JPanel(new GridLayout(1, 1));
+    panel.setOpaque(false);
     panel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
 
     JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, initFilesPanel(), initSegmentsPanel());
+    splitPane.setOpaque(false);
     splitPane.setBorder(BorderFactory.createEmptyBorder());
     splitPane.setDividerLocation(300);
     panel.add(splitPane);
@@ -189,9 +196,11 @@ public final class CommitsPanelProvider implements Provider<JPanel> {
 
   private JPanel initFilesPanel() {
     JPanel panel = new JPanel(new BorderLayout());
+    panel.setOpaque(false);
     panel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
 
     JPanel header = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    header.setOpaque(false);
     header.add(new JLabel(MessageUtils.getLocalizedMessage("commits.label.files")));
     panel.add(header, BorderLayout.PAGE_START);
 
@@ -203,9 +212,11 @@ public final class CommitsPanelProvider implements Provider<JPanel> {
 
   private JPanel initSegmentsPanel() {
     JPanel panel = new JPanel();
+    panel.setOpaque(false);
     panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
 
     JPanel segments = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    segments.setOpaque(false);
     segments.add(new JLabel(MessageUtils.getLocalizedMessage("commits.label.segments")));
     panel.add(segments);
 
@@ -225,10 +236,12 @@ public final class CommitsPanelProvider implements Provider<JPanel> {
     panel.add(new JScrollPane(segmentsTable));
 
     JPanel segDetails = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    segDetails.setOpaque(false);
     segDetails.add(new JLabel(MessageUtils.getLocalizedMessage("commits.label.segdetails")));
     panel.add(segDetails);
 
     JPanel buttons = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    buttons.setOpaque(false);
 
     diagRB.setText("Diagnostics");
     diagRB.setActionCommand(ActionCommand.DIAGNOSTICS.name());

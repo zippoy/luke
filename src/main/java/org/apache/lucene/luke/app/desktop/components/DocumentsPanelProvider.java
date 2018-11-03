@@ -32,8 +32,8 @@ import org.apache.lucene.luke.app.desktop.components.dialog.documents.DocValuesD
 import org.apache.lucene.luke.app.desktop.components.dialog.documents.StoredValueDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.documents.TermVectorDialogFactory;
 import org.apache.lucene.luke.app.desktop.util.DialogOpener;
+import org.apache.lucene.luke.app.desktop.util.FontUtils;
 import org.apache.lucene.luke.app.desktop.util.HelpHeaderRenderer;
-import org.apache.lucene.luke.app.desktop.util.ImageUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 import org.apache.lucene.luke.app.desktop.util.StyleConstants;
 import org.apache.lucene.luke.app.desktop.util.TableUtils;
@@ -189,9 +189,11 @@ public final class DocumentsPanelProvider implements Provider<JPanel>, Documents
   @Override
   public JPanel get() {
     JPanel panel = new JPanel(new GridLayout(1, 1));
+    panel.setOpaque(false);
     panel.setBorder(BorderFactory.createLineBorder(Color.gray));
 
     JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, initUpperPanel(), initLowerPanel());
+    splitPane.setOpaque(false);
     splitPane.setDividerLocation(0.4);
     panel.add(splitPane);
 
@@ -202,6 +204,7 @@ public final class DocumentsPanelProvider implements Provider<JPanel>, Documents
 
   private JPanel initUpperPanel() {
     JPanel panel = new JPanel(new GridBagLayout());
+    panel.setOpaque(false);
     GridBagConstraints c = new GridBagConstraints();
 
     c.gridx = 0;
@@ -223,15 +226,18 @@ public final class DocumentsPanelProvider implements Provider<JPanel>, Documents
 
   private JPanel initBrowseTermsPanel() {
     JPanel panel = new JPanel(new BorderLayout());
+    panel.setOpaque(false);
     panel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
 
     JPanel top = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    top.setOpaque(false);
     JLabel label = new JLabel(MessageUtils.getLocalizedMessage("documents.label.browse_terms"));
     top.add(label);
 
     panel.add(top, BorderLayout.PAGE_START);
 
     JPanel center = new JPanel(new GridBagLayout());
+    center.setOpaque(false);
     GridBagConstraints c = new GridBagConstraints();
     c.fill = GridBagConstraints.BOTH;
 
@@ -243,8 +249,7 @@ public final class DocumentsPanelProvider implements Provider<JPanel>, Documents
     c.gridwidth = 2;
     center.add(fieldsCombo, c);
 
-    firstTermBtn.setText(MessageUtils.getLocalizedMessage("documents.button.first_term"));
-    firstTermBtn.setIcon(ImageUtils.createImageIcon("/img/arrow_carrot-2left.png", 20, 20));
+    firstTermBtn.setText(FontUtils.elegantIconHtml("&#x38;", MessageUtils.getLocalizedMessage("documents.button.first_term")));
     firstTermBtn.setMaximumSize(new Dimension(80, 30));
     firstTermBtn.addActionListener(listeners::showFirstTerm);
     c.gridx = 0;
@@ -277,6 +282,7 @@ public final class DocumentsPanelProvider implements Provider<JPanel>, Documents
     panel.add(center, BorderLayout.CENTER);
 
     JPanel footer = new JPanel(new FlowLayout(FlowLayout.LEADING, 20, 5));
+    footer.setOpaque(false);
     JLabel hintLbl = new JLabel(MessageUtils.getLocalizedMessage("documents.label.browse_terms_hint"));
     footer.add(hintLbl);
     panel.add(footer, BorderLayout.PAGE_END);
@@ -286,9 +292,11 @@ public final class DocumentsPanelProvider implements Provider<JPanel>, Documents
 
   private JPanel initBrowseDocsByTermPanel() {
     JPanel panel = new JPanel(new BorderLayout());
+    panel.setOpaque(false);
     panel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
 
     JPanel center = new JPanel(new GridBagLayout());
+    center.setOpaque(false);
     GridBagConstraints c = new GridBagConstraints();
     c.fill = GridBagConstraints.BOTH;
 
@@ -311,12 +319,11 @@ public final class DocumentsPanelProvider implements Provider<JPanel>, Documents
     c.insets = new Insets(5, 5, 5, 5);
     center.add(selectedTermTF, c);
 
-    firstTermDocBtn.setText(MessageUtils.getLocalizedMessage("documents.button.first_termdoc"));
-    firstTermDocBtn.setIcon(ImageUtils.createImageIcon("/img/arrow_carrot-2left.png", 20, 20));
+    firstTermDocBtn.setText(FontUtils.elegantIconHtml("&#x38;", MessageUtils.getLocalizedMessage("documents.button.first_termdoc")));
     firstTermDocBtn.addActionListener(listeners::showFirstTermDoc);
     c.gridx = 0;
     c.gridy = 2;
-    c.weightx = 0.0;
+    c.weightx = 0.2;
     c.gridwidth = 1;
     c.insets = new Insets(5, 3, 5, 5);
     center.add(firstTermDocBtn, c);
@@ -364,17 +371,21 @@ public final class DocumentsPanelProvider implements Provider<JPanel>, Documents
 
   private JPanel initLowerPanel() {
     JPanel panel = new JPanel(new BorderLayout());
+    panel.setOpaque(false);
     panel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
 
     JPanel browseDocsPanel = new JPanel();
+    browseDocsPanel.setOpaque(false);
     browseDocsPanel.setLayout(new BoxLayout(browseDocsPanel, BoxLayout.PAGE_AXIS));
     browseDocsPanel.add(initBrowseDocsBar());
 
     JPanel browseDocsNote1 = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    browseDocsNote1.setOpaque(false);
     browseDocsNote1.add(new JLabel(MessageUtils.getLocalizedMessage("documents.label.doc_table_note1")));
     browseDocsPanel.add(browseDocsNote1);
 
     JPanel browseDocsNote2 = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    browseDocsNote2.setOpaque(false);
     browseDocsNote2.add(new JLabel(MessageUtils.getLocalizedMessage("documents.label.doc_table_note2")));
     browseDocsPanel.add(browseDocsNote2);
 
@@ -391,6 +402,7 @@ public final class DocumentsPanelProvider implements Provider<JPanel>, Documents
         DocumentsTableModel.Column.NORM.getColumnWidth(),
         DocumentsTableModel.Column.VALUE.getColumnWidth());
     JPanel flagsHeader = new JPanel(new FlowLayout(FlowLayout.CENTER));
+    flagsHeader.setOpaque(false);
     flagsHeader.add(new JLabel("Flags"));
     flagsHeader.add(new JLabel("Help"));
     documentTable.getColumnModel().getColumn(DocumentsTableModel.Column.FLAGS.getIndex()).setHeaderValue(flagsHeader);
@@ -404,13 +416,13 @@ public final class DocumentsPanelProvider implements Provider<JPanel>, Documents
 
   private JPanel initBrowseDocsBar() {
     JPanel panel = new JPanel(new GridLayout(1, 2));
+    panel.setOpaque(false);
     panel.setBorder(BorderFactory.createEmptyBorder(5, 0, 0, 5));
 
     JPanel left = new JPanel(new FlowLayout(FlowLayout.LEADING, 10, 2));
-    JLabel label = new JLabel(
-        MessageUtils.getLocalizedMessage("documents.label.browse_doc_by_idx"),
-        ImageUtils.createImageIcon("/img/icon_document_alt.png", 20, 20),
-        JLabel.LEFT);
+    left.setOpaque(false);
+    JLabel label = new JLabel(FontUtils.elegantIconHtml("&#x68;", MessageUtils.getLocalizedMessage("documents.label.browse_doc_by_idx")));
+    label.setHorizontalTextPosition(JLabel.LEFT);
     left.add(label);
     docNumSpnr.setPreferredSize(new Dimension(100, 25));
     docNumSpnr.addChangeListener(listeners::showCurrentDoc);
@@ -419,20 +431,18 @@ public final class DocumentsPanelProvider implements Provider<JPanel>, Documents
     left.add(maxDocsLbl);
     panel.add(left);
 
-    JPanel right = new JPanel(new FlowLayout(FlowLayout.TRAILING, 10, 2));
-    copyDocValuesBtn.setText(MessageUtils.getLocalizedMessage("documents.buttont.copy_values"));
-    copyDocValuesBtn.setIcon(ImageUtils.createImageIcon("/img/icon_clipboard.png", 15, 15));
-    copyDocValuesBtn.setMargin(new Insets(3, 5, 3, 5));
+    JPanel right = new JPanel(new FlowLayout(FlowLayout.TRAILING));
+    right.setOpaque(false);
+    copyDocValuesBtn.setText(FontUtils.elegantIconHtml("&#xe0e6;", MessageUtils.getLocalizedMessage("documents.buttont.copy_values")));
+    copyDocValuesBtn.setMargin(new Insets(5, 0, 5, 0));
     copyDocValuesBtn.addActionListener(listeners::copySelectedOrAllStoredValues);
     right.add(copyDocValuesBtn);
-    mltBtn.setText(MessageUtils.getLocalizedMessage("documents.button.mlt"));
-    mltBtn.setIcon(ImageUtils.createImageIcon("/img/icon_heart_alt.png", 15, 15));
-    mltBtn.setMargin(new Insets(3, 5, 3, 5));
+    mltBtn.setText(FontUtils.elegantIconHtml("&#xe030;", MessageUtils.getLocalizedMessage("documents.button.mlt")));
+    mltBtn.setMargin(new Insets(5, 0, 5, 0));
     mltBtn.addActionListener(listeners::mltSearch);
     right.add(mltBtn);
-    addDocBtn.setText(MessageUtils.getLocalizedMessage("documents.button.add"));
-    addDocBtn.setIcon(ImageUtils.createImageIcon("/img/icon_plus-box.png", 15, 15));
-    addDocBtn.setMargin(new Insets(3, 5, 3, 5));
+    addDocBtn.setText(FontUtils.elegantIconHtml("&#x59;", MessageUtils.getLocalizedMessage("documents.button.add")));
+    addDocBtn.setMargin(new Insets(5, 0, 5, 0));
     addDocBtn.addActionListener(listeners::showAddDocumentDialog);
     right.add(addDocBtn);
     panel.add(right);

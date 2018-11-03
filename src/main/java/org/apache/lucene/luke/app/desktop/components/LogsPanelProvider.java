@@ -45,9 +45,11 @@ public final class LogsPanelProvider implements Provider<JPanel> {
   @Override
   public JPanel get() {
     JPanel panel = new JPanel(new BorderLayout());
+    panel.setOpaque(false);
     panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
     JPanel header = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    header.setOpaque(false);
     header.add(new JLabel(MessageUtils.getLocalizedMessage("logs.label.see_also")));
 
     JLabel logPathLabel = new JLabel(LOG_FILE);
