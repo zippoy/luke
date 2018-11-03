@@ -17,7 +17,8 @@
 
 package org.apache.lucene.luke.app.desktop.components.dialog.search;
 
-import org.apache.lucene.luke.app.desktop.util.DialogOpener;
+import com.google.inject.Inject;
+import org.apache.lucene.luke.app.desktop.Preferences;
 import org.apache.lucene.luke.app.desktop.util.FontUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 import org.apache.lucene.search.Explanation;
@@ -44,7 +45,9 @@ import java.awt.datatransfer.StringSelection;
 import java.util.Objects;
 import java.util.stream.IntStream;
 
-public final class ExplainDialogProvider implements DialogOpener.DialogFactory {
+public final class ExplainDialogFactoryImpl implements ExplainDialogFactory {
+
+  private final Preferences prefs;
 
   private JDialog dialog;
 
@@ -52,10 +55,17 @@ public final class ExplainDialogProvider implements DialogOpener.DialogFactory {
 
   private Explanation explanation;
 
+  @Inject
+  public ExplainDialogFactoryImpl(Preferences prefs) {
+    this.prefs = prefs;
+  }
+
+  @Override
   public void setDocid(int docid) {
     this.docid = docid;
   }
 
+  @Override
   public void setExplanation(Explanation explanation) {
     this.explanation = explanation;
   }
@@ -70,23 +80,28 @@ public final class ExplainDialogProvider implements DialogOpener.DialogFactory {
     dialog.add(content());
     dialog.setSize(new Dimension(width, height));
     dialog.setLocationRelativeTo(owner);
+    dialog.getContentPane().setBackground(prefs.getColorTheme().getBackgroundColor());
     return dialog;
   }
 
   private JPanel content() {
     JPanel panel = new JPanel(new BorderLayout());
+    panel.setOpaque(false);
     panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
     JPanel header = new JPanel(new FlowLayout(FlowLayout.LEADING, 5, 10));
+    header.setOpaque(false);
     header.add(new JLabel(MessageUtils.getLocalizedMessage("search.explanation.description")));
     header.add(new JLabel(String.valueOf(docid)));
     panel.add(header, BorderLayout.PAGE_START);
 
     JPanel center = new JPanel(new GridLayout(1, 1));
+    center.setOpaque(false);
     center.add(new JScrollPane(createExplanationTree()));
     panel.add(center, BorderLayout.CENTER);
 
     JPanel footer = new JPanel(new FlowLayout(FlowLayout.TRAILING, 5, 5));
+    footer.setOpaque(false);
 
     JButton copyBtn = new JButton(FontUtils.elegantIconHtml("&#xe0e6;", MessageUtils.getLocalizedMessage("button.copy")));
     copyBtn.setMargin(new Insets(3, 3, 3, 3));

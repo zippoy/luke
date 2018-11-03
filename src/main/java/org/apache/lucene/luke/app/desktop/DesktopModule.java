@@ -20,11 +20,7 @@ package org.apache.lucene.luke.app.desktop;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.Provides;
-import com.google.inject.Singleton;
 import com.google.inject.name.Names;
-import org.apache.lucene.luke.app.DirectoryHandler;
-import org.apache.lucene.luke.app.IndexHandler;
 import org.apache.lucene.luke.app.LukeModule;
 import org.apache.lucene.luke.app.desktop.components.AnalysisPanelProvider;
 import org.apache.lucene.luke.app.desktop.components.CommitsPanelProvider;
@@ -38,20 +34,37 @@ import org.apache.lucene.luke.app.desktop.components.SearchPanelProvider;
 import org.apache.lucene.luke.app.desktop.components.TabSwitcherProxy;
 import org.apache.lucene.luke.app.desktop.components.TabbedPaneProvider;
 import org.apache.lucene.luke.app.desktop.components.dialog.ConfirmDialogFactory;
+import org.apache.lucene.luke.app.desktop.components.dialog.ConfirmDialogFactoryImpl;
 import org.apache.lucene.luke.app.desktop.components.dialog.HelpDialogFactory;
+import org.apache.lucene.luke.app.desktop.components.dialog.HelpDialogFactoryImpl;
 import org.apache.lucene.luke.app.desktop.components.dialog.analysis.AnalysisChainDialogFactory;
+import org.apache.lucene.luke.app.desktop.components.dialog.analysis.AnalysisChainDialogFactoryImpl;
 import org.apache.lucene.luke.app.desktop.components.dialog.analysis.EditFiltersDialogFactory;
+import org.apache.lucene.luke.app.desktop.components.dialog.analysis.EditFiltersDialogFactoryImpl;
 import org.apache.lucene.luke.app.desktop.components.dialog.analysis.EditParamsDialogFactory;
+import org.apache.lucene.luke.app.desktop.components.dialog.analysis.EditParamsDialogFactoryImpl;
 import org.apache.lucene.luke.app.desktop.components.dialog.analysis.TokenAttributeDialogFactory;
+import org.apache.lucene.luke.app.desktop.components.dialog.analysis.TokenAttributeDialogFactoryImpl;
 import org.apache.lucene.luke.app.desktop.components.dialog.documents.AddDocumentDialogFactory;
+import org.apache.lucene.luke.app.desktop.components.dialog.documents.AddDocumentDialogFactoryImpl;
 import org.apache.lucene.luke.app.desktop.components.dialog.documents.DocValuesDialogFactory;
+import org.apache.lucene.luke.app.desktop.components.dialog.documents.DocValuesDialogFactoryImpl;
 import org.apache.lucene.luke.app.desktop.components.dialog.documents.IndexOptionsDialogFactory;
+import org.apache.lucene.luke.app.desktop.components.dialog.documents.IndexOptionsDialogFactoryImpl;
 import org.apache.lucene.luke.app.desktop.components.dialog.documents.StoredValueDialogFactory;
+import org.apache.lucene.luke.app.desktop.components.dialog.documents.StoredValueDialogFactoryImpl;
 import org.apache.lucene.luke.app.desktop.components.dialog.documents.TermVectorDialogFactory;
+import org.apache.lucene.luke.app.desktop.components.dialog.documents.TermVectorDialogFactoryImpl;
 import org.apache.lucene.luke.app.desktop.components.dialog.menubar.AboutDialogFactory;
+import org.apache.lucene.luke.app.desktop.components.dialog.menubar.AboutDialogFactoryImpl;
 import org.apache.lucene.luke.app.desktop.components.dialog.menubar.CheckIndexDialogFactory;
+import org.apache.lucene.luke.app.desktop.components.dialog.menubar.CheckIndexDialogFactoryImpl;
 import org.apache.lucene.luke.app.desktop.components.dialog.menubar.OpenIndexDialogFactory;
+import org.apache.lucene.luke.app.desktop.components.dialog.menubar.OpenIndexDialogFactoryImpl;
 import org.apache.lucene.luke.app.desktop.components.dialog.menubar.OptimizeIndexDialogFactory;
+import org.apache.lucene.luke.app.desktop.components.dialog.menubar.OptimizeIndexDialogFactoryImpl;
+import org.apache.lucene.luke.app.desktop.components.dialog.search.ExplainDialogFactory;
+import org.apache.lucene.luke.app.desktop.components.dialog.search.ExplainDialogFactoryImpl;
 import org.apache.lucene.luke.app.desktop.components.fragments.analysis.CustomAnalyzerPanelProvider;
 import org.apache.lucene.luke.app.desktop.components.fragments.analysis.PresetAnalyzerPanelProvider;
 import org.apache.lucene.luke.app.desktop.components.fragments.search.AnalyzerPaneProvider;
@@ -60,7 +73,6 @@ import org.apache.lucene.luke.app.desktop.components.fragments.search.MLTPanePro
 import org.apache.lucene.luke.app.desktop.components.fragments.search.QueryParserPaneProvider;
 import org.apache.lucene.luke.app.desktop.components.fragments.search.SimilarityPaneProvider;
 import org.apache.lucene.luke.app.desktop.components.fragments.search.SortPaneProvider;
-import org.apache.lucene.luke.models.tools.IndexToolsFactory;
 
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
@@ -112,59 +124,22 @@ public final class DesktopModule extends AbstractModule {
 
     bind(JFrame.class).toProvider(LukeWindowProvider.class);
 
-    bind(IndexOptionsDialogFactory.class).toInstance(new IndexOptionsDialogFactory());
-    bind(TermVectorDialogFactory.class).toInstance(new TermVectorDialogFactory());
-    bind(DocValuesDialogFactory.class).toInstance(new DocValuesDialogFactory());
-    bind(StoredValueDialogFactory.class).toInstance(new StoredValueDialogFactory());
-    bind(AnalysisChainDialogFactory.class).toInstance(new AnalysisChainDialogFactory());
-    bind(TokenAttributeDialogFactory.class).toInstance(new TokenAttributeDialogFactory());
-    bind(AboutDialogFactory.class).toInstance(new AboutDialogFactory());
-    bind(HelpDialogFactory.class).toInstance(new HelpDialogFactory());
-    bind(ConfirmDialogFactory.class).toInstance(new ConfirmDialogFactory());
-  }
-
-  @Provides
-  @Singleton
-  public OpenIndexDialogFactory provideOpenIndexDialogFactory(
-      DirectoryHandler directoryHandler, IndexHandler indexHandler, Preferences prefs) {
-    return new OpenIndexDialogFactory(directoryHandler, indexHandler, prefs);
-  }
-
-  @Provides
-  @Singleton
-  public OptimizeIndexDialogFactory provideOptimizeIndexDialogFactory(
-      IndexToolsFactory indexToolsFactory, IndexHandler indexHandler) {
-    return new OptimizeIndexDialogFactory(indexToolsFactory, indexHandler);
-  }
-
-  @Provides
-  @Singleton
-  public CheckIndexDialogFactory provideCheckIndexDialogFactory(
-      IndexToolsFactory indexToolsFactory, IndexHandler indexHandler, DirectoryHandler directoryHandler) {
-    return new CheckIndexDialogFactory(indexToolsFactory, indexHandler, directoryHandler);
-  }
-
-  @Provides
-  @Singleton
-  public AddDocumentDialogFactory provideAddDocumentDialogFactory(
-      IndexOptionsDialogFactory indexOptionsDialogFactory, HelpDialogFactory helpDialogFactory,
-      IndexHandler indexHandler, IndexToolsFactory toolsFactory,
-      TabSwitcherProxy tabSwitcherProxy, ComponentOperatorRegistry operatorRegistry) {
-    return new AddDocumentDialogFactory(indexOptionsDialogFactory, helpDialogFactory, indexHandler, toolsFactory, tabSwitcherProxy, operatorRegistry);
-  }
-
-  @Provides
-  @Singleton
-  public EditFiltersDialogFactory provideEditFiltersDialogFactory(
-      ComponentOperatorRegistry operatorRegistry,
-      EditParamsDialogFactory editParamsDialogFactory) {
-    return new EditFiltersDialogFactory(operatorRegistry, editParamsDialogFactory);
-  }
-
-  @Provides
-  @Singleton
-  public EditParamsDialogFactory provideEditParamsDialogFactory(ComponentOperatorRegistry operatorRegistry) {
-    return new EditParamsDialogFactory(operatorRegistry);
+    bind(OpenIndexDialogFactory.class).to(OpenIndexDialogFactoryImpl.class);
+    bind(OptimizeIndexDialogFactory.class).to(OptimizeIndexDialogFactoryImpl.class);
+    bind(CheckIndexDialogFactory.class).to(CheckIndexDialogFactoryImpl.class);
+    bind(AddDocumentDialogFactory.class).to(AddDocumentDialogFactoryImpl.class);
+    bind(EditFiltersDialogFactory.class).to(EditFiltersDialogFactoryImpl.class);
+    bind(EditParamsDialogFactory.class).to(EditParamsDialogFactoryImpl.class);
+    bind(IndexOptionsDialogFactory.class).to(IndexOptionsDialogFactoryImpl.class);
+    bind(TermVectorDialogFactory.class).to(TermVectorDialogFactoryImpl.class);
+    bind(DocValuesDialogFactory.class).to(DocValuesDialogFactoryImpl.class);
+    bind(StoredValueDialogFactory.class).to(StoredValueDialogFactoryImpl.class);
+    bind(ExplainDialogFactory.class).to(ExplainDialogFactoryImpl.class);
+    bind(AnalysisChainDialogFactory.class).to(AnalysisChainDialogFactoryImpl.class);
+    bind(TokenAttributeDialogFactory.class).to(TokenAttributeDialogFactoryImpl.class);
+    bind(AboutDialogFactory.class).to(AboutDialogFactoryImpl.class);
+    bind(HelpDialogFactory.class).to(HelpDialogFactoryImpl.class);
+    bind(ConfirmDialogFactory.class).to(ConfirmDialogFactoryImpl.class);
   }
 
   private DesktopModule() {

@@ -132,11 +132,13 @@ public final class OverviewPanelProvider implements Provider<JPanel> {
 
   @Override
   public JPanel get() {
+    panel.setOpaque(false);
     panel.setLayout(new GridLayout(1, 1));
     panel.setBorder(BorderFactory.createLineBorder(Color.gray));
 
     JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, initUpperPanel(), initLowerPanel());
     splitPane.setDividerLocation(0.4);
+    splitPane.setOpaque(false);
     panel.add(splitPane);
 
     setUpTopTermsContextMenu();
@@ -146,6 +148,7 @@ public final class OverviewPanelProvider implements Provider<JPanel> {
 
   private JPanel initUpperPanel() {
     JPanel panel = new JPanel(new GridBagLayout());
+    panel.setOpaque(false);
     panel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
 
     GridBagConstraints c = new GridBagConstraints();
@@ -257,12 +260,14 @@ public final class OverviewPanelProvider implements Provider<JPanel> {
 
   private JPanel initLowerPanel() {
     JPanel panel = new JPanel(new BorderLayout());
+    panel.setOpaque(false);
 
     JLabel label = new JLabel(MessageUtils.getLocalizedMessage("overview.label.select_fields"));
     label.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
     panel.add(label, BorderLayout.PAGE_START);
 
     JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, initTermCountsPanel(), initTopTermsPanel());
+    splitPane.setOpaque(false);
     splitPane.setDividerLocation(320);
     splitPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
     panel.add(splitPane, BorderLayout.CENTER);
@@ -272,6 +277,7 @@ public final class OverviewPanelProvider implements Provider<JPanel> {
 
   private JPanel initTermCountsPanel() {
     JPanel panel = new JPanel(new BorderLayout());
+    panel.setOpaque(false);
 
     JLabel label = new JLabel(MessageUtils.getLocalizedMessage("overview.label.available_fields"));
     label.setBorder(BorderFactory.createEmptyBorder(0, 0, 5, 0));
@@ -287,19 +293,24 @@ public final class OverviewPanelProvider implements Provider<JPanel> {
     JScrollPane scrollPane = new JScrollPane(termCountsTable);
     panel.add(scrollPane, BorderLayout.CENTER);
 
+    panel.setOpaque(false);
     return panel;
   }
 
   private JPanel initTopTermsPanel() {
     JPanel panel = new JPanel(new GridLayout(1, 1));
+    panel.setOpaque(false);
 
     JPanel selectedPanel = new JPanel(new BorderLayout());
+    selectedPanel.setOpaque(false);
     JPanel innerPanel = new JPanel();
+    innerPanel.setOpaque(false);
     innerPanel.setLayout(new BoxLayout(innerPanel, BoxLayout.PAGE_AXIS));
     innerPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
     selectedPanel.add(innerPanel, BorderLayout.PAGE_START);
 
     JPanel innerPanel1 = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    innerPanel1.setOpaque(false);
     innerPanel1.add(new JLabel(MessageUtils.getLocalizedMessage("overview.label.selected_field")));
     innerPanel.add(innerPanel1);
 
@@ -309,6 +320,7 @@ public final class OverviewPanelProvider implements Provider<JPanel> {
     selectedField.setEditable(false);
     selectedField.setBackground(Color.white);
     JPanel innerPanel2 = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    innerPanel2.setOpaque(false);
     innerPanel2.add(selectedField);
     innerPanel.add(innerPanel2);
 
@@ -318,10 +330,12 @@ public final class OverviewPanelProvider implements Provider<JPanel> {
     showTopTermsBtn.addActionListener(listeners::showTopTerms);
     showTopTermsBtn.setEnabled(false);
     JPanel innerPanel3 = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    innerPanel3.setOpaque(false);
     innerPanel3.add(showTopTermsBtn);
     innerPanel.add(innerPanel3);
 
     JPanel innerPanel4 = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    innerPanel4.setOpaque(false);
     innerPanel4.add(new JLabel(MessageUtils.getLocalizedMessage("overview.label.num_top_terms")));
     innerPanel.add(innerPanel4);
 
@@ -329,10 +343,12 @@ public final class OverviewPanelProvider implements Provider<JPanel> {
     numTopTermsSpnr.setPreferredSize(new Dimension(80, 30));
     numTopTermsSpnr.setModel(numberModel);
     JPanel innerPanel5 = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    innerPanel5.setOpaque(false);
     innerPanel5.add(numTopTermsSpnr);
     innerPanel.add(innerPanel5);
 
     JPanel termsPanel = new JPanel(new BorderLayout());
+    termsPanel.setOpaque(false);
     JLabel label = new JLabel(MessageUtils.getLocalizedMessage("overview.label.top_terms"));
     label.setBorder(BorderFactory.createEmptyBorder(0, 0, 5, 0));
     termsPanel.add(label, BorderLayout.PAGE_START);
@@ -348,6 +364,7 @@ public final class OverviewPanelProvider implements Provider<JPanel> {
     termsPanel.add(scrollPane, BorderLayout.CENTER);
 
     JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, selectedPanel, termsPanel);
+    splitPane.setOpaque(false);
     splitPane.setDividerLocation(180);
     splitPane.setBorder(BorderFactory.createEmptyBorder());
     panel.add(splitPane);

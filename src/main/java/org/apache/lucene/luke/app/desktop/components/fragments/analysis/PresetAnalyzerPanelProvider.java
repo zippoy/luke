@@ -53,12 +53,14 @@ public final class PresetAnalyzerPanelProvider implements Provider<JPanel>, Pres
   @Override
   public JPanel get() {
     JPanel panel = new JPanel(new BorderLayout());
+    panel.setOpaque(false);
     panel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
 
     JLabel header = new JLabel(MessageUtils.getLocalizedMessage("analysis_preset.label.preset"));
     panel.add(header, BorderLayout.PAGE_START);
 
     JPanel center = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    center.setOpaque(false);
     center.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
     center.setPreferredSize(new Dimension(400, 40));
     analyzersCB.addActionListener(listeners::setAnalyzer);

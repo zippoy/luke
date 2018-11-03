@@ -21,7 +21,10 @@ import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.name.Names;
 import org.apache.lucene.luke.app.desktop.components.dialog.menubar.OpenIndexDialogFactory;
+import org.apache.lucene.luke.app.desktop.components.dialog.menubar.OpenIndexDialogFactoryImpl;
+import org.apache.lucene.luke.app.desktop.util.DialogOpener;
 import org.apache.lucene.luke.app.desktop.util.FontUtils;
+import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 import org.apache.lucene.luke.app.desktop.util.TextAreaAppender;
 
 import javax.swing.JFrame;
@@ -59,7 +62,11 @@ public class LukeMain {
     frame.pack();
     frame.setVisible(true);
 
-    OpenIndexDialogFactory.showOpenIndexDialog();
+    // show open index dialog
+    OpenIndexDialogFactory openIndexDialogFactory = injector.getInstance(OpenIndexDialogFactory.class);
+    new DialogOpener<>(openIndexDialogFactory).open(MessageUtils.getLocalizedMessage("openindex.dialog.title"), 600, 420,
+        (factory) -> {
+        });
   }
 
   public static void main(String[] args) throws Exception {

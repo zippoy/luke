@@ -29,7 +29,8 @@ import org.apache.lucene.luke.app.IndexObserver;
 import org.apache.lucene.luke.app.LukeState;
 import org.apache.lucene.luke.app.desktop.MessageBroker;
 import org.apache.lucene.luke.app.desktop.components.dialog.ConfirmDialogFactory;
-import org.apache.lucene.luke.app.desktop.components.dialog.search.ExplainDialogProvider;
+import org.apache.lucene.luke.app.desktop.components.dialog.search.ExplainDialogFactory;
+import org.apache.lucene.luke.app.desktop.components.dialog.search.ExplainDialogFactoryImpl;
 import org.apache.lucene.luke.app.desktop.components.fragments.search.FieldValuesTabOperator;
 import org.apache.lucene.luke.app.desktop.components.fragments.search.MLTTabOperator;
 import org.apache.lucene.luke.app.desktop.components.fragments.search.QueryParserTabOperator;
@@ -107,7 +108,7 @@ public final class SearchPanelProvider implements Provider<JPanel>, SearchTabOpe
 
   private final ConfirmDialogFactory confirmDialogFactory;
 
-  private final ExplainDialogProvider explainDialogProvider;
+  private final ExplainDialogFactory explainDialogProvider;
 
   private final JTabbedPane tabbedPane = new JTabbedPane();
 
@@ -167,7 +168,7 @@ public final class SearchPanelProvider implements Provider<JPanel>, SearchTabOpe
                              TabSwitcherProxy tabSwitcher,
                              ComponentOperatorRegistry operatorRegistry,
                              ConfirmDialogFactory confirmDialogFactory,
-                             ExplainDialogProvider explainDialogProvider,
+                             ExplainDialogFactory explainDialogProvider,
                              @Named("search_qparser") JScrollPane qparser,
                              @Named("search_analyzer") JScrollPane analyzer,
                              @Named("search_similarity") JScrollPane similarity,
@@ -196,9 +197,11 @@ public final class SearchPanelProvider implements Provider<JPanel>, SearchTabOpe
   @Override
   public JPanel get() {
     JPanel panel = new JPanel(new GridLayout(1, 1));
+    panel.setOpaque(false);
     panel.setBorder(BorderFactory.createLineBorder(Color.gray));
 
     JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, initUpperPanel(), initLowerPanel());
+    splitPane.setOpaque(false);
     splitPane.setDividerLocation(350);
     panel.add(splitPane);
 
@@ -207,12 +210,14 @@ public final class SearchPanelProvider implements Provider<JPanel>, SearchTabOpe
 
   private JSplitPane initUpperPanel() {
     JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, initQuerySettingsPane(), initQueryPane());
+    splitPane.setOpaque(false);
     splitPane.setDividerLocation(570);
     return splitPane;
   }
 
   private JPanel initQuerySettingsPane() {
     JPanel panel = new JPanel(new BorderLayout());
+    panel.setOpaque(false);
     panel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
 
     JLabel label = new JLabel(MessageUtils.getLocalizedMessage("search.label.settings"));
@@ -224,6 +229,7 @@ public final class SearchPanelProvider implements Provider<JPanel>, SearchTabOpe
     tabbedPane.addTab("Sort", sort);
     tabbedPane.addTab("Field Values", values);
     tabbedPane.addTab("More Like This", mlt);
+    tabbedPane.setOpaque(false);
     panel.add(tabbedPane, BorderLayout.CENTER);
 
     return panel;
@@ -231,6 +237,7 @@ public final class SearchPanelProvider implements Provider<JPanel>, SearchTabOpe
 
   private JPanel initQueryPane() {
     JPanel panel = new JPanel(new GridBagLayout());
+    panel.setOpaque(false);
     panel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
     GridBagConstraints c = new GridBagConstraints();
     c.fill = GridBagConstraints.HORIZONTAL;
@@ -323,6 +330,7 @@ public final class SearchPanelProvider implements Provider<JPanel>, SearchTabOpe
     panel.add(mltBtn, c);
 
     JPanel docNo = new JPanel(new FlowLayout());
+    docNo.setOpaque(false);
     JLabel docNoLabel = new JLabel("with doc #");
     docNo.add(docNoLabel);
     mltDocFTF.setColumns(3);
@@ -340,6 +348,7 @@ public final class SearchPanelProvider implements Provider<JPanel>, SearchTabOpe
 
   private JPanel initLowerPanel() {
     JPanel panel = new JPanel(new BorderLayout());
+    panel.setOpaque(false);
     panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
     panel.add(initSearchResultsHeaderPane(), BorderLayout.PAGE_START);
@@ -350,6 +359,7 @@ public final class SearchPanelProvider implements Provider<JPanel>, SearchTabOpe
 
   private JPanel initSearchResultsHeaderPane() {
     JPanel panel = new JPanel(new GridLayout(1, 2));
+    panel.setOpaque(false);
 
     JLabel label = new JLabel(FontUtils.elegantIconHtml("&#xe025;", MessageUtils.getLocalizedMessage("search.label.results")));
     label.setHorizontalTextPosition(JLabel.LEFT);
@@ -357,6 +367,8 @@ public final class SearchPanelProvider implements Provider<JPanel>, SearchTabOpe
     panel.add(label);
 
     JPanel resultsInfo = new JPanel(new FlowLayout(FlowLayout.TRAILING));
+    resultsInfo.setOpaque(false);
+    resultsInfo.setOpaque(false);
 
     JLabel totalLabel = new JLabel(MessageUtils.getLocalizedMessage("search.label.total"));
     resultsInfo.add(totalLabel);
@@ -365,7 +377,8 @@ public final class SearchPanelProvider implements Provider<JPanel>, SearchTabOpe
     resultsInfo.add(totalHitsLbl);
 
     prevBtn.setText(FontUtils.elegantIconHtml("&#x44;"));
-    prevBtn.setMargin(new Insets(3, 3, 3, 3));
+    prevBtn.setMargin(new Insets(5, 0, 5, 0));
+    prevBtn.setPreferredSize(new Dimension(30, 20));
     prevBtn.setEnabled(false);
     prevBtn.addActionListener(listeners::prevPage);
     resultsInfo.add(prevBtn);
@@ -379,7 +392,8 @@ public final class SearchPanelProvider implements Provider<JPanel>, SearchTabOpe
     resultsInfo.add(endLbl);
 
     nextBtn.setText(FontUtils.elegantIconHtml("&#x45;"));
-    nextBtn.setMargin(new Insets(3, 3, 3, 3));
+    nextBtn.setMargin(new Insets(3, 0, 3, 0));
+    nextBtn.setPreferredSize(new Dimension(30, 20));
     nextBtn.setEnabled(false);
     nextBtn.addActionListener(listeners::nextPage);
     resultsInfo.add(nextBtn);
@@ -389,7 +403,7 @@ public final class SearchPanelProvider implements Provider<JPanel>, SearchTabOpe
     resultsInfo.add(sep);
 
     delBtn.setText(FontUtils.elegantIconHtml("&#xe07d;", MessageUtils.getLocalizedMessage("search.button.del_all")));
-    delBtn.setMargin(new Insets(3, 3, 3, 3));
+    delBtn.setMargin(new Insets(5, 0, 5, 0));
     delBtn.setEnabled(false);
     delBtn.addActionListener(listeners::confirmDeletion);
     resultsInfo.add(delBtn);
@@ -401,8 +415,10 @@ public final class SearchPanelProvider implements Provider<JPanel>, SearchTabOpe
 
   private JPanel initSearchResultsTablePane() {
     JPanel panel = new JPanel(new BorderLayout());
+    panel.setOpaque(false);
 
     JPanel note = new JPanel(new FlowLayout(FlowLayout.LEADING, 5, 2));
+    note.setOpaque(false);
     note.add(new JLabel(MessageUtils.getLocalizedMessage("search.label.results.note")));
     panel.add(note, BorderLayout.PAGE_START);
 

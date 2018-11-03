@@ -49,7 +49,7 @@ public class FontUtils {
    * @param iconRef HTML numeric character reference of the icon
    */
   public static String elegantIconHtml(String iconRef) {
-    return "<html><font face=\"ElegantIcons\">" + iconRef + "</font>";
+    return "<html><font face=\"ElegantIcons\">" + iconRef + "</font></html>";
   }
 
   /**

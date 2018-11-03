@@ -59,16 +59,21 @@ public final class SimilarityPaneProvider implements Provider<JScrollPane>, Simi
   @Override
   public JScrollPane get() {
     JPanel panel = new JPanel();
+    panel.setOpaque(false);
     panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
     panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
     panel.add(initSimilaritySettingsPanel());
 
-    return new JScrollPane(panel);
+    JScrollPane scrollPane = new JScrollPane(panel);
+    scrollPane.setOpaque(false);
+    scrollPane.getViewport().setOpaque(false);
+    return scrollPane;
   }
 
   private JPanel initSimilaritySettingsPanel() {
     JPanel panel = new JPanel(new GridLayout(4, 1));
+    panel.setOpaque(false);
     panel.setMaximumSize(new Dimension(700, 220));
 
     tfidfCB.setText(MessageUtils.getLocalizedMessage("search_similarity.checkbox.use_classic"));
@@ -83,9 +88,11 @@ public final class SimilarityPaneProvider implements Provider<JScrollPane>, Simi
     panel.add(bm25Label);
 
     JPanel bm25Params = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    bm25Params.setOpaque(false);
     bm25Params.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
 
     JPanel k1Val = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    k1Val.setOpaque(false);
     k1Val.add(new JLabel("k1: "));
     k1FTF.setColumns(5);
     k1FTF.setValue(config.getK1());
@@ -94,6 +101,7 @@ public final class SimilarityPaneProvider implements Provider<JScrollPane>, Simi
     bm25Params.add(k1Val);
 
     JPanel bVal = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    bVal.setOpaque(false);
     bVal.add(new JLabel("b: "));
     bFTF.setColumns(5);
     bFTF.setValue(config.getB());

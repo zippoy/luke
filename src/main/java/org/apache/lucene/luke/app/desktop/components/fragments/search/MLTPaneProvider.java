@@ -84,6 +84,7 @@ public final class MLTPaneProvider implements Provider<JScrollPane>, MLTTabOpera
   @Override
   public JScrollPane get() {
     JPanel panel = new JPanel();
+    panel.setOpaque(false);
     panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
     panel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
 
@@ -93,13 +94,18 @@ public final class MLTPaneProvider implements Provider<JScrollPane>, MLTTabOpera
     panel.add(new JSeparator(JSeparator.HORIZONTAL));
     panel.add(initFieldsSettingsPanel());
 
-    return new JScrollPane(panel);
+    JScrollPane scrollPane = new JScrollPane(panel);
+    scrollPane.setOpaque(false);
+    scrollPane.getViewport().setOpaque(false);
+    return scrollPane;
   }
 
   private JPanel initMltParamsPanel() {
     JPanel panel = new JPanel(new GridLayout(3, 1));
+    panel.setOpaque(false);
 
     JPanel maxDocFreq = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    maxDocFreq.setOpaque(false);
     maxDocFreq.add(new JLabel(MessageUtils.getLocalizedMessage("search_mlt.label.max_doc_freq")));
     maxDocFreqFTF.setColumns(10);
     maxDocFreqFTF.setValue(config.getMaxDocFreq());
@@ -108,6 +114,7 @@ public final class MLTPaneProvider implements Provider<JScrollPane>, MLTTabOpera
     panel.add(maxDocFreq);
 
     JPanel minDocFreq = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    minDocFreq.setOpaque(false);
     minDocFreq.add(new JLabel(MessageUtils.getLocalizedMessage("search_mlt.label.min_doc_freq")));
     minDocFreqFTF.setColumns(5);
     minDocFreqFTF.setValue(config.getMinDocFreq());
@@ -117,6 +124,7 @@ public final class MLTPaneProvider implements Provider<JScrollPane>, MLTTabOpera
     panel.add(minDocFreq);
 
     JPanel minTermFreq = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    minTermFreq.setOpaque(false);
     minTermFreq.add(new JLabel(MessageUtils.getLocalizedMessage("serach_mlt.label.min_term_freq")));
     minTermFreqFTF.setColumns(5);
     minTermFreqFTF.setValue(config.getMinTermFreq());
@@ -129,6 +137,7 @@ public final class MLTPaneProvider implements Provider<JScrollPane>, MLTTabOpera
 
   private JPanel initAnalyzerNamePanel() {
     JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    panel.setOpaque(false);
 
     panel.add(new JLabel(MessageUtils.getLocalizedMessage("search_mlt.label.analyzer")));
 
@@ -148,10 +157,12 @@ public final class MLTPaneProvider implements Provider<JScrollPane>, MLTTabOpera
 
   private JPanel initFieldsSettingsPanel() {
     JPanel panel = new JPanel(new BorderLayout());
+    panel.setOpaque(false);
     panel.setPreferredSize(new Dimension(500, 300));
     panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
     JPanel header = new JPanel(new GridLayout(2, 1));
+    header.setOpaque(false);
     header.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
     header.add(new JLabel(MessageUtils.getLocalizedMessage("search_mlt.label.description")));
     loadAllCB.setText(MessageUtils.getLocalizedMessage("search_mlt.checkbox.select_all"));

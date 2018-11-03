@@ -31,20 +31,26 @@ import org.apache.lucene.luke.app.desktop.components.dialog.menubar.OpenIndexDia
 import org.apache.lucene.luke.app.desktop.components.dialog.menubar.OptimizeIndexDialogFactory;
 import org.apache.lucene.luke.app.desktop.util.DialogOpener;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
+import org.apache.lucene.luke.models.LukeException;
 import org.apache.lucene.util.Version;
 
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import java.awt.event.ActionEvent;
+import java.io.IOException;
 
 public final class MenuBarProvider implements Provider<JMenuBar> {
 
   private final Preferences prefs;
 
+  private final ComponentOperatorRegistry operatorRegistry;
+
   private final DirectoryHandler directoryHandler;
 
   private final IndexHandler indexHandler;
+
+  private final OpenIndexDialogFactory openIndexDialogFactory;
 
   private final OptimizeIndexDialogFactory optimizeIndexDialogFactory;
 
@@ -77,13 +83,17 @@ public final class MenuBarProvider implements Provider<JMenuBar> {
   private final ListenerFunctions listeners = new ListenerFunctions();
 
   @Inject
-  public MenuBarProvider(Preferences prefs, DirectoryHandler directoryHandler, IndexHandler indexHandler,
+  public MenuBarProvider(Preferences prefs, ComponentOperatorRegistry operatorRegistry,
+                         DirectoryHandler directoryHandler, IndexHandler indexHandler,
+                         OpenIndexDialogFactory openIndexDialogFactory,
                          OptimizeIndexDialogFactory optimizeIndexDialogFactory,
                          CheckIndexDialogFactory checkIndexDialogFactory,
                          AboutDialogFactory aboutDialogFactory) {
     this.prefs = prefs;
+    this.operatorRegistry = operatorRegistry;
     this.directoryHandler = directoryHandler;
     this.indexHandler = indexHandler;
+    this.openIndexDialogFactory = openIndexDialogFactory;
     this.optimizeIndexDialogFactory = optimizeIndexDialogFactory;
     this.checkIndexDialogFactory = checkIndexDialogFactory;
     this.aboutDialogFactory = aboutDialogFactory;
@@ -125,12 +135,16 @@ public final class MenuBarProvider implements Provider<JMenuBar> {
     JMenu settingsMenu = new JMenu(MessageUtils.getLocalizedMessage("menu.settings"));
     JMenu themeMenu = new JMenu(MessageUtils.getLocalizedMessage("menu.color"));
     grayThemeMItem.setText(MessageUtils.getLocalizedMessage("menu.item.theme_gray"));
+    grayThemeMItem.addActionListener(listeners::changeThemeToGray);
     themeMenu.add(grayThemeMItem);
     classicThemeMItem.setText(MessageUtils.getLocalizedMessage("menu.item.theme_classic"));
+    classicThemeMItem.addActionListener(listeners::changeThemeToClassic);
     themeMenu.add(classicThemeMItem);
     sandstoneThemeMItem.setText(MessageUtils.getLocalizedMessage("menu.item.theme_sandstone"));
+    sandstoneThemeMItem.addActionListener(listeners::changeThemeToSandstone);
     themeMenu.add(sandstoneThemeMItem);
     navyThemeMItem.setText(MessageUtils.getLocalizedMessage("menu.item.theme_navy"));
+    navyThemeMItem.addActionListener(listeners::changeThemeToNavy);
     themeMenu.add(navyThemeMItem);
     settingsMenu.add(themeMenu);
     fileMenu.add(settingsMenu);
@@ -168,7 +182,9 @@ public final class MenuBarProvider implements Provider<JMenuBar> {
   private class ListenerFunctions {
 
     void showOpenIndexDialog(ActionEvent e) {
-      OpenIndexDialogFactory.showOpenIndexDialog();
+      new DialogOpener<>(openIndexDialogFactory).open(MessageUtils.getLocalizedMessage("openindex.dialog.title"), 600, 420,
+          (factory) -> {
+          });
     }
 
     void reopenIndex(ActionEvent e) {
@@ -177,6 +193,31 @@ public final class MenuBarProvider implements Provider<JMenuBar> {
 
     void closeIndex(ActionEvent e) {
       close();
+    }
+
+    void changeThemeToGray(ActionEvent e) {
+      changeTheme(Preferences.ColorTheme.GRAY);
+    }
+
+    void changeThemeToClassic(ActionEvent e) {
+      changeTheme(Preferences.ColorTheme.CLASSIC);
+    }
+
+    void changeThemeToSandstone(ActionEvent e) {
+      changeTheme(Preferences.ColorTheme.SANDSTONE);
+    }
+
+    void changeThemeToNavy(ActionEvent e) {
+      changeTheme(Preferences.ColorTheme.NAVY);
+    }
+
+    private void changeTheme(Preferences.ColorTheme theme) {
+      try {
+        prefs.setColorTheme(theme);
+        operatorRegistry.get(LukeWindowOperator.class).ifPresent(operator -> operator.setColorTheme(theme));
+      } catch (IOException e) {
+        throw new LukeException("Failed to set color theme : " + theme.name(), e);
+      }
     }
 
     void exit(ActionEvent e) {

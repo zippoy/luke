@@ -18,6 +18,8 @@
 package org.apache.lucene.luke.app;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.Scope;
+import com.google.inject.Singleton;
 import org.apache.lucene.luke.app.desktop.Preferences;
 import org.apache.lucene.luke.app.desktop.PreferencesImpl;
 import org.apache.lucene.luke.models.analysis.AnalysisFactory;
@@ -41,7 +43,7 @@ public final class LukeModule extends AbstractModule {
     bind(DirectoryHandler.class).toInstance(new DirectoryHandler());
     bind(IndexHandler.class).toInstance(new IndexHandler());
 
-    bind(Preferences.class).to(PreferencesImpl.class);
+    bind(Preferences.class).to(PreferencesImpl.class).in(Singleton.class);
   }
 
 }

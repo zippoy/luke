@@ -15,14 +15,10 @@
  * limitations under the License.
  */
 
-package org.apache.lucene.luke.app.desktop.components.dialog;
+package org.apache.lucene.luke.app.desktop.components;
 
-import org.apache.lucene.luke.app.desktop.util.DialogOpener;
+import org.apache.lucene.luke.app.desktop.Preferences;
 
-import javax.swing.JComponent;
-
-public interface HelpDialogFactory extends DialogOpener.DialogFactory {
-  void setDesc(String desc);
-
-  void setContent(JComponent helpContent);
+public interface LukeWindowOperator extends ComponentOperatorRegistry.ComponentOperator {
+  void setColorTheme(Preferences.ColorTheme theme);
 }

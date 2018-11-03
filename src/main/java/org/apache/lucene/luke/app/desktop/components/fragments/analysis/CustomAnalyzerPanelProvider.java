@@ -24,7 +24,9 @@ import org.apache.lucene.luke.app.desktop.MessageBroker;
 import org.apache.lucene.luke.app.desktop.components.AnalysisTabOperator;
 import org.apache.lucene.luke.app.desktop.components.ComponentOperatorRegistry;
 import org.apache.lucene.luke.app.desktop.components.dialog.analysis.EditFiltersDialogFactory;
+import org.apache.lucene.luke.app.desktop.components.dialog.analysis.EditFiltersMode;
 import org.apache.lucene.luke.app.desktop.components.dialog.analysis.EditParamsDialogFactory;
+import org.apache.lucene.luke.app.desktop.components.dialog.analysis.EditParamsMode;
 import org.apache.lucene.luke.app.desktop.util.DialogOpener;
 import org.apache.lucene.luke.app.desktop.util.FontUtils;
 import org.apache.lucene.luke.app.desktop.util.ListUtils;
@@ -141,6 +143,7 @@ public final class CustomAnalyzerPanelProvider implements Provider<JPanel>, Cust
   public JPanel get() {
     if (containerPanel == null) {
       containerPanel = new JPanel();
+      containerPanel.setOpaque(false);
       containerPanel.setLayout(new BorderLayout());
       containerPanel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
 
@@ -153,6 +156,7 @@ public final class CustomAnalyzerPanelProvider implements Provider<JPanel>, Cust
 
   private JPanel initCustomAnalyzerHeaderPanel() {
     JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEADING));
+    panel.setOpaque(false);
 
     panel.add(new JLabel(MessageUtils.getLocalizedMessage("analysis.label.config_dir")));
     confDirTF.setColumns(30);
@@ -182,6 +186,7 @@ public final class CustomAnalyzerPanelProvider implements Provider<JPanel>, Cust
 
   private JPanel initCustomAnalyzerChainPanel() {
     JPanel panel = new JPanel(new GridLayout(1, 1));
+    panel.setOpaque(false);
     panel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
 
     panel.add(initCustomChainConfigPanel());
@@ -191,6 +196,7 @@ public final class CustomAnalyzerPanelProvider implements Provider<JPanel>, Cust
 
   private JPanel initCustomChainConfigPanel() {
     JPanel panel = new JPanel(new GridBagLayout());
+    panel.setOpaque(false);
     panel.setBorder(BorderFactory.createLineBorder(Color.black));
 
     GridBagConstraints c = new GridBagConstraints();
@@ -316,7 +322,7 @@ public final class CustomAnalyzerPanelProvider implements Provider<JPanel>, Cust
     c.fill = GridBagConstraints.NONE;
     c.gridx = 7;
     c.gridy = 4;
-    c.gridwidth = 1;
+    c.gridwidth = 2;
     c.gridheight = 1;
     c.weightx = 0.1;
     c.weighty = 0.5;
@@ -390,7 +396,7 @@ public final class CustomAnalyzerPanelProvider implements Provider<JPanel>, Cust
     c.fill = GridBagConstraints.NONE;
     c.gridx = 7;
     c.gridy = 8;
-    c.gridwidth = 1;
+    c.gridwidth = 2;
     c.gridheight = 1;
     c.weightx = 0.1;
     c.weighty = 0.5;
@@ -489,7 +495,7 @@ public final class CustomAnalyzerPanelProvider implements Provider<JPanel>, Cust
     assert selectedCfList.getModel().getSize() == cfParamsList.size();
 
     showEditParamsDialog(MessageUtils.getLocalizedMessage("analysis.dialog.title.char_filter_params"),
-        EditParamsDialogFactory.EditParamsMode.CHARFILTER, targetIndex, selectedItem, cfParamsList.get(cfParamsList.size() - 1),
+        EditParamsMode.CHARFILTER, targetIndex, selectedItem, cfParamsList.get(cfParamsList.size() - 1),
         () -> {
           selectedCfList.setModel(new DefaultComboBoxModel<>(updatedList.toArray(new String[0])));
           cfFactoryCombo.setSelectedItem("");
@@ -505,7 +511,7 @@ public final class CustomAnalyzerPanelProvider implements Provider<JPanel>, Cust
 
     String selectedItem = (String) tokFactoryCombo.getSelectedItem();
     showEditParamsDialog(MessageUtils.getLocalizedMessage("analysis.dialog.title.tokenizer_params"),
-        EditParamsDialogFactory.EditParamsMode.TOKENIZER, -1, selectedItem, Collections.emptyMap(),
+        EditParamsMode.TOKENIZER, -1, selectedItem, Collections.emptyMap(),
         () -> {
           selectedTokTF.setText(selectedItem);
           tokFactoryCombo.setSelectedItem("");
@@ -527,7 +533,7 @@ public final class CustomAnalyzerPanelProvider implements Provider<JPanel>, Cust
     assert selectedTfList.getModel().getSize() == tfParamsList.size();
 
     showEditParamsDialog(MessageUtils.getLocalizedMessage("analysis.dialog.title.token_filter_params"),
-        EditParamsDialogFactory.EditParamsMode.TOKENFILTER, targetIndex, selectedItem, tfParamsList.get(tfParamsList.size() - 1),
+        EditParamsMode.TOKENFILTER, targetIndex, selectedItem, tfParamsList.get(tfParamsList.size() - 1),
         () -> {
           selectedTfList.setModel(new DefaultComboBoxModel<>(updatedList.toArray(new String[updatedList.size()])));
           tfFactoryCombo.setSelectedItem("");
@@ -536,7 +542,7 @@ public final class CustomAnalyzerPanelProvider implements Provider<JPanel>, Cust
         });
   }
 
-  private void showEditParamsDialog(String title, EditParamsDialogFactory.EditParamsMode mode, int targetIndex, String selectedItem, Map<String, String> params, Callable callback) {
+  private void showEditParamsDialog(String title, EditParamsMode mode, int targetIndex, String selectedItem, Map<String, String> params, Callable callback) {
     new DialogOpener<>(editParamsDialogFactory).open(title, 400, 300,
         (factory) -> {
           factory.setMode(mode);
@@ -549,7 +555,7 @@ public final class CustomAnalyzerPanelProvider implements Provider<JPanel>, Cust
 
   private void editCharFilters() {
     List<String> filters = ListUtils.getAllItems(selectedCfList);
-    showEditFiltersDialog(EditFiltersDialogFactory.EditFiltersMode.CHARFILTER, filters,
+    showEditFiltersDialog(EditFiltersMode.CHARFILTER, filters,
         () -> {
           cfEditBtn.setEnabled(selectedCfList.getModel().getSize() > 0);
           buildBtn.setEnabled(true);
@@ -559,22 +565,22 @@ public final class CustomAnalyzerPanelProvider implements Provider<JPanel>, Cust
   private void editTokenizer() {
     String selectedItem = selectedTokTF.getText();
     showEditParamsDialog(MessageUtils.getLocalizedMessage("analysis.dialog.title.tokenizer_params"),
-        EditParamsDialogFactory.EditParamsMode.TOKENIZER, -1, selectedItem, tokParams, () -> {
+        EditParamsMode.TOKENIZER, -1, selectedItem, tokParams, () -> {
           buildBtn.setEnabled(true);
         });
   }
 
   private void editTokenFilters() {
     List<String> filters = ListUtils.getAllItems(selectedTfList);
-    showEditFiltersDialog(EditFiltersDialogFactory.EditFiltersMode.TOKENFILTER, filters,
+    showEditFiltersDialog(EditFiltersMode.TOKENFILTER, filters,
         () -> {
           tfEditBtn.setEnabled(selectedTfList.getModel().getSize() > 0);
           buildBtn.setEnabled(true);
         });
   }
 
-  private void showEditFiltersDialog(EditFiltersDialogFactory.EditFiltersMode mode, List<String> selectedFilters, Callable callback) {
-    String title = (mode == EditFiltersDialogFactory.EditFiltersMode.CHARFILTER) ?
+  private void showEditFiltersDialog(EditFiltersMode mode, List<String> selectedFilters, Callable callback) {
+    String title = (mode == EditFiltersMode.CHARFILTER) ?
         MessageUtils.getLocalizedMessage("analysis.dialog.title.selected_char_filter") :
         MessageUtils.getLocalizedMessage("analysis.dialog.title.selected_token_filter");
     new DialogOpener<>(editFiltersDialogFactory).open(title, 400, 300,

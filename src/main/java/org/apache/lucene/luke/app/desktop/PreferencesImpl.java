@@ -83,17 +83,17 @@ public final class PreferencesImpl implements Preferences {
     return FileSystems.getDefault().getPath(CONFIG_DIR, HISTORY_FILE);
   }
 
-  /*@Override
-  public LukeController.ColorTheme getTheme() {
-    FIELD theme = ini.get("settings", "theme");
-    return (theme == null) ? LukeController.ColorTheme.GRAY : LukeController.ColorTheme.valueOf(theme);
-  }*/
+  @Override
+  public ColorTheme getColorTheme() {
+    String theme = ini.get("settings", "theme", String.class);
+    return (theme == null) ? ColorTheme.GRAY : ColorTheme.valueOf(theme);
+  }
 
-  /*@Override
-  public void setTheme(LukeController.ColorTheme theme) throws IOException {
+  @Override
+  public void setColorTheme(ColorTheme theme) throws IOException {
     ini.put("settings", "theme", theme.name());
     ini.store(iniFile());
-  }*/
+  }
 
   @Override
   public boolean isReadOnly() {
