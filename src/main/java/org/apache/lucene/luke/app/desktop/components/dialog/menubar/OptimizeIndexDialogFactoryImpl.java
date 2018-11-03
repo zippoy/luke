@@ -209,8 +209,6 @@ public final class OptimizeIndexDialogFactoryImpl implements OptimizeIndexDialog
           try {
             ps = new TextAreaPrintStream(logArea, new ByteArrayOutputStream(), StandardCharsets.UTF_8, logger);
             toolsModel.optimize(expungeCB.isSelected(), (int) maxSegSpnr.getValue(), ps);
-            statusLbl.setText("Done");
-            indexHandler.reOpen();
             ps.flush();
           } catch (UnsupportedEncodingException e) {
             // will not reach
@@ -226,6 +224,8 @@ public final class OptimizeIndexDialogFactoryImpl implements OptimizeIndexDialog
         @Override
         protected void done() {
           indicatorLbl.setVisible(false);
+          statusLbl.setText("Done");
+          indexHandler.reOpen();
         }
       };
 

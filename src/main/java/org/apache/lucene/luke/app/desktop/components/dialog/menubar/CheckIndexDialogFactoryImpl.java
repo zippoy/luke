@@ -262,7 +262,6 @@ public final class CheckIndexDialogFactoryImpl implements CheckIndexDialogFactor
           try {
             ps = new TextAreaPrintStream(logArea, new ByteArrayOutputStream(), StandardCharsets.UTF_8, logger);
             CheckIndex.Status status = toolsModel.checkIndex(ps);
-            statusLbl.setText("Done");
             ps.flush();
             return status;
           } catch (UnsupportedEncodingException e) {
@@ -282,6 +281,7 @@ public final class CheckIndexDialogFactoryImpl implements CheckIndexDialogFactor
             CheckIndex.Status st = get();
             resultLbl.setText(createResultsMessage(st));
             indicatorLbl.setVisible(false);
+            statusLbl.setText("Done");
             if (!st.clean) {
               repairBtn.setEnabled(true);
             }
