@@ -179,7 +179,7 @@ public final class OptimizeIndexDialogFactoryImpl implements OptimizeIndexDialog
     header.add(new JLabel(MessageUtils.getLocalizedMessage("optimize.label.note")));
     JPanel status = new JPanel(new FlowLayout(FlowLayout.LEADING));
     status.setOpaque(false);
-    status.add(new JLabel(MessageUtils.getLocalizedMessage("optimize.label.status")));
+    status.add(new JLabel(MessageUtils.getLocalizedMessage("label.status")));
     statusLbl.setText("Idle");
     status.add(statusLbl);
     indicatorLbl.setVisible(false);

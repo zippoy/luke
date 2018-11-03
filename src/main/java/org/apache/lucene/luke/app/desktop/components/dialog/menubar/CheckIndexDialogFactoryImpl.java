@@ -202,7 +202,7 @@ public final class CheckIndexDialogFactoryImpl implements CheckIndexDialogFactor
 
     JPanel status = new JPanel(new FlowLayout(FlowLayout.LEADING));
     status.setOpaque(false);
-    status.add(new JLabel(MessageUtils.getLocalizedMessage("checkidx.label.status")));
+    status.add(new JLabel(MessageUtils.getLocalizedMessage("label.status")));
     statusLbl.setText("Idle");
     status.add(statusLbl);
     indicatorLbl.setVisible(false);
