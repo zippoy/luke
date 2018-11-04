@@ -51,7 +51,7 @@ In no particular order:
 
 Intro video about features
 ====
-This lightning talk was delivered by Dmitry Kan on ApacheCon 2015 in Austin, Texas.
+This lightning talk was delivered by [Dmitry Kan](https://github.com/DmitryKey) on ApacheCon 2015 in Austin, Texas.
 [![ScreenShot](https://github.com/DmitryKey/luke/blob/master/docs/img/ApacheCon_Luke_lightning_talk.png)](https://www.youtube.com/watch?list=PLGeM09tlguZTaS5FNoJGYEohaubtIvErS&v=fQAAzpk4oQ4#t=392)
 
 Brief project history
@@ -59,7 +59,7 @@ Brief project history
 
 * The original author is [Andrzej Bialecki](https://code.google.com/p/luke)
 * The project has been mavenized by Neil Ireson (see google group discussion [here](http://bit.ly/16Y8utO))
-* The project has been ported to Lucene trunk (marked as 5.0 at the time) by Dmitry Kan
+* The project has been ported to Lucene trunk (marked as 5.0 at the time) by [Dmitry Kan](https://github.com/DmitryKey)
 * The project has been back-ported to Lucene 4.3 by sonarname, who later decided not to continue supporting the project
 * There are updates to the (non-mavenized) project done by [tarzanek](https://github.com/tarzanek/luke)
 * The UI (and core components) has been re-implemented on top of JavaFX / Swing by [Tomoko Uchida](https://github.com/mocobeta).
