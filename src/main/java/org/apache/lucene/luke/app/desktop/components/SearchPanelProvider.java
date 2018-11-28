@@ -73,6 +73,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -228,7 +229,13 @@ public final class SearchPanelProvider implements Provider<JPanel>, SearchTabOpe
     tabbedPane.addTab("Sort", sort);
     tabbedPane.addTab("Field Values", values);
     tabbedPane.addTab("More Like This", mlt);
-    tabbedPane.setOpaque(false);
+
+    // https://coderanch.com/t/600541/java/JtabbedPane-transparency
+    tabbedPane.setUI(new javax.swing.plaf.basic.BasicTabbedPaneUI() {
+      protected void paintContentBorder(Graphics g, int tabPlacement, int selectedIndex) {
+      }
+    });
+
     panel.add(tabbedPane, BorderLayout.CENTER);
 
     return panel;
