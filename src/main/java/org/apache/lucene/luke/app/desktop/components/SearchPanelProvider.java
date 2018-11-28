@@ -39,6 +39,7 @@ import org.apache.lucene.luke.app.desktop.util.DialogOpener;
 import org.apache.lucene.luke.app.desktop.util.FontUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 import org.apache.lucene.luke.app.desktop.util.StyleConstants;
+import org.apache.lucene.luke.app.desktop.util.TabUtils;
 import org.apache.lucene.luke.app.desktop.util.TableUtils;
 import org.apache.lucene.luke.models.LukeException;
 import org.apache.lucene.luke.models.search.MLTConfig;
@@ -73,7 +74,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -230,11 +230,7 @@ public final class SearchPanelProvider implements Provider<JPanel>, SearchTabOpe
     tabbedPane.addTab("Field Values", values);
     tabbedPane.addTab("More Like This", mlt);
 
-    // https://coderanch.com/t/600541/java/JtabbedPane-transparency
-    tabbedPane.setUI(new javax.swing.plaf.basic.BasicTabbedPaneUI() {
-      protected void paintContentBorder(Graphics g, int tabPlacement, int selectedIndex) {
-      }
-    });
+    TabUtils.forceTransparent(tabbedPane);
 
     panel.add(tabbedPane, BorderLayout.CENTER);
 

@@ -27,10 +27,10 @@ import org.apache.lucene.luke.app.IndexObserver;
 import org.apache.lucene.luke.app.LukeState;
 import org.apache.lucene.luke.app.desktop.MessageBroker;
 import org.apache.lucene.luke.app.desktop.util.FontUtils;
+import org.apache.lucene.luke.app.desktop.util.TabUtils;
 
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
-import java.awt.Graphics;
 
 public final class TabbedPaneProvider implements Provider<JTabbedPane>, TabSwitcherProxy.TabSwitcher {
 
@@ -86,11 +86,7 @@ public final class TabbedPaneProvider implements Provider<JTabbedPane>, TabSwitc
     tabbedPane.addTab(FontUtils.elegantIconHtml("&#xe0ea;", "Commits"), commitsPanel);
     tabbedPane.addTab(FontUtils.elegantIconHtml("&#xe058;", "Logs"), logsPanel);
 
-    // https://coderanch.com/t/600541/java/JtabbedPane-transparency
-    tabbedPane.setUI(new javax.swing.plaf.basic.BasicTabbedPaneUI() {
-      protected void paintContentBorder(Graphics g, int tabPlacement, int selectedIndex) {
-      }
-    });
+    TabUtils.forceTransparent(tabbedPane);
 
     return tabbedPane;
   }
