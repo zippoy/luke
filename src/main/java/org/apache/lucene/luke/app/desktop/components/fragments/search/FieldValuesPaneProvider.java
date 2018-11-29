@@ -80,6 +80,7 @@ public final class FieldValuesPaneProvider implements Provider<JScrollPane>, Fie
     loadAllCB.setText(MessageUtils.getLocalizedMessage("search_values.checkbox.load_all"));
     loadAllCB.setSelected(true);
     loadAllCB.addActionListener(listners::loadAllFields);
+    loadAllCB.setOpaque(false);
     header.add(loadAllCB);
     panel.add(header, BorderLayout.PAGE_START);
 

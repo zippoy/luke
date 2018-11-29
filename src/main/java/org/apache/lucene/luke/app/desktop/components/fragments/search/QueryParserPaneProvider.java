@@ -81,7 +81,7 @@ public final class QueryParserPaneProvider implements Provider<JScrollPane>, Que
 
   private final JFormattedTextField prefLenFTF = new JFormattedTextField();
 
-  private final JComboBox<String> dateResCombo = new JComboBox<>();
+  private final JComboBox<String> dateResCB = new JComboBox<>();
 
   private final JTextField locationTF = new JTextField();
 
@@ -130,9 +130,11 @@ public final class QueryParserPaneProvider implements Provider<JScrollPane>, Que
     standardRB.setText("StandardQueryParser");
     standardRB.setSelected(true);
     standardRB.addActionListener(listeners::selectStandardQParser);
+    standardRB.setOpaque(false);
 
     classicRB.setText("Classic QueryParser");
     classicRB.addActionListener(listeners::selectClassicQparser);
+    classicRB.setOpaque(false);
 
     ButtonGroup group = new ButtonGroup();
     group.add(standardRB);
@@ -165,15 +167,18 @@ public final class QueryParserPaneProvider implements Provider<JScrollPane>, Que
 
     posIncCB.setText(MessageUtils.getLocalizedMessage("search_parser.checkbox.pos_incr"));
     posIncCB.setSelected(config.isEnablePositionIncrements());
+    posIncCB.setOpaque(false);
     panel.add(posIncCB);
 
     wildCardCB.setText(MessageUtils.getLocalizedMessage("search_parser.checkbox.lead_wildcard"));
     wildCardCB.setSelected(config.isAllowLeadingWildcard());
+    wildCardCB.setOpaque(false);
     panel.add(wildCardCB);
 
     splitWSCB.setText(MessageUtils.getLocalizedMessage("search_parser.checkbox.split_ws"));
     splitWSCB.setEnabled(config.isSplitOnWhitespace());
     splitWSCB.addActionListener(listeners::toggleSplitOnWhiteSpace);
+    splitWSCB.setOpaque(false);
     panel.add(splitWSCB);
 
     return panel;
@@ -194,6 +199,7 @@ public final class QueryParserPaneProvider implements Provider<JScrollPane>, Que
     genPQ.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
     genPhraseQueryCB.setText(MessageUtils.getLocalizedMessage("search_parser.checkbox.gen_pq"));
     genPhraseQueryCB.setEnabled(config.isAutoGeneratePhraseQueries());
+    genPhraseQueryCB.setOpaque(false);
     genPQ.add(genPhraseQueryCB);
     panel.add(genPQ);
 
@@ -202,6 +208,7 @@ public final class QueryParserPaneProvider implements Provider<JScrollPane>, Que
     genMTPQ.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
     genMultiTermSynonymsPhraseQueryCB.setText(MessageUtils.getLocalizedMessage("search_parser.checkbox.gen_mts"));
     genMultiTermSynonymsPhraseQueryCB.setEnabled(config.isAutoGenerateMultiTermSynonymsPhraseQuery());
+    genMultiTermSynonymsPhraseQueryCB.setOpaque(false);
     genMTPQ.add(genMultiTermSynonymsPhraseQueryCB);
     panel.add(genMTPQ);
 
@@ -269,9 +276,10 @@ public final class QueryParserPaneProvider implements Provider<JScrollPane>, Que
     resolution.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
     JLabel resLabel = new JLabel(MessageUtils.getLocalizedMessage("search_parser.label.date_res"));
     resolution.add(resLabel);
-    Arrays.stream(DateTools.Resolution.values()).map(DateTools.Resolution::name).forEach(dateResCombo::addItem);
-    dateResCombo.setSelectedItem(config.getDateResolution().name());
-    resolution.add(dateResCombo);
+    Arrays.stream(DateTools.Resolution.values()).map(DateTools.Resolution::name).forEach(dateResCB::addItem);
+    dateResCB.setSelectedItem(config.getDateResolution().name());
+    dateResCB.setOpaque(false);
+    resolution.add(dateResCB);
     panel.add(resolution);
 
     JPanel locale = new JPanel(new FlowLayout(FlowLayout.LEADING));
@@ -385,7 +393,7 @@ public final class QueryParserPaneProvider implements Provider<JScrollPane>, Que
         .phraseSlop(phraseSlop)
         .fuzzyMinSim(fuzzyMinSimFloat)
         .fuzzyPrefixLength(fuzzyPrefLenInt)
-        .dateResolution(DateTools.Resolution.valueOf((String) dateResCombo.getSelectedItem()))
+        .dateResolution(DateTools.Resolution.valueOf((String) dateResCB.getSelectedItem()))
         .locale(new Locale(locationTF.getText()))
         .timeZone(TimeZone.getTimeZone(timezoneTF.getText()))
         .typeMap(typeMap)

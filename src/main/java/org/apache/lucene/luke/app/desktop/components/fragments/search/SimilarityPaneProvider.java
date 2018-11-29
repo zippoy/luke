@@ -78,10 +78,12 @@ public final class SimilarityPaneProvider implements Provider<JScrollPane>, Simi
 
     tfidfCB.setText(MessageUtils.getLocalizedMessage("search_similarity.checkbox.use_classic"));
     tfidfCB.addActionListener(listeners::toggleTfIdf);
+    tfidfCB.setOpaque(false);
     panel.add(tfidfCB);
 
     discardOverlapsCB.setText(MessageUtils.getLocalizedMessage("search_similarity.checkbox.discount_overlaps"));
     discardOverlapsCB.setSelected(config.isUseClassicSimilarity());
+    discardOverlapsCB.setOpaque(false);
     panel.add(discardOverlapsCB);
 
     JLabel bm25Label = new JLabel(MessageUtils.getLocalizedMessage("search_similarity.label.bm25_params"));
