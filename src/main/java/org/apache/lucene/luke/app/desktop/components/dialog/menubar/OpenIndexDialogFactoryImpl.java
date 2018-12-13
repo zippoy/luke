@@ -56,6 +56,9 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -275,7 +278,8 @@ public final class OpenIndexDialogFactoryImpl implements OpenIndexDialogFactory 
   private class ListenerFunctions {
 
     void browseDirectory(ActionEvent e) {
-      JFileChooser fc = new JFileChooser();
+      File currentDir = getLastOpenedDirectory();
+      JFileChooser fc = currentDir == null ? new JFileChooser() : new JFileChooser(currentDir);
       fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
       fc.setFileHidingEnabled(false);
       int retVal = fc.showOpenDialog(dialog);
@@ -284,6 +288,17 @@ public final class OpenIndexDialogFactoryImpl implements OpenIndexDialogFactory 
         idxPathCombo.insertItemAt(dir.getAbsolutePath(), 0);
         idxPathCombo.setSelectedIndex(0);
       }
+    }
+
+    private File getLastOpenedDirectory() {
+      List<String> history = prefs.getHistory();
+      if (!history.isEmpty()) {
+        Path path = Paths.get(history.get(0));
+        if (Files.exists(path)) {
+          return path.getParent().toAbsolutePath().toFile();
+        }
+      }
+      return null;
     }
 
     void toggleReadOnly(ActionEvent e) {
