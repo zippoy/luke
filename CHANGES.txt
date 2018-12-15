@@ -1,3 +1,23 @@
+* Upgrade to 7.6.0
+Upgrade Lucene version 7.5.0. (#156)
+
+Fixed in this release:
+
+#111: Make unit tests stable.
+#115: Check codes with Forbidden APIs checker.
+#125: "An illegal reflective access operation" warning on JDK9+.
+#126: Various fixes in the start scripts.
+#127: Upgrade log4j version to 2.11.0.
+#128: Show stack traces when failing to open index.
+#132: Created button for copy document values to clipboard.
+#138: "Load external jars" in Analysis tab not working on JDK9+.
+#143: Use SPI names instead of analyzer factory class names in the Analysis tab.
+#146: FileChooser dialog should show hidden directoried.
+#149: Adjast styles, support color themas.
+#151: Open index dialog's 'Browse' functionality should remember previously opened directory.
+#152: Add lucene-suggest module to support the 'completion' codec.
+#153: Fixed sorting problem in the term counts table.
+
 * Upgrade to 7.5.0
 Upgrade to Lucene 7.5.0.
 Fixed in this release:
