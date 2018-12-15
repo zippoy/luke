@@ -1,5 +1,5 @@
 * Upgrade to 7.6.0
-Upgrade Lucene version 7.5.0. (#156)
+Upgrade Lucene version 7.6.0. (#156)
 
 Fixed in this release:
 
