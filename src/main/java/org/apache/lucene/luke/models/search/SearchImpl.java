@@ -117,7 +117,7 @@ public final class SearchImpl extends LukeModel implements Search {
   public Collection<String> getRangeSearchableFieldNames() {
     return IndexUtils.getFieldNames(reader).stream()
         .map(f -> IndexUtils.getFieldInfo(reader, f))
-        .filter(info -> info.getPointDimensionCount() > 0)
+        .filter(info -> info.getPointDataDimensionCount() > 0)
         .map(info -> info.name)
         .collect(Collectors.toSet());
   }
