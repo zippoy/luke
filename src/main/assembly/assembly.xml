@@ -25,7 +25,7 @@
     <includeBaseDirectory>false</includeBaseDirectory>
     <fileSets>
         <fileSet>
-            <outputDirectory>luke-swing-${lucene.version}</outputDirectory>
+            <outputDirectory>luke-swing-${project.version}</outputDirectory>
             <includes>
                 <include>luke.sh</include>
                 <include>luke.bat</include>
@@ -33,7 +33,7 @@
         </fileSet>
         <fileSet>
             <directory>target</directory>
-            <outputDirectory>luke-swing-${lucene.version}/target</outputDirectory>
+            <outputDirectory>luke-swing-${project.version}/target</outputDirectory>
             <includes>
                 <include>luke-swing-with-deps.jar</include>
             </includes>

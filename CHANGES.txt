@@ -1,3 +1,9 @@
+* Point release 7.6.0.1
+
+Fixed in this release:
+
+#158: "No such file or directory" error when Luke is freshly installed. 
+
 * Upgrade to 7.6.0
 Upgrade Lucene version 7.6.0. (#156)
 
