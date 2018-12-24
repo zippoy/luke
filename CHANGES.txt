@@ -18,8 +18,8 @@ Fixed in this release:
 #132: Created button for copy document values to clipboard.
 #138: "Load external jars" in Analysis tab not working on JDK9+.
 #143: Use SPI names instead of analyzer factory class names in the Analysis tab.
-#146: FileChooser dialog should show hidden directoried.
-#149: Adjast styles, support color themas.
+#146: FileChooser dialog should show hidden directories.
+#149: Adjast styles, support color themes.
 #151: Open index dialog's 'Browse' functionality should remember previously opened directory.
 #152: Add lucene-suggest module to support the 'completion' codec.
 #153: Fixed sorting problem in the term counts table.
