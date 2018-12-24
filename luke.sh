@@ -18,5 +18,10 @@ if [[ ! -d `echo ${LUKE_PATH}` ]]; then
   echo "Set LUKE_PATH to ${LUKE_PATH}"
 fi
 
+LOG_DIR=${HOME}/.luke.d/
+if [[ ! -d ${LOG_DIR} ]]; then
+  mkdir ${LOG_DIR}
+fi
+
 cd ${LUKE_PATH}
-nohup java ${JAVA_OPTIONS} -jar ${JAR_FILE} > ${HOME}/.luke.d/luke_out.log 2>&1 &
+nohup java ${JAVA_OPTIONS} -jar ${JAR_FILE} > ${LOG_DIR}/luke_out.log 2>&1 &
