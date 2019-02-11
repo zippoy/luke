@@ -469,7 +469,6 @@ public final class SearchPanelProvider implements Provider<JPanel>, SearchTabOpe
     }
     parseBtn.setEnabled(false);
     rewriteCB.setEnabled(false);
-    mltBtn.setEnabled(false);
     mltDocFTF.setEnabled(false);
   }
 
@@ -479,7 +478,6 @@ public final class SearchPanelProvider implements Provider<JPanel>, SearchTabOpe
     tabbedPane.setEnabledAt(Tab.SIMILARITY.index(), true);
     parseBtn.setEnabled(true);
     rewriteCB.setEnabled(true);
-    mltBtn.setEnabled(true);
     mltDocFTF.setEnabled(true);
   }
 
