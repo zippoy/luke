@@ -1,3 +1,6 @@
+* Upgrade to 7.7.0
+Upgrade Lucene version 7.7.0. (#161)
+
 * Point release 7.6.0.1
 
 Fixed in this release:
