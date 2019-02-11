@@ -23,7 +23,7 @@
 
     <groupId>luke</groupId>
     <artifactId>luke-swing</artifactId>
-    <version>7.6.0.1</version>
+    <version>7.7.0</version>
 
     <prerequisites>
         <maven>3.0</maven>
@@ -33,14 +33,14 @@
         <jdk.version>1.8</jdk.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <!--lucene.version>${project.version}</lucene.version-->
-        <lucene.version>7.6.0</lucene.version>
+        <lucene.version>7.7.0</lucene.version>
         <hadoop.version>2.7.2</hadoop.version>
         <log4j.version>2.11.0</log4j.version>
         <slf4j.version>1.7.7</slf4j.version>
         <guice.version>4.1.0</guice.version>
         <guava.version>14.0.1</guava.version>
         <reflections.version>0.9.5</reflections.version>
-        <junit.version>4.10</junit.version>
+        <junit.version>4.12</junit.version>
         <mockito.version>2.6.2</mockito.version>
         <findbugs.version>3.0.1</findbugs.version>
         <jgoodies.version>2.7.0</jgoodies.version>
