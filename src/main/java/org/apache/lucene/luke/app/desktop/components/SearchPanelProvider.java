@@ -50,10 +50,7 @@ import org.apache.lucene.luke.models.search.SearchResults;
 import org.apache.lucene.luke.models.search.SimilarityConfig;
 import org.apache.lucene.luke.models.tools.IndexTools;
 import org.apache.lucene.luke.models.tools.IndexToolsFactory;
-import org.apache.lucene.search.Explanation;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.Sort;
-import org.apache.lucene.search.TermQuery;
+import org.apache.lucene.search.*;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -135,6 +132,8 @@ public final class SearchPanelProvider implements Provider<JPanel>, SearchTabOpe
   private final JCheckBox rewriteCB = new JCheckBox();
 
   private final JButton searchBtn = new JButton();
+
+  private JCheckBox exactHitsCntCB = new JCheckBox();
 
   private final JButton mltBtn = new JButton();
 
@@ -318,9 +317,18 @@ public final class SearchPanelProvider implements Provider<JPanel>, SearchTabOpe
     c.gridx = 0;
     c.gridy = 5;
     c.gridwidth = 1;
-    c.weightx = 0.0;
+    c.weightx = 0.2;
     c.insets = new Insets(5, 0, 5, 0);
     panel.add(searchBtn, c);
+
+    exactHitsCntCB.setText(MessageUtils.getLocalizedMessage("search.checkbox.exact_hits_cnt"));
+    exactHitsCntCB.setOpaque(false);
+    c.gridx = 1;
+    c.gridy = 5;
+    c.gridwidth = 2;
+    c.weightx = 0.2;
+    c.insets = new Insets(5, 0, 0, 2);
+    panel.add(exactHitsCntCB, c);
 
     mltBtn.setText(FontUtils.elegantIconHtml("&#xe030;", MessageUtils.getLocalizedMessage("search.button.mlt")));
     mltBtn.setFont(StyleConstants.FONT_BUTTON_LARGE);
@@ -469,7 +477,6 @@ public final class SearchPanelProvider implements Provider<JPanel>, SearchTabOpe
     }
     parseBtn.setEnabled(false);
     rewriteCB.setEnabled(false);
-    mltDocFTF.setEnabled(false);
   }
 
   private void disableTermQuery() {
@@ -478,7 +485,6 @@ public final class SearchPanelProvider implements Provider<JPanel>, SearchTabOpe
     tabbedPane.setEnabledAt(Tab.SIMILARITY.index(), true);
     parseBtn.setEnabled(true);
     rewriteCB.setEnabled(true);
-    mltDocFTF.setEnabled(true);
   }
 
   private void execParse() {
@@ -511,7 +517,7 @@ public final class SearchPanelProvider implements Provider<JPanel>, SearchTabOpe
     Set<String> fieldsToLoad = operatorRegistry.get(FieldValuesTabOperator.class)
         .map(FieldValuesTabOperator::getFieldsToLoad)
         .orElse(Collections.emptySet());
-    SearchResults results = searchModel.search(query, simConfig, sort, fieldsToLoad, DEFAULT_PAGE_SIZE);
+    SearchResults results = searchModel.search(query, simConfig, sort, fieldsToLoad, DEFAULT_PAGE_SIZE, exactHitsCntCB.isSelected());
 
     TableUtils.setupTable(resultsTable, ListSelectionModel.SINGLE_SELECTION, new SearchResultsTableModel(), null,
         SearchResultsTableModel.Column.DOCID.getColumnWidth(),
@@ -546,7 +552,7 @@ public final class SearchPanelProvider implements Provider<JPanel>, SearchTabOpe
     Set<String> fieldsToLoad = operatorRegistry.get(FieldValuesTabOperator.class)
         .map(FieldValuesTabOperator::getFieldsToLoad)
         .orElse(Collections.emptySet());
-    SearchResults results = searchModel.search(query, new SimilarityConfig.Builder().build(), fieldsToLoad, DEFAULT_PAGE_SIZE);
+    SearchResults results = searchModel.search(query, new SimilarityConfig.Builder().build(), fieldsToLoad, DEFAULT_PAGE_SIZE, false);
 
     TableUtils.setupTable(resultsTable, ListSelectionModel.SINGLE_SELECTION, new SearchResultsTableModel(), null,
         SearchResultsTableModel.Column.DOCID.getColumnWidth(),
@@ -572,12 +578,12 @@ public final class SearchPanelProvider implements Provider<JPanel>, SearchTabOpe
 
   private void populateResults(SearchResults res) {
     totalHitsLbl.setText(String.valueOf(res.getTotalHits()));
-    if (res.getTotalHits() > 0) {
+    if (res.getTotalHits().value > 0) {
       startLbl.setText(String.valueOf(res.getOffset() + 1));
       endLbl.setText(String.valueOf(res.getOffset() + res.size()));
 
       prevBtn.setEnabled(res.getOffset() > 0);
-      nextBtn.setEnabled(res.getTotalHits() > res.getOffset() + res.size());
+      nextBtn.setEnabled(res.getTotalHits().relation == TotalHits.Relation.GREATER_THAN_OR_EQUAL_TO || res.getTotalHits().value > res.getOffset() + res.size());
 
       if (!indexHandler.getState().readOnly() && indexHandler.getState().hasDirectoryReader()) {
         delBtn.setEnabled(true);
@@ -654,6 +660,16 @@ public final class SearchPanelProvider implements Provider<JPanel>, SearchTabOpe
     mltDocFTF.setValue(docNum);
     doMLTSearch();
     tabbedPane.setSelectedIndex(Tab.MLT.index());
+  }
+
+  @Override
+  public void enableExactHitsCB(boolean value) {
+    exactHitsCntCB.setEnabled(value);
+  }
+
+  @Override
+  public void setExactHits(boolean value) {
+    exactHitsCntCB.setSelected(value);
   }
 
   private class ListenerFunctions {
