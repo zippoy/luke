@@ -21,4 +21,8 @@ public interface SearchTabOperator extends ComponentOperatorRegistry.ComponentOp
   void searchByTerm(String field, String term);
 
   void mltSearch(int docNum);
+
+  void enableExactHitsCB(boolean value);
+
+  void setExactHits(boolean value);
 }

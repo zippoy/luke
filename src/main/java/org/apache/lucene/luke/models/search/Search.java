@@ -90,10 +90,11 @@ public interface Search {
    * @param simConfig - similarity configuration
    * @param fieldsToLoad - field names to load
    * @param pageSize - page size
+   * @param exactHitsCount - if set to true, the exact total hits count is returned.
    * @return search results
    * @throws LukeException - if an internal error occurs when accessing index
    */
-  SearchResults search(Query query, SimilarityConfig simConfig, Set<String> fieldsToLoad, int pageSize);
+  SearchResults search(Query query, SimilarityConfig simConfig, Set<String> fieldsToLoad, int pageSize, boolean exactHitsCount);
 
   /**
    * Searches this index by the query with given sort criteria and configurations.
@@ -103,10 +104,11 @@ public interface Search {
    * @param sort - sort criteria
    * @param fieldsToLoad - fields to load
    * @param pageSize - page size
+   * @param exactHitsCount - if set to true, the exact total hits count is returned.
    * @return search results
    * @throws LukeException - if an internal error occurs when accessing index
    */
-  SearchResults search(Query query, SimilarityConfig simConfig, Sort sort, Set<String> fieldsToLoad, int pageSize);
+  SearchResults search(Query query, SimilarityConfig simConfig, Sort sort, Set<String> fieldsToLoad, int pageSize, boolean exactHitsCount);
 
   /**
    * Returns the next page for the current query.

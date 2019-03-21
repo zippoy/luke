@@ -21,6 +21,7 @@ import com.google.common.base.Strings;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import org.apache.lucene.luke.app.desktop.components.ComponentOperatorRegistry;
+import org.apache.lucene.luke.app.desktop.components.SearchTabOperator;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 import org.apache.lucene.luke.models.search.Search;
 import org.apache.lucene.search.Sort;
@@ -62,10 +63,13 @@ public final class SortPaneProvider implements Provider<JScrollPane>, SortTabOpe
 
   private final ListenerFunctions listeners = new ListenerFunctions();
 
+  private final ComponentOperatorRegistry operatorRegistry;
+
   private Search searchModel;
 
   @Inject
   public SortPaneProvider(ComponentOperatorRegistry operatorRegistry) {
+    this.operatorRegistry = operatorRegistry;
     operatorRegistry.register(SortTabOperator.class, this);
   }
 
@@ -187,6 +191,7 @@ public final class SortPaneProvider implements Provider<JScrollPane>, SortTabOpe
       } else if (e.getActionCommand().equalsIgnoreCase(COMMAND_FIELD_COMBO2)) {
         resetField(fieldCombo2, typeCombo2, orderCombo2);
       }
+      resetExactHitsCnt();
     }
 
     private void resetField(JComboBox<String> fieldCombo, JComboBox<String> typeCombo, JComboBox<String> orderCombo) {
@@ -224,6 +229,21 @@ public final class SortPaneProvider implements Provider<JScrollPane>, SortTabOpe
       typeCombo2.setEnabled(false);
       orderCombo2.setSelectedIndex(0);
       orderCombo2.setEnabled(false);
+
+      resetExactHitsCnt();
+    }
+
+    private void resetExactHitsCnt() {
+      operatorRegistry.get(SearchTabOperator.class).ifPresent(operator -> {
+        if (Strings.isNullOrEmpty((String) fieldCombo1.getSelectedItem()) &&
+            Strings.isNullOrEmpty((String) fieldCombo2.getSelectedItem())) {
+          operator.enableExactHitsCB(true);
+          operator.setExactHits(false);
+        } else {
+          operator.enableExactHitsCB(false);
+          operator.setExactHits(true);
+        }
+      });
     }
   }
 

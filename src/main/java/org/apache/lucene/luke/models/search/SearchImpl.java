@@ -34,15 +34,7 @@ import org.apache.lucene.queryparser.flexible.core.QueryNodeException;
 import org.apache.lucene.queryparser.flexible.standard.StandardQueryParser;
 import org.apache.lucene.queryparser.flexible.standard.config.PointsConfig;
 import org.apache.lucene.queryparser.flexible.standard.config.StandardQueryConfigHandler;
-import org.apache.lucene.search.Explanation;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.search.Sort;
-import org.apache.lucene.search.SortField;
-import org.apache.lucene.search.SortedNumericSortField;
-import org.apache.lucene.search.SortedSetSortField;
-import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.*;
 import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.search.similarities.ClassicSimilarity;
 import org.apache.lucene.search.similarities.Similarity;
@@ -70,15 +62,19 @@ public final class SearchImpl extends LukeModel implements Search {
 
   private static final int DEFAULT_PAGE_SIZE = 10;
 
+  private static final int DEFAULT_TOTAL_HITS_THRESHOLD = 1000;
+
   private final IndexSearcher searcher;
 
   private int pageSize = DEFAULT_PAGE_SIZE;
 
   private int currentPage = -1;
 
-  private long totalHits = -1;
+  private TotalHits totalHits;
 
   private ScoreDoc[] docs = new ScoreDoc[0];
+
+  private boolean exactHitsCount;
 
   private Query query;
 
@@ -249,13 +245,13 @@ public final class SearchImpl extends LukeModel implements Search {
 
   @Override
   public SearchResults search(
-      @Nonnull Query query, @Nonnull SimilarityConfig simConfig, @Nullable Set<String> fieldsToLoad, int pageSize) {
-    return search(query, simConfig, null, fieldsToLoad, pageSize);
+      @Nonnull Query query, @Nonnull SimilarityConfig simConfig, @Nullable Set<String> fieldsToLoad, int pageSize, boolean exactHitsCount) {
+    return search(query, simConfig, null, fieldsToLoad, pageSize, exactHitsCount);
   }
 
   @Override
   public SearchResults search(
-      @Nonnull Query query, @Nonnull SimilarityConfig simConfig, @Nullable Sort sort, @Nullable Set<String> fieldsToLoad, int pageSize) {
+      @Nonnull Query query, @Nonnull SimilarityConfig simConfig, @Nullable Sort sort, @Nullable Set<String> fieldsToLoad, int pageSize, boolean exactHitsCount) {
     if (pageSize < 0) {
       throw new LukeException(new IllegalArgumentException("Negative integer is not acceptable for page size."));
     }
@@ -264,6 +260,7 @@ public final class SearchImpl extends LukeModel implements Search {
     this.docs = new ScoreDoc[0];
     this.currentPage = 0;
     this.pageSize = pageSize;
+    this.exactHitsCount = exactHitsCount;
     this.query = query;
     this.sort = sort;
     this.fieldsToLoad = fieldsToLoad == null ? null : ImmutableSet.copyOf(fieldsToLoad);
@@ -279,9 +276,16 @@ public final class SearchImpl extends LukeModel implements Search {
   private SearchResults search() throws IOException {
     // execute search
     ScoreDoc after = docs.length == 0 ? null : docs[docs.length - 1];
-    TopDocs topDocs = sort == null ?
-        searcher.searchAfter(after, query, pageSize) :
-        searcher.searchAfter(after, query, pageSize, sort);
+
+    TopDocs topDocs;
+    if (sort != null) {
+      topDocs = searcher.searchAfter(after, query, pageSize, sort);
+    } else {
+      int hitsThreshold = exactHitsCount ? Integer.MAX_VALUE : DEFAULT_TOTAL_HITS_THRESHOLD;
+      TopScoreDocCollector collector = TopScoreDocCollector.create(pageSize, after, hitsThreshold);
+      searcher.search(query, collector);
+      topDocs = collector.topDocs();
+    }
 
     // reset total hits for the current query
     this.totalHits = topDocs.totalHits;
@@ -304,7 +308,8 @@ public final class SearchImpl extends LukeModel implements Search {
     // proceed to next page
     currentPage += 1;
 
-    if (totalHits == 0 || currentPage * pageSize >= totalHits) {
+    if (totalHits.value == 0 ||
+        (totalHits.relation == TotalHits.Relation.EQUAL_TO && currentPage * pageSize >= totalHits.value)) {
       logger.warn("No more next search results are available.");
       return Optional.empty();
     }

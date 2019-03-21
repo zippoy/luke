@@ -23,6 +23,7 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.TotalHits;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -38,7 +39,7 @@ import java.util.stream.Collectors;
  */
 public final class SearchResults {
 
-  private long totalHits = 0;
+  private TotalHits totalHits;
 
   private int offset = 0;
 
@@ -55,7 +56,7 @@ public final class SearchResults {
    * @return the search result page
    * @throws IOException
    */
-  static SearchResults of(long totalHits, @Nonnull ScoreDoc[] docs, int offset,
+  static SearchResults of(@Nonnull TotalHits totalHits, @Nonnull ScoreDoc[] docs, int offset,
                           @Nonnull IndexSearcher searcher, Set<String> fieldsToLoad)
       throws IOException {
     SearchResults res = new SearchResults();
@@ -75,7 +76,7 @@ public final class SearchResults {
   /**
    * Returns the total number of hits for this query.
    */
-  public long getTotalHits() {
+  public TotalHits getTotalHits() {
     return totalHits;
   }
 

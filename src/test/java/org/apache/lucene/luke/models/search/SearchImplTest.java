@@ -302,9 +302,9 @@ public class SearchImplTest extends LuceneTestCase {
   public void testSearch() throws Exception {
     SearchImpl search = new SearchImpl(reader);
     Query query = new QueryParser("f1", new StandardAnalyzer()).parse("apple");
-    SearchResults res = search.search(query, new SimilarityConfig.Builder().build(), null, 10);
+    SearchResults res = search.search(query, new SimilarityConfig.Builder().build(), null, 10, true);
 
-    assertEquals(10, res.getTotalHits());
+    assertEquals(10, res.getTotalHits().value);
     assertEquals(10, res.size());
     assertEquals(0, res.getOffset());
   }
@@ -314,9 +314,9 @@ public class SearchImplTest extends LuceneTestCase {
     SearchImpl search = new SearchImpl(reader);
     Query query = new QueryParser("f1", new StandardAnalyzer()).parse("apple");
     Sort sort = new Sort(new SortField("f2", SortField.Type.STRING, true));
-    SearchResults res = search.search(query, new SimilarityConfig.Builder().build(), sort, null, 10);
+    SearchResults res = search.search(query, new SimilarityConfig.Builder().build(), sort, null, 10, true);
 
-    assertEquals(10, res.getTotalHits());
+    assertEquals(10, res.getTotalHits().value);
     assertEquals(10, res.size());
     assertEquals(0, res.getOffset());
   }
@@ -325,12 +325,12 @@ public class SearchImplTest extends LuceneTestCase {
   public void testNextPage() throws Exception {
     SearchImpl search = new SearchImpl(reader);
     Query query = new QueryParser("f1", new StandardAnalyzer()).parse("pie");
-    search.search(query, new SimilarityConfig.Builder().build(), null, 10);
+    search.search(query, new SimilarityConfig.Builder().build(), null, 10, true);
     Optional<SearchResults> opt = search.nextPage();
     assertTrue(opt.isPresent());
 
     SearchResults res = opt.get();
-    assertEquals(20, res.getTotalHits());
+    assertEquals(20, res.getTotalHits().value);
     assertEquals(10, res.size());
     assertEquals(10, res.getOffset());
   }
@@ -345,7 +345,7 @@ public class SearchImplTest extends LuceneTestCase {
   public void testNextPageNoMoreResults() throws Exception {
     SearchImpl search = new SearchImpl(reader);
     Query query = new QueryParser("f1", new StandardAnalyzer()).parse("pie");
-    search.search(query, new SimilarityConfig.Builder().build(), null, 10);
+    search.search(query, new SimilarityConfig.Builder().build(), null, 10, true);
     search.nextPage();
     assertFalse(search.nextPage().isPresent());
   }
@@ -354,13 +354,13 @@ public class SearchImplTest extends LuceneTestCase {
   public void testPrevPage() throws Exception {
     SearchImpl search = new SearchImpl(reader);
     Query query = new QueryParser("f1", new StandardAnalyzer()).parse("pie");
-    search.search(query, new SimilarityConfig.Builder().build(), null, 10);
+    search.search(query, new SimilarityConfig.Builder().build(), null, 10, true);
     search.nextPage();
     Optional<SearchResults> opt = search.prevPage();
     assertTrue(opt.isPresent());
 
     SearchResults res = opt.get();
-    assertEquals(20, res.getTotalHits());
+    assertEquals(20, res.getTotalHits().value);
     assertEquals(10, res.size());
     assertEquals(0, res.getOffset());
   }
@@ -375,7 +375,7 @@ public class SearchImplTest extends LuceneTestCase {
   public void testPrevPageNoMoreResults() throws Exception {
     SearchImpl search = new SearchImpl(reader);
     Query query = new QueryParser("f1", new StandardAnalyzer()).parse("pie");
-    search.search(query, new SimilarityConfig.Builder().build(), null, 10);
+    search.search(query, new SimilarityConfig.Builder().build(), null, 10, true);
     assertFalse(search.prevPage().isPresent());
   }
 
