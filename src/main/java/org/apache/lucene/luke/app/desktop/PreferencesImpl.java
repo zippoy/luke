@@ -17,8 +17,9 @@
 
 package org.apache.lucene.luke.app.desktop;
 
+import org.apache.lucene.luke.app.desktop.util.inifile.IniFile;
+import org.apache.lucene.luke.app.desktop.util.inifile.SimpleIniFile;
 import org.apache.lucene.store.FSDirectory;
-import org.ini4j.Ini;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,7 +36,8 @@ public final class PreferencesImpl implements Preferences {
   private static final String HISTORY_FILE = "history";
   private static final int MAX_HISTORY = 10;
 
-  private final Ini ini = new Ini();
+  private final IniFile ini = new SimpleIniFile();
+
 
   private final List<String> history = new ArrayList<>();
 
@@ -47,7 +49,7 @@ public final class PreferencesImpl implements Preferences {
     }
 
     // load configs
-    if (iniFile().exists()) {
+    if (Files.exists(iniFile())) {
       ini.load(iniFile());
     } else {
       ini.store(iniFile());
@@ -85,7 +87,7 @@ public final class PreferencesImpl implements Preferences {
 
   @Override
   public ColorTheme getColorTheme() {
-    String theme = ini.get("settings", "theme", String.class);
+    String theme = ini.getString("settings", "theme");
     return (theme == null) ? ColorTheme.GRAY : ColorTheme.valueOf(theme);
   }
 
@@ -97,31 +99,31 @@ public final class PreferencesImpl implements Preferences {
 
   @Override
   public boolean isReadOnly() {
-    Boolean readOnly = ini.get("opener", "readOnly", Boolean.class);
+    Boolean readOnly = ini.getBoolean("opener", "readOnly");
     return (readOnly == null) ? false : readOnly;
   }
 
   @Override
   public String getDirImpl() {
-    String dirImpl = ini.get("opener", "dirImpl");
+    String dirImpl = ini.getString("opener", "dirImpl");
     return (dirImpl == null) ? FSDirectory.class.getName() : dirImpl;
   }
 
   @Override
   public boolean isNoReader() {
-    Boolean noReader = ini.get("opener", "noReader", Boolean.class);
+    Boolean noReader = ini.getBoolean("opener", "noReader");
     return (noReader == null) ? false : noReader;
   }
 
   @Override
   public boolean isUseCompound() {
-    Boolean useCompound = ini.get("opener", "useCompound", Boolean.class);
+    Boolean useCompound = ini.getBoolean("opener", "useCompound");
     return (useCompound == null) ? false : useCompound;
   }
 
   @Override
   public boolean isKeepAllCommits() {
-    Boolean keepAllCommits = ini.get("opener", "keepAllCommits", Boolean.class);
+    Boolean keepAllCommits = ini.getBoolean("opener", "keepAllCommits");
     return (keepAllCommits == null) ? false : keepAllCommits;
   }
 
@@ -135,7 +137,7 @@ public final class PreferencesImpl implements Preferences {
     ini.store(iniFile());
   }
 
-  private File iniFile() {
-    return new File(CONFIG_DIR, INIT_FILE);
+  private Path iniFile() {
+    return FileSystems.getDefault().getPath(CONFIG_DIR, INIT_FILE);
   }
 }
