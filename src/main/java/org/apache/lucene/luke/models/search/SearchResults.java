@@ -25,12 +25,12 @@ import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TotalHits;
 
-import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -56,12 +56,14 @@ public final class SearchResults {
    * @return the search result page
    * @throws IOException
    */
-  static SearchResults of(@Nonnull TotalHits totalHits, @Nonnull ScoreDoc[] docs, int offset,
-                          @Nonnull IndexSearcher searcher, Set<String> fieldsToLoad)
+  static SearchResults of(TotalHits totalHits, ScoreDoc[] docs, int offset,
+                          IndexSearcher searcher, Set<String> fieldsToLoad)
       throws IOException {
     SearchResults res = new SearchResults();
 
-    res.totalHits = totalHits;
+    res.totalHits = Objects.requireNonNull(totalHits);
+    Objects.requireNonNull(docs);
+    Objects.requireNonNull(searcher);
 
     for (ScoreDoc sd : docs) {
       Document luceneDoc = (fieldsToLoad == null) ?
@@ -120,7 +122,9 @@ public final class SearchResults {
      * @param luceneDoc - raw Lucene document
      * @return the hit
      */
-    static Doc of(int docId, float score, @Nonnull Document luceneDoc) {
+    static Doc of(int docId, float score, Document luceneDoc) {
+      Objects.requireNonNull(luceneDoc);
+
       Doc doc = new Doc();
       doc.docId = docId;
       doc.score = score;

@@ -41,12 +41,11 @@ import org.apache.lucene.luke.util.IndexUtils;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.store.Directory;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Objects;
 
 public final class IndexToolsImpl extends LukeModel implements IndexTools {
 
@@ -69,7 +68,7 @@ public final class IndexToolsImpl extends LukeModel implements IndexTools {
    * @param useCompound - if true, compound file format is used
    * @param keepAllCommits - if true, all commit points are reserved
    */
-  public IndexToolsImpl(@Nonnull Directory dir, boolean useCompound, boolean keepAllCommits) {
+  public IndexToolsImpl(Directory dir, boolean useCompound, boolean keepAllCommits) {
     super(dir);
     this.useCompound = useCompound;
     this.keepAllCommits = keepAllCommits;
@@ -82,7 +81,7 @@ public final class IndexToolsImpl extends LukeModel implements IndexTools {
    * @param useCompound - if true, compound file format is used
    * @param keepAllCommits - if true, all commit points are reserved
    */
-  public IndexToolsImpl(@Nonnull IndexReader reader, boolean useCompound, boolean keepAllCommits) {
+  public IndexToolsImpl(IndexReader reader, boolean useCompound, boolean keepAllCommits) {
     super(reader);
     this.useCompound = useCompound;
     this.keepAllCommits = keepAllCommits;
@@ -132,7 +131,9 @@ public final class IndexToolsImpl extends LukeModel implements IndexTools {
   }
 
   @Override
-  public void addDocument(Document doc, @Nullable Analyzer analyzer) {
+  public void addDocument(Document doc, Analyzer analyzer) {
+    Objects.requireNonNull(analyzer);
+
     if (reader instanceof DirectoryReader) {
       Directory dir = ((DirectoryReader) reader).directory();
       try (IndexWriter writer = IndexUtils.createWriter(dir, analyzer, useCompound, keepAllCommits)) {
@@ -147,7 +148,9 @@ public final class IndexToolsImpl extends LukeModel implements IndexTools {
   }
 
   @Override
-  public void deleteDocuments(@Nonnull Query query) {
+  public void deleteDocuments(Query query) {
+    Objects.requireNonNull(query);
+
     if (reader instanceof DirectoryReader) {
       Directory dir = ((DirectoryReader) reader).directory();
       try (IndexWriter writer = IndexUtils.createWriter(dir, null, useCompound, keepAllCommits)) {

@@ -19,12 +19,11 @@ package org.apache.lucene.luke.models.analysis;
 
 import com.google.common.collect.ImmutableList;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -46,7 +45,9 @@ public final class CustomAnalyzerConfig {
     private final List<ComponentConfig> charFilterConfigs = new ArrayList<>();
     private final List<ComponentConfig> tokenFilterConfigs = new ArrayList<>();
 
-    public Builder(@Nonnull String name, @Nonnull Map<String, String> tokenizerParams) {
+    public Builder(String name, Map<String, String> tokenizerParams) {
+      Objects.requireNonNull(name);
+      Objects.requireNonNull(tokenizerParams);
       tokenizerConfig = new ComponentConfig(name, new HashMap<>(tokenizerParams));
     }
 
@@ -55,12 +56,16 @@ public final class CustomAnalyzerConfig {
       return this;
     }
 
-    public Builder addCharFilterConfig(@Nonnull String name, @Nonnull Map<String, String> params) {
+    public Builder addCharFilterConfig(String name, Map<String, String> params) {
+      Objects.requireNonNull(name);
+      Objects.requireNonNull(params);
       charFilterConfigs.add(new ComponentConfig(name, new HashMap<>(params)));
       return this;
     }
 
-    public Builder addTokenFilterConfig(@Nonnull String name, @Nonnull Map<String, String> params) {
+    public Builder addTokenFilterConfig(String name, Map<String, String> params) {
+      Objects.requireNonNull(name);
+      Objects.requireNonNull(params);
       tokenFilterConfigs.add(new ComponentConfig(name, new HashMap<>(params)));
       return this;
     }
@@ -112,9 +117,9 @@ public final class CustomAnalyzerConfig {
     /* parameter map */
     private final Map<String, String> params;
 
-    ComponentConfig(@Nonnull String name, @Nonnull Map<String, String> params) {
-      this.name = name;
-      this.params = params;
+    ComponentConfig(String name, Map<String, String> params) {
+      this.name = Objects.requireNonNull(name);
+      this.params = Objects.requireNonNull(params);
     }
 
     String getName() {

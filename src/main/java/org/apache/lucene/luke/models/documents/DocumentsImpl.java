@@ -33,12 +33,12 @@ import org.apache.lucene.util.BytesRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Optional;
 
 public final class DocumentsImpl extends LukeModel implements Documents {
@@ -59,7 +59,7 @@ public final class DocumentsImpl extends LukeModel implements Documents {
    * Constructs an DocumentsImpl that holds given {@link IndexReader}.
    * @param reader - the index reader
    */
-  public DocumentsImpl(@Nonnull IndexReader reader) {
+  public DocumentsImpl(IndexReader reader) {
     super(reader);
     this.tvAdapter = new TermVectorsAdapter(reader);
     this.dvAdapter = new DocValuesAdapter(reader);
@@ -113,7 +113,9 @@ public final class DocumentsImpl extends LukeModel implements Documents {
   }
 
   @Override
-  public Optional<Term> firstTerm(@Nonnull String field) {
+  public Optional<Term> firstTerm(String field) {
+    Objects.requireNonNull(field);
+
     try {
       Terms terms = IndexUtils.getTerms(reader, field);
 
@@ -174,7 +176,9 @@ public final class DocumentsImpl extends LukeModel implements Documents {
   }
 
   @Override
-  public Optional<Term> seekTerm(@Nonnull String termText) {
+  public Optional<Term> seekTerm(String termText) {
+    Objects.requireNonNull(termText);
+
     if (curField == null) {
       // field is not selected
       logger.warn("Field not selected.");

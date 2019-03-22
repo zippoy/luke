@@ -41,8 +41,6 @@ import org.apache.lucene.search.similarities.Similarity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.Arrays;
@@ -52,6 +50,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -86,7 +85,7 @@ public final class SearchImpl extends LukeModel implements Search {
    * Constructs a SearchImpl that holds given {@link IndexReader}
    * @param reader - the index reader
    */
-  public SearchImpl(@Nonnull IndexReader reader) {
+  public SearchImpl(IndexReader reader) {
     super(reader);
     this.searcher = new IndexSearcher(reader);
   }
@@ -124,8 +123,12 @@ public final class SearchImpl extends LukeModel implements Search {
   }
 
   @Override
-  public Query parseQuery(@Nonnull String expression, @Nonnull String defField, @Nonnull Analyzer analyzer,
-                          @Nonnull QueryParserConfig config, boolean rewrite) {
+  public Query parseQuery(String expression, String defField, Analyzer analyzer,
+                          QueryParserConfig config, boolean rewrite) {
+    Objects.requireNonNull(expression);
+    Objects.requireNonNull(defField);
+    Objects.requireNonNull(analyzer);
+    Objects.requireNonNull(config);
 
     Query query = config.isUseClassicParser() ?
         parseByClassicParser(expression, defField, analyzer, config) :
@@ -142,8 +145,8 @@ public final class SearchImpl extends LukeModel implements Search {
     return query;
   }
 
-  private Query parseByClassicParser(@Nonnull String expression, @Nonnull String defField, @Nonnull Analyzer analyzer,
-                                     @Nonnull QueryParserConfig config) {
+  private Query parseByClassicParser(String expression, String defField, Analyzer analyzer,
+                                     QueryParserConfig config) {
     QueryParser parser = new QueryParser(defField, analyzer);
 
     switch (config.getDefaultOperator()) {
@@ -175,8 +178,8 @@ public final class SearchImpl extends LukeModel implements Search {
 
   }
 
-  private Query parseByStandardParser(@Nonnull String expression, @Nonnull String defField, @Nonnull Analyzer analyzer,
-                                      @Nonnull QueryParserConfig config) {
+  private Query parseByStandardParser(String expression, String defField, Analyzer analyzer,
+                                      QueryParserConfig config) {
     StandardQueryParser parser = new StandardQueryParser(analyzer);
 
     switch (config.getDefaultOperator()) {
@@ -245,13 +248,13 @@ public final class SearchImpl extends LukeModel implements Search {
 
   @Override
   public SearchResults search(
-      @Nonnull Query query, @Nonnull SimilarityConfig simConfig, @Nullable Set<String> fieldsToLoad, int pageSize, boolean exactHitsCount) {
+      Query query, SimilarityConfig simConfig, Set<String> fieldsToLoad, int pageSize, boolean exactHitsCount) {
     return search(query, simConfig, null, fieldsToLoad, pageSize, exactHitsCount);
   }
 
   @Override
   public SearchResults search(
-      @Nonnull Query query, @Nonnull SimilarityConfig simConfig, @Nullable Sort sort, @Nullable Set<String> fieldsToLoad, int pageSize, boolean exactHitsCount) {
+      Query query, SimilarityConfig simConfig, Sort sort, Set<String> fieldsToLoad, int pageSize, boolean exactHitsCount) {
     if (pageSize < 0) {
       throw new LukeException(new IllegalArgumentException("Negative integer is not acceptable for page size."));
     }
@@ -261,10 +264,10 @@ public final class SearchImpl extends LukeModel implements Search {
     this.currentPage = 0;
     this.pageSize = pageSize;
     this.exactHitsCount = exactHitsCount;
-    this.query = query;
+    this.query = Objects.requireNonNull(query);
     this.sort = sort;
     this.fieldsToLoad = fieldsToLoad == null ? null : ImmutableSet.copyOf(fieldsToLoad);
-    searcher.setSimilarity(createSimilarity(simConfig));
+    searcher.setSimilarity(createSimilarity(Objects.requireNonNull(simConfig)));
 
     try {
       return search();
@@ -357,7 +360,7 @@ public final class SearchImpl extends LukeModel implements Search {
     }
   }
 
-  private Similarity createSimilarity(@Nonnull SimilarityConfig config) {
+  private Similarity createSimilarity(SimilarityConfig config) {
     Similarity similarity;
 
     if (config.isUseClassicSimilarity()) {
@@ -415,7 +418,9 @@ public final class SearchImpl extends LukeModel implements Search {
   }
 
   @Override
-  public Optional<SortField> getSortType(@Nonnull String name, @Nonnull String type, boolean reverse) {
+  public Optional<SortField> getSortType(String name, String type, boolean reverse) {
+    Objects.requireNonNull(name);
+    Objects.requireNonNull(type);
     List<SortField> candidates = guessSortTypes(name);
     if (candidates.isEmpty()) {
       logger.warn(String.format(Locale.ENGLISH, "No available sort types for: %s", name));

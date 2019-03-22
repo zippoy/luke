@@ -21,10 +21,10 @@ import org.apache.lucene.index.PostingsEnum;
 import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.luke.util.BytesRefUtils;
 
-import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.OptionalInt;
 import java.util.stream.Collectors;
 
@@ -44,7 +44,9 @@ public final class TermVectorEntry {
    * @return term vector entry
    * @throws IOException
    */
-  static TermVectorEntry of(@Nonnull TermsEnum te) throws IOException {
+  static TermVectorEntry of(TermsEnum te) throws IOException {
+    Objects.requireNonNull(te);
+
     String termText = BytesRefUtils.decode(te.term());
 
     List<TermVectorEntry.TermVectorPosition> tvPositions = new ArrayList<>();
@@ -119,7 +121,9 @@ public final class TermVectorEntry {
      * @return position entry
      * @throws IOException
      */
-    static TermVectorPosition of(int pos, @Nonnull PostingsEnum pe) throws IOException {
+    static TermVectorPosition of(int pos, PostingsEnum pe) throws IOException {
+      Objects.requireNonNull(pe);
+
       int sOffset = pe.startOffset();
       int eOffset = pe.endOffset();
       if (sOffset >= 0 && eOffset >= 0) {

@@ -27,11 +27,11 @@ import org.apache.lucene.index.SortedSetDocValues;
 import org.apache.lucene.luke.util.IndexUtils;
 import org.apache.lucene.util.BytesRef;
 
-import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -41,8 +41,8 @@ final class DocValuesAdapter {
 
   private final IndexReader reader;
 
-  DocValuesAdapter(@Nonnull  IndexReader reader) {
-    this.reader = reader;
+  DocValuesAdapter(IndexReader reader) {
+    this.reader = Objects.requireNonNull(reader);
   }
 
   /**

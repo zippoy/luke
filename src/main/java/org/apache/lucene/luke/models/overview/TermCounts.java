@@ -20,11 +20,11 @@ package org.apache.lucene.luke.models.overview;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.luke.util.IndexUtils;
 
-import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -34,7 +34,8 @@ final class TermCounts {
 
   private final Map<String, Long> termCountMap;
 
-  TermCounts(@Nonnull IndexReader reader) throws IOException {
+  TermCounts(IndexReader reader) throws IOException {
+    Objects.requireNonNull(reader);
     termCountMap = IndexUtils.countTerms(reader, IndexUtils.getFieldNames(reader));
   }
 
@@ -49,7 +50,9 @@ final class TermCounts {
    * Returns all fields with the number of terms for each field sorted by {@link TermCountsOrder}
    * @param order - sort order
    */
-  Map<String, Long> sortedTermCounts(@Nonnull TermCountsOrder order){
+  Map<String, Long> sortedTermCounts(TermCountsOrder order){
+    Objects.requireNonNull(order);
+
     Comparator<Map.Entry<String, Long>> comparator;
     switch (order) {
       case NAME_ASC:

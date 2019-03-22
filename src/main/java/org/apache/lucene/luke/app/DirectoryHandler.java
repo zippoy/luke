@@ -22,9 +22,8 @@ import org.apache.lucene.luke.models.LukeException;
 import org.apache.lucene.luke.util.IndexUtils;
 import org.apache.lucene.store.Directory;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.IOException;
+import java.util.Objects;
 
 public final class DirectoryHandler extends AbstractHandler<DirectoryObserver> {
 
@@ -49,7 +48,9 @@ public final class DirectoryHandler extends AbstractHandler<DirectoryObserver> {
     return state != null && !state.closed;
   }
 
-  public void open(@Nonnull String indexPath, @Nullable String dirImpl) {
+  public void open(String indexPath, String dirImpl) {
+    Objects.requireNonNull(indexPath);
+
     if (directoryOpened()) {
       close();
     }

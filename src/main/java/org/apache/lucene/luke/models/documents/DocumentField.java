@@ -26,8 +26,8 @@ import org.apache.lucene.index.MultiDocValues;
 import org.apache.lucene.index.NumericDocValues;
 import org.apache.lucene.util.BytesRef;
 
-import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.util.Objects;
 
 /**
  * Holder for a document field's information and data.
@@ -57,13 +57,16 @@ public final class DocumentField {
   private int pointDimensionCount;
   private int pointNumBytes;
 
-  static DocumentField of(@Nonnull FieldInfo finfo, @Nonnull IndexReader reader, int docId)
+  static DocumentField of(FieldInfo finfo, IndexReader reader, int docId)
       throws IOException {
     return of(finfo, null, reader, docId);
   }
 
-  static DocumentField of(@Nonnull FieldInfo finfo, IndexableField field, @Nonnull IndexReader reader, int docId)
+  static DocumentField of(FieldInfo finfo, IndexableField field, IndexReader reader, int docId)
       throws IOException {
+
+    Objects.requireNonNull(finfo);
+    Objects.requireNonNull(reader);
 
     DocumentField dfield = new DocumentField();
 

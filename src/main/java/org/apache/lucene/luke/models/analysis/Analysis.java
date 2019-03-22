@@ -25,11 +25,10 @@ import org.apache.lucene.analysis.util.TokenFilterFactory;
 import org.apache.lucene.analysis.util.TokenizerFactory;
 import org.apache.lucene.luke.models.LukeException;
 
-import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.Objects;
 
 /**
  * A dedicated interface for Luke's Analysis tab.
@@ -43,9 +42,9 @@ public interface Analysis {
     private final String term;
     private final List<TokenAttribute> attributes;
 
-    Token(@Nonnull String term, @Nonnull List<TokenAttribute> attributes) {
-      this.term = term;
-      this.attributes = attributes;
+    Token(String term, List<TokenAttribute> attributes) {
+      this.term = Objects.requireNonNull(term);
+      this.attributes = Objects.requireNonNull(attributes);
     }
 
     /**
@@ -70,9 +69,9 @@ public interface Analysis {
     private final String attClass;
     private final Map<String, String> attValues;
 
-    TokenAttribute(@Nonnull String attClass, @Nonnull Map<String, String> attValues) {
-      this.attClass = attClass;
-      this.attValues = attValues;
+    TokenAttribute(String attClass, Map<String, String> attValues) {
+      this.attClass = Objects.requireNonNull(attClass);
+      this.attValues = Objects.requireNonNull(attValues);
     }
 
     /**

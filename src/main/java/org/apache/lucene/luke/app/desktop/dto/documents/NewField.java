@@ -33,7 +33,8 @@ import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexableFieldType;
 import org.apache.lucene.luke.app.desktop.util.NumericUtils;
 
-import javax.annotation.Nonnull;
+import java.util.Objects;
+
 
 public final class NewField {
 
@@ -79,8 +80,8 @@ public final class NewField {
     return name;
   }
 
-  public void setName(@Nonnull String name) {
-    this.name = name;
+  public void setName(String name) {
+    this.name = Objects.requireNonNull(name);
   }
 
   public Class<?> getTypeProperty() {
@@ -91,8 +92,8 @@ public final class NewField {
     return type;
   }
 
-  public void setType(@Nonnull Class type) {
-    this.type = type;
+  public void setType(Class type) {
+    this.type = Objects.requireNonNull(type);
   }
 
   public void resetFieldType(Class type) {
@@ -139,8 +140,8 @@ public final class NewField {
     return value;
   }
 
-  public void setValue(@Nonnull String value) {
-    this.value = value;
+  public void setValue(String value) {
+    this.value = Objects.requireNonNull(value);
   }
 
 }
