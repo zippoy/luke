@@ -47,6 +47,7 @@ import java.io.IOException;
 import java.util.Objects;
 import java.util.stream.IntStream;
 
+/** Factory of explain dialog */
 public final class ExplainDialogFactory implements DialogOpener.DialogFactory {
 
   private static ExplainDialogFactory instance;

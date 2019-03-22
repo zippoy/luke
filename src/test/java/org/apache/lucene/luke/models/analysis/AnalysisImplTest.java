@@ -20,10 +20,8 @@ package org.apache.lucene.luke.models.analysis;
 import com.google.common.collect.ImmutableMap;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.custom.CustomAnalyzer;
-import org.apache.lucene.analysis.util.CharFilterFactory;
-import org.apache.lucene.analysis.util.TokenFilterFactory;
-import org.apache.lucene.analysis.util.TokenizerFactory;
 import org.apache.lucene.luke.models.LukeException;
+import org.apache.lucene.util.LuceneTestCase;
 import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
@@ -33,9 +31,8 @@ import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
-public class AnalysisImplTest extends AnalysisTestBase {
+public class AnalysisImplTest extends LuceneTestCase {
 
   @Test
   public void testGetPresetAnalyzerTypes() throws Exception {

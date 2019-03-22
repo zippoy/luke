@@ -51,6 +51,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+/** Factory of edit filters dialog */
 public final class EditFiltersDialogFactory implements DialogOpener.DialogFactory {
 
   private static EditFiltersDialogFactory instance;

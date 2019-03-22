@@ -50,6 +50,7 @@ import java.awt.Window;
 import java.io.IOException;
 import java.net.URISyntaxException;
 
+/** Factory of about dialog */
 public final class AboutDialogFactory implements DialogOpener.DialogFactory {
 
   private static AboutDialogFactory instance;

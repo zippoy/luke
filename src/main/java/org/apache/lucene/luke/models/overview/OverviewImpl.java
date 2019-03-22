@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+/** Default implementation of {@link Overview} */
 public final class OverviewImpl extends LukeModel implements Overview {
 
   private final String indexPath;

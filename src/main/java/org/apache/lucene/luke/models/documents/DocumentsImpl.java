@@ -41,6 +41,7 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 
+/** Default implementation of {@link Documents} */
 public final class DocumentsImpl extends LukeModel implements Documents {
 
   private static final Logger log = LoggerFactory.getLogger(DocumentsImpl.class);

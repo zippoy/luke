@@ -22,6 +22,7 @@ import org.apache.lucene.luke.models.LukeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/** An utility class for handling exception */
 public final class ExceptionHandler {
 
   private static final Logger log = LoggerFactory.getLogger(ExceptionHandler.class);

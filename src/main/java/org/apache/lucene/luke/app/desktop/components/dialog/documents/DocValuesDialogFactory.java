@@ -54,6 +54,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+/** Factory of doc values dialog */
 public final class DocValuesDialogFactory implements DialogOpener.DialogFactory {
 
   private static DocValuesDialogFactory instance;

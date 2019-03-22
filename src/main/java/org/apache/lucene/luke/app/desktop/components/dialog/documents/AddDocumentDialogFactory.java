@@ -96,6 +96,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+/** Factory of add document dialog */
 public final class AddDocumentDialogFactory implements DialogOpener.DialogFactory, AddDocumentDialogOperator {
 
   private final static Logger log = LoggerFactory.getLogger(AddDocumentDialogFactory.class);

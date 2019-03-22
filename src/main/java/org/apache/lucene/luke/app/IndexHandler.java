@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 
-
+/** Index open/close handler */
 public final class IndexHandler extends AbstractHandler<IndexObserver> {
 
   private static final Logger log = LoggerFactory.getLogger(IndexHandler.class);

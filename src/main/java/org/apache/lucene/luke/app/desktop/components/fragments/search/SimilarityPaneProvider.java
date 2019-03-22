@@ -35,6 +35,7 @@ import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 
+/** Provider of the Similarity pane */
 public final class SimilarityPaneProvider implements SimilarityTabOperator {
 
   private final JCheckBox tfidfCB = new JCheckBox();

@@ -39,6 +39,7 @@ import java.awt.GridLayout;
 import java.awt.Window;
 import java.io.IOException;
 
+/** Factory of confirm dialog */
 public final class ConfirmDialogFactory implements DialogOpener.DialogFactory {
 
   private static ConfirmDialogFactory instance;

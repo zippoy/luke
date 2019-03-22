@@ -38,6 +38,7 @@ import java.util.Optional;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+/** Default implementation of {@link Commits} */
 public final class CommitsImpl extends LukeModel implements Commits {
 
   private static final Logger log = LoggerFactory.getLogger(CommitsImpl.class);

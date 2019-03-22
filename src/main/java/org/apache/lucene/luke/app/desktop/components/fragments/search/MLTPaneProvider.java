@@ -51,6 +51,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+/** Provider of the MLT pane */
 public final class MLTPaneProvider implements MLTTabOperator {
 
   private final JLabel analyzerLbl = new JLabel(StandardAnalyzer.class.getName());

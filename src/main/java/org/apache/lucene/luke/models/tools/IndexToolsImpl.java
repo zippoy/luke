@@ -47,6 +47,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
 
+/** Default implementation of {@link IndexTools} */
 public final class IndexToolsImpl extends LukeModel implements IndexTools {
 
   private final boolean useCompound;

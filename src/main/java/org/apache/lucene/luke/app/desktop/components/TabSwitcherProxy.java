@@ -17,6 +17,7 @@
 
 package org.apache.lucene.luke.app.desktop.components;
 
+/** An utility class for switching tabs. */
 public class TabSwitcherProxy {
 
   private static final TabSwitcherProxy instance = new TabSwitcherProxy();

@@ -32,6 +32,7 @@ import java.io.IOException;
 
 import static org.apache.lucene.luke.app.desktop.util.ExceptionHandler.handle;
 
+/** Entry class for desktop Luke */
 public class LukeMain {
 
   private static final Logger log = LoggerFactory.getLogger(LukeMain.class);

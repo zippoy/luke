@@ -84,6 +84,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+/** Provider of the Documents panel */
 public final class DocumentsPanelProvider implements DocumentsTabOperator {
 
   private final DocumentsFactory documentsFactory = new DocumentsFactory();

@@ -63,7 +63,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-
+/** Provider of the Analysis panel */
 public final class AnalysisPanelProvider implements AnalysisTabOperator {
 
   private static final String TYPE_PRESET = "preset";

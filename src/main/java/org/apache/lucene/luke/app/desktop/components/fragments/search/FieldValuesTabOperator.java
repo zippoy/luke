@@ -22,6 +22,7 @@ import org.apache.lucene.luke.app.desktop.components.ComponentOperatorRegistry;
 import java.util.Collection;
 import java.util.Set;
 
+/** Operator of the FieldValues tab */
 public interface FieldValuesTabOperator extends ComponentOperatorRegistry.ComponentOperator {
   void setFields(Collection<String> fields);
 

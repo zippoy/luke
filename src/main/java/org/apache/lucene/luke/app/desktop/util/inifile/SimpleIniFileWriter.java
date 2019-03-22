@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 
+/** Simple implementation of {@link IniFileWriter} */
 public class SimpleIniFileWriter implements IniFileWriter {
 
   @Override

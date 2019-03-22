@@ -70,7 +70,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-
+/** Provider of the custom analyzer panel */
 public final class CustomAnalyzerPanelProvider implements CustomAnalyzerPanelOperator {
 
   private final ComponentOperatorRegistry operatorRegistry;

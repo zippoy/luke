@@ -42,6 +42,7 @@ import java.awt.Insets;
 import java.awt.Window;
 import java.io.IOException;
 
+/** Factory of analysis chain dialog */
 public class AnalysisChainDialogFactory implements DialogOpener.DialogFactory {
 
   private static AnalysisChainDialogFactory instance;

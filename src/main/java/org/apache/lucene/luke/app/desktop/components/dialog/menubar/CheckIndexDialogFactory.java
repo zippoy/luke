@@ -61,6 +61,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+/** Factory of check index dialog */
 public final class CheckIndexDialogFactory implements DialogOpener.DialogFactory {
 
   private static final Logger log = LoggerFactory.getLogger(CheckIndexDialogFactory.class);

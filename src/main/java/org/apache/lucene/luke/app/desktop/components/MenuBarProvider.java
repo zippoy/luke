@@ -39,6 +39,7 @@ import javax.swing.JMenuItem;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
 
+/** Provider of the MenuBar */
 public final class MenuBarProvider {
 
   private final Preferences prefs;

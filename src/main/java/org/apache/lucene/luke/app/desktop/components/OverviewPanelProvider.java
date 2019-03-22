@@ -60,6 +60,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+/** Provider of the Overview panel */
 public final class OverviewPanelProvider {
 
   private static final int GRIDX_DESC = 0;

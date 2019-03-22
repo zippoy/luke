@@ -41,6 +41,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+/** Provider of the Sort pane */
 public final class SortPaneProvider implements SortTabOperator {
 
   private static final String COMMAND_FIELD_COMBO1 = "fieldCombo1";

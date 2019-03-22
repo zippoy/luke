@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 
+/** Abstract handler class */
 public abstract class AbstractHandler<T extends Observer> {
 
   private static final Logger log = LoggerFactory.getLogger(AbstractHandler.class);

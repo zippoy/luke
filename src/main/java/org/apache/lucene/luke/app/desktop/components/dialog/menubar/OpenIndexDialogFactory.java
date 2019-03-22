@@ -65,6 +65,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/** Factory of open index dialog */
 public final class OpenIndexDialogFactory implements DialogOpener.DialogFactory {
 
   private static final Logger log = LoggerFactory.getLogger(OpenIndexDialogFactory.class);

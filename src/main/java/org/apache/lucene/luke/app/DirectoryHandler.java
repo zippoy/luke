@@ -25,6 +25,7 @@ import org.apache.lucene.store.Directory;
 import java.io.IOException;
 import java.util.Objects;
 
+/** Directory open/close handler */
 public final class DirectoryHandler extends AbstractHandler<DirectoryObserver> {
 
   private static final DirectoryHandler instance = new DirectoryHandler();

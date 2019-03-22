@@ -27,6 +27,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
+/** PrintStream for text areas */
 public final class TextAreaPrintStream extends PrintStream {
 
   private Logger log;

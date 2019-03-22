@@ -36,6 +36,7 @@ import java.awt.GridLayout;
 import java.awt.Window;
 import java.io.IOException;
 
+/** Factory of help dialog */
 public final class HelpDialogFactory implements DialogOpener.DialogFactory {
 
   private static HelpDialogFactory instance;
