@@ -98,7 +98,7 @@ import java.util.stream.IntStream;
 
 public final class AddDocumentDialogFactory implements DialogOpener.DialogFactory, AddDocumentDialogOperator {
 
-  private final static Logger logger = LoggerFactory.getLogger(AddDocumentDialogFactory.class);
+  private final static Logger log = LoggerFactory.getLogger(AddDocumentDialogFactory.class);
 
   private static AddDocumentDialogFactory instance;
 
@@ -353,15 +353,15 @@ public final class AddDocumentDialogFactory implements DialogOpener.DialogFactor
           doc.add(toIndexableField(nf));
         }
       } catch (NumberFormatException ex) {
-        logger.error(ex.getMessage(), e);
+        log.error(ex.getMessage(), e);
         throw new LukeException("Invalid value: " + ex.getMessage(), ex);
       } catch (Exception ex) {
-        logger.error(ex.getMessage(), e);
+        log.error(ex.getMessage(), e);
         throw new LukeException(ex.getMessage(), ex);
       }
 
       addDocument(doc);
-      logger.info("Added document: {}", doc.toString());
+      log.info("Added document: {}", doc.toString());
     }
 
     @SuppressWarnings("unchecked")

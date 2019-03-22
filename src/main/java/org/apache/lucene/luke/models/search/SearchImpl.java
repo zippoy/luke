@@ -57,7 +57,7 @@ import java.util.stream.Collectors;
 
 public final class SearchImpl extends LukeModel implements Search {
 
-  private static final Logger logger = LoggerFactory.getLogger(SearchImpl.class);
+  private static final Logger log = LoggerFactory.getLogger(SearchImpl.class);
 
   private static final int DEFAULT_PAGE_SIZE = 10;
 
@@ -212,7 +212,7 @@ public final class SearchImpl extends LukeModel implements Search {
         } else if (type == Float.class || type == Double.class) {
           pc = new PointsConfig(NumberFormat.getNumberInstance(Locale.ROOT), type);
         } else {
-          logger.warn(String.format(Locale.ENGLISH, "Ignored invalid number type: %s.", type.getName()));
+          log.warn(String.format(Locale.ENGLISH, "Ignored invalid number type: %s.", type.getName()));
           continue;
         }
         pointsConfigMap.put(field, pc);
@@ -313,7 +313,7 @@ public final class SearchImpl extends LukeModel implements Search {
 
     if (totalHits.value == 0 ||
         (totalHits.relation == TotalHits.Relation.EQUAL_TO && currentPage * pageSize >= totalHits.value)) {
-      logger.warn("No more next search results are available.");
+      log.warn("No more next search results are available.");
       return Optional.empty();
     }
 
@@ -345,7 +345,7 @@ public final class SearchImpl extends LukeModel implements Search {
     currentPage -= 1;
 
     if (currentPage < 0) {
-      logger.warn("No more previous search results are available.");
+      log.warn("No more previous search results are available.");
       return Optional.empty();
     }
 
@@ -423,7 +423,7 @@ public final class SearchImpl extends LukeModel implements Search {
     Objects.requireNonNull(type);
     List<SortField> candidates = guessSortTypes(name);
     if (candidates.isEmpty()) {
-      logger.warn(String.format(Locale.ENGLISH, "No available sort types for: %s", name));
+      log.warn(String.format(Locale.ENGLISH, "No available sort types for: %s", name));
       return Optional.empty();
     }
 

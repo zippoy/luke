@@ -63,7 +63,7 @@ import java.util.concurrent.Executors;
 
 public final class OptimizeIndexDialogFactory implements DialogOpener.DialogFactory {
 
-  private static final Logger logger = LoggerFactory.getLogger(OptimizeIndexDialogFactory.class);
+  private static final Logger log = LoggerFactory.getLogger(OptimizeIndexDialogFactory.class);
 
   private static OptimizeIndexDialogFactory instance;
 
@@ -217,7 +217,7 @@ public final class OptimizeIndexDialogFactory implements DialogOpener.DialogFact
           indicatorLbl.setVisible(true);
           TextAreaPrintStream ps;
           try {
-            ps = new TextAreaPrintStream(logArea, new ByteArrayOutputStream(), StandardCharsets.UTF_8, logger);
+            ps = new TextAreaPrintStream(logArea, new ByteArrayOutputStream(), StandardCharsets.UTF_8, log);
             toolsModel.optimize(expungeCB.isSelected(), (int) maxSegSpnr.getValue(), ps);
             ps.flush();
           } catch (UnsupportedEncodingException e) {

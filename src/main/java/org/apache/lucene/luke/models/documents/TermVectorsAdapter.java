@@ -34,7 +34,7 @@ import java.util.Objects;
  */
 final class TermVectorsAdapter {
 
-  private static Logger logger = LoggerFactory.getLogger(TermVectorsAdapter.class);
+  private static Logger log = LoggerFactory.getLogger(TermVectorsAdapter.class);
 
   private IndexReader reader;
 
@@ -55,7 +55,7 @@ final class TermVectorsAdapter {
     Terms termVector = reader.getTermVector(docid, field);
     if (termVector == null) {
       // no term vector available
-      logger.warn("No term vector indexed for doc: #{} and field: {}", docid, field);
+      log.warn("No term vector indexed for doc: #{} and field: {}", docid, field);
       return Collections.emptyList();
     }
 

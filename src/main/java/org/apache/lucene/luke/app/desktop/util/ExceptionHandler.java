@@ -24,16 +24,16 @@ import org.slf4j.LoggerFactory;
 
 public final class ExceptionHandler {
 
-  private static final Logger logger = LoggerFactory.getLogger(ExceptionHandler.class);
+  private static final Logger log = LoggerFactory.getLogger(ExceptionHandler.class);
 
   public static void handle(Throwable t, MessageBroker messageBroker) {
     if (t instanceof LukeException) {
       Throwable cause = t.getCause();
       String message = (cause == null) ? t.getMessage() : t.getMessage() + " " + cause.getMessage();
-      logger.warn(t.getMessage(), t);
+      log.warn(t.getMessage(), t);
       messageBroker.showStatusMessage(message);
     } else {
-      logger.error(t.getMessage(), t);
+      log.error(t.getMessage(), t);
       messageBroker.showUnknownErrorMessage();
     }
   }

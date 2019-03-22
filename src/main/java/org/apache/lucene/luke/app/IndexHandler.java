@@ -29,7 +29,7 @@ import java.util.Objects;
 
 public final class IndexHandler extends AbstractHandler<IndexObserver> {
 
-  private static final Logger logger = LoggerFactory.getLogger(IndexHandler.class);
+  private static final Logger log = LoggerFactory.getLogger(IndexHandler.class);
 
   private static final IndexHandler instance = new IndexHandler();
 
@@ -67,7 +67,7 @@ public final class IndexHandler extends AbstractHandler<IndexObserver> {
     try {
       reader = IndexUtils.openIndex(indexPath, dirImpl);
     } catch (Exception e) {
-      logger.error(e.getMessage(), e);
+      log.error(e.getMessage(), e);
       throw new LukeException(MessageUtils.getLocalizedMessage("openindex.message.index_path_invalid", indexPath), e);
     }
 
