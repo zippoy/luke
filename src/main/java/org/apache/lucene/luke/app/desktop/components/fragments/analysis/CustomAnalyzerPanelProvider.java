@@ -18,8 +18,6 @@
 package org.apache.lucene.luke.app.desktop.components.fragments.analysis;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.inject.Inject;
-import com.google.inject.Provider;
 import org.apache.lucene.luke.app.desktop.MessageBroker;
 import org.apache.lucene.luke.app.desktop.components.AnalysisTabOperator;
 import org.apache.lucene.luke.app.desktop.components.ComponentOperatorRegistry;
@@ -60,6 +58,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -72,7 +71,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 
-public final class CustomAnalyzerPanelProvider implements Provider<JPanel>, CustomAnalyzerPanelOperator {
+public final class CustomAnalyzerPanelProvider implements CustomAnalyzerPanelOperator {
 
   private final ComponentOperatorRegistry operatorRegistry;
 
@@ -122,15 +121,11 @@ public final class CustomAnalyzerPanelProvider implements Provider<JPanel>, Cust
 
   private Analysis analysisModel;
 
-  @Inject
-  public CustomAnalyzerPanelProvider(ComponentOperatorRegistry operatorRegistry,
-                                     EditParamsDialogFactory editParamsDialogFactory,
-                                     EditFiltersDialogFactory editFiltersDialogFactory,
-                                     MessageBroker messageBroker) {
-    this.operatorRegistry = operatorRegistry;
-    this.editParamsDialogFactory = editParamsDialogFactory;
-    this.editFiltersDialogFactory = editFiltersDialogFactory;
-    this.messageBroker = messageBroker;
+  public CustomAnalyzerPanelProvider() throws IOException {
+    this.operatorRegistry = ComponentOperatorRegistry.getInstance();
+    this.editParamsDialogFactory = EditParamsDialogFactory.getInstance();
+    this.editFiltersDialogFactory = EditFiltersDialogFactory.getInstance();
+    this.messageBroker = MessageBroker.getInstance();
 
     operatorRegistry.register(CustomAnalyzerPanelOperator.class, this);
 
@@ -139,7 +134,6 @@ public final class CustomAnalyzerPanelProvider implements Provider<JPanel>, Cust
     tfFactoryCombo.addActionListener(listeners::addTokenFilter);
   }
 
-  @Override
   public JPanel get() {
     if (containerPanel == null) {
       containerPanel = new JPanel();

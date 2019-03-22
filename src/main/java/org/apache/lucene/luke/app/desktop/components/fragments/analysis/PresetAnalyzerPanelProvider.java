@@ -17,8 +17,6 @@
 
 package org.apache.lucene.luke.app.desktop.components.fragments.analysis;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.luke.app.desktop.components.AnalysisTabOperator;
 import org.apache.lucene.luke.app.desktop.components.ComponentOperatorRegistry;
@@ -36,7 +34,7 @@ import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.util.Collection;
 
-public final class PresetAnalyzerPanelProvider implements Provider<JPanel>, PresetAnalyzerPanelOperator {
+public final class PresetAnalyzerPanelProvider implements PresetAnalyzerPanelOperator {
 
   private final ComponentOperatorRegistry operatorRegistry;
 
@@ -44,13 +42,11 @@ public final class PresetAnalyzerPanelProvider implements Provider<JPanel>, Pres
 
   private final ListenerFunctions listeners = new ListenerFunctions();
 
-  @Inject
-  public PresetAnalyzerPanelProvider(ComponentOperatorRegistry operatorRegistry) {
-    this.operatorRegistry = operatorRegistry;
+  public PresetAnalyzerPanelProvider() {
+    this.operatorRegistry = ComponentOperatorRegistry.getInstance();
     operatorRegistry.register(PresetAnalyzerPanelOperator.class, this);
   }
 
-  @Override
   public JPanel get() {
     JPanel panel = new JPanel(new BorderLayout());
     panel.setOpaque(false);

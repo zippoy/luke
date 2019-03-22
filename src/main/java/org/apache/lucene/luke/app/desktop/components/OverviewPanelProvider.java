@@ -17,8 +17,6 @@
 
 package org.apache.lucene.luke.app.desktop.components;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
 import org.apache.lucene.luke.app.IndexHandler;
 import org.apache.lucene.luke.app.IndexObserver;
 import org.apache.lucene.luke.app.LukeState;
@@ -62,14 +60,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-public final class OverviewPanelProvider implements Provider<JPanel> {
+public final class OverviewPanelProvider {
 
   private static final int GRIDX_DESC = 0;
   private static final int GRIDX_VAL = 1;
   private static final double WEIGHTX_DESC = 0.1;
   private static final double WEIGHTX_VAL = 0.9;
 
-  private final OverviewFactory overviewFactory;
+  private final OverviewFactory overviewFactory = new OverviewFactory();
 
   private final ComponentOperatorRegistry operatorRegistry;
 
@@ -115,22 +113,14 @@ public final class OverviewPanelProvider implements Provider<JPanel> {
 
   private Overview overviewModel;
 
-  @Inject
-  public OverviewPanelProvider(
-      OverviewFactory overviewFactory,
-      MessageBroker messageBroker,
-      ComponentOperatorRegistry operatorRegistry,
-      IndexHandler indexHandler,
-      TabSwitcherProxy tabSwitcher) {
-    this.overviewFactory = overviewFactory;
-    this.messageBroker = messageBroker;
-    this.operatorRegistry = operatorRegistry;
-    this.tabSwitcher = tabSwitcher;
+  public OverviewPanelProvider() {
+    this.messageBroker = MessageBroker.getInstance();
+    this.operatorRegistry = ComponentOperatorRegistry.getInstance();
+    this.tabSwitcher = TabSwitcherProxy.getInstance();
 
-    indexHandler.addObserver(new Observer());
+    IndexHandler.getInstance().addObserver(new Observer());
   }
 
-  @Override
   public JPanel get() {
     panel.setOpaque(false);
     panel.setLayout(new GridLayout(1, 1));

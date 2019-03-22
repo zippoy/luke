@@ -17,9 +17,6 @@
 
 package org.apache.lucene.luke.app.desktop.components;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
-import com.google.inject.name.Named;
 import org.apache.lucene.luke.app.DirectoryHandler;
 import org.apache.lucene.luke.app.DirectoryObserver;
 import org.apache.lucene.luke.app.IndexHandler;
@@ -31,8 +28,10 @@ import org.apache.lucene.luke.app.desktop.util.TabUtils;
 
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
+import javax.swing.JTextArea;
+import java.io.IOException;
 
-public final class TabbedPaneProvider implements Provider<JTabbedPane>, TabSwitcherProxy.TabSwitcher {
+public final class TabbedPaneProvider implements TabSwitcherProxy.TabSwitcher {
 
   private final MessageBroker messageBroker;
 
@@ -50,34 +49,23 @@ public final class TabbedPaneProvider implements Provider<JTabbedPane>, TabSwitc
 
   private final JPanel logsPanel;
 
-  @Inject
-  public TabbedPaneProvider(@Named("overview") JPanel overviewPanel,
-                            @Named("documents") JPanel documentsPanel,
-                            @Named("search") JPanel searchPanel,
-                            @Named("analysis") JPanel analysisPanel,
-                            @Named("commits") JPanel commitsPanel,
-                            @Named("logs") JPanel logsPanel,
-                            IndexHandler indexHandler,
-                            DirectoryHandler directoryHandler,
-                            TabSwitcherProxy tabSwitcher,
-                            MessageBroker messageBroker) {
-    this.overviewPanel = overviewPanel;
-    this.documentsPanel = documentsPanel;
-    this.searchPanel = searchPanel;
-    this.analysisPanel = analysisPanel;
-    this.commitsPanel = commitsPanel;
-    this.logsPanel = logsPanel;
+  public TabbedPaneProvider(JTextArea logTextArea) throws IOException {
+    this.overviewPanel = new OverviewPanelProvider().get();
+    this.documentsPanel = new DocumentsPanelProvider().get();
+    this.searchPanel = new SearchPanelProvider().get();
+    this.analysisPanel = new AnalysisPanelProvider().get();
+    this.commitsPanel = new CommitsPanelProvider().get();
+    this.logsPanel = new LogsPanelProvider(logTextArea).get();
 
-    this.messageBroker = messageBroker;
+    this.messageBroker = MessageBroker.getInstance();
 
-    tabSwitcher.set(this);
+    TabSwitcherProxy.getInstance().set(this);
 
     Observer observer = new Observer();
-    indexHandler.addObserver(observer);
-    directoryHandler.addObserver(observer);
+    IndexHandler.getInstance().addObserver(observer);
+    DirectoryHandler.getInstance().addObserver(observer);
   }
 
-  @Override
   public JTabbedPane get() {
     tabbedPane.addTab(FontUtils.elegantIconHtml("&#xe009;", "Overview"), overviewPanel);
     tabbedPane.addTab(FontUtils.elegantIconHtml("&#x69;", "Documents"), documentsPanel);

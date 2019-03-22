@@ -17,8 +17,6 @@
 
 package org.apache.lucene.luke.app.desktop.components.fragments.search;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
 import org.apache.lucene.document.DateTools;
 import org.apache.lucene.luke.app.desktop.components.ComponentOperatorRegistry;
 import org.apache.lucene.luke.app.desktop.components.TableColumnInfo;
@@ -55,7 +53,7 @@ import java.util.TimeZone;
 
 import static org.apache.lucene.luke.app.desktop.components.fragments.search.PointTypesTableModel.NumType.INT;
 
-public final class QueryParserPaneProvider implements Provider<JScrollPane>, QueryParserTabOperator {
+public final class QueryParserPaneProvider implements QueryParserTabOperator {
 
   private final JRadioButton standardRB = new JRadioButton();
 
@@ -93,12 +91,10 @@ public final class QueryParserPaneProvider implements Provider<JScrollPane>, Que
 
   private final QueryParserConfig config = new QueryParserConfig.Builder().build();
 
-  @Inject
-  public QueryParserPaneProvider(ComponentOperatorRegistry operatorRegistry) {
-    operatorRegistry.register(QueryParserTabOperator.class, this);
+  public QueryParserPaneProvider() {
+    ComponentOperatorRegistry.getInstance().register(QueryParserTabOperator.class, this);
   }
 
-  @Override
   public JScrollPane get() {
     JPanel panel = new JPanel();
     panel.setOpaque(false);

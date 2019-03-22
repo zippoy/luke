@@ -17,8 +17,6 @@
 
 package org.apache.lucene.luke.app.desktop.components.fragments.search;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
 import org.apache.lucene.luke.app.desktop.components.ComponentOperatorRegistry;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 import org.apache.lucene.luke.app.desktop.util.StyleConstants;
@@ -37,7 +35,7 @@ import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 
-public final class SimilarityPaneProvider implements Provider<JScrollPane>, SimilarityTabOperator {
+public final class SimilarityPaneProvider implements SimilarityTabOperator {
 
   private final JCheckBox tfidfCB = new JCheckBox();
 
@@ -51,12 +49,10 @@ public final class SimilarityPaneProvider implements Provider<JScrollPane>, Simi
 
   private final ListenerFunctions listeners = new ListenerFunctions();
 
-  @Inject
-  public SimilarityPaneProvider(ComponentOperatorRegistry operatorRegistry) {
-    operatorRegistry.register(SimilarityTabOperator.class, this);
+  public SimilarityPaneProvider() {
+    ComponentOperatorRegistry.getInstance().register(SimilarityTabOperator.class, this);
   }
 
-  @Override
   public JScrollPane get() {
     JPanel panel = new JPanel();
     panel.setOpaque(false);

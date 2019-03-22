@@ -39,7 +39,6 @@ import java.util.Optional;
 
 // See: https://github.com/DmitryKey/luke/issues/111
 @LuceneTestCase.SuppressCodecs({
-    "Asserting",
     "DummyCompressingStoredFields", "HighCompressionCompressingStoredFields", "FastCompressingStoredFields", "FastDecompressionCompressingStoredFields"
 })
 public class CommitsImplTest extends LuceneTestCase {
@@ -102,9 +101,10 @@ public class CommitsImplTest extends LuceneTestCase {
   public void testListCommits() {
     CommitsImpl commits = new CommitsImpl(reader, indexDir.toString());
     List<Commit> commitList = commits.listCommits();
-    assertEquals(2, commitList.size());
-    assertEquals(2, commitList.get(0).getGeneration());
-    assertEquals(1, commitList.get(1).getGeneration());
+    assertTrue(commitList.size() > 0);
+    // should be sorted by descending order in generation
+    assertEquals(commitList.size(), commitList.get(0).getGeneration());
+    assertEquals(1, commitList.get(commitList.size()-1).getGeneration());
   }
 
   @Test

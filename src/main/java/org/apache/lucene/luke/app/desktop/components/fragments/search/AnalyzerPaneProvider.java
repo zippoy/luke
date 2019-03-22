@@ -17,8 +17,6 @@
 
 package org.apache.lucene.luke.app.desktop.components.fragments.search;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.custom.CustomAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -47,7 +45,7 @@ import java.awt.Insets;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-public final class AnalyzerPaneProvider implements Provider<JScrollPane>, AnalyzerTabOperator {
+public final class AnalyzerPaneProvider implements AnalyzerTabOperator {
 
   private final TabSwitcherProxy tabSwitcher;
 
@@ -59,15 +57,12 @@ public final class AnalyzerPaneProvider implements Provider<JScrollPane>, Analyz
 
   private final JList<String> tokenFilterList = new JList<>();
 
-  @Inject
-  public AnalyzerPaneProvider(TabSwitcherProxy tabSwitcher,
-                              ComponentOperatorRegistry operatorRegistry) {
-    this.tabSwitcher = tabSwitcher;
+  public AnalyzerPaneProvider() {
+    this.tabSwitcher = TabSwitcherProxy.getInstance();
 
-    operatorRegistry.register(AnalyzerTabOperator.class, this);
+    ComponentOperatorRegistry.getInstance().register(AnalyzerTabOperator.class, this);
   }
 
-  @Override
   public JScrollPane get() {
     JPanel panel = new JPanel();
     panel.setOpaque(false);

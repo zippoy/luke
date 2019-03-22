@@ -17,8 +17,6 @@
 
 package org.apache.lucene.luke.app.desktop.components;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.luke.app.DirectoryHandler;
 import org.apache.lucene.luke.app.DirectoryObserver;
@@ -61,9 +59,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public final class CommitsPanelProvider implements Provider<JPanel> {
+public final class CommitsPanelProvider {
 
-  private final CommitsFactory commitsFactory;
+  private final CommitsFactory commitsFactory = new CommitsFactory();
 
   private final JComboBox<Long> commitGenCombo = new JComboBox<>();
 
@@ -91,17 +89,11 @@ public final class CommitsPanelProvider implements Provider<JPanel> {
 
   private Commits commitsModel;
 
-  @Inject
-  public CommitsPanelProvider(CommitsFactory commitsFactory,
-                              IndexHandler indexHandler,
-                              DirectoryHandler directoryHandler) {
-    this.commitsFactory = commitsFactory;
-
-    indexHandler.addObserver(new Observer());
-    directoryHandler.addObserver(new Observer());
+  public CommitsPanelProvider() {
+    IndexHandler.getInstance().addObserver(new Observer());
+    DirectoryHandler.getInstance().addObserver(new Observer());
   }
 
-  @Override
   public JPanel get() {
     JPanel panel = new JPanel(new GridLayout(1, 1));
     panel.setOpaque(false);

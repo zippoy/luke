@@ -17,14 +17,13 @@
 
 package org.apache.lucene.luke.app.desktop.components;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
 import org.apache.lucene.luke.app.DirectoryHandler;
 import org.apache.lucene.luke.app.DirectoryObserver;
 import org.apache.lucene.luke.app.IndexHandler;
 import org.apache.lucene.luke.app.IndexObserver;
 import org.apache.lucene.luke.app.LukeState;
 import org.apache.lucene.luke.app.desktop.Preferences;
+import org.apache.lucene.luke.app.desktop.PreferencesFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.menubar.AboutDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.menubar.CheckIndexDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.menubar.OpenIndexDialogFactory;
@@ -40,7 +39,7 @@ import javax.swing.JMenuItem;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
 
-public final class MenuBarProvider implements Provider<JMenuBar> {
+public final class MenuBarProvider {
 
   private final Preferences prefs;
 
@@ -82,21 +81,15 @@ public final class MenuBarProvider implements Provider<JMenuBar> {
 
   private final ListenerFunctions listeners = new ListenerFunctions();
 
-  @Inject
-  public MenuBarProvider(Preferences prefs, ComponentOperatorRegistry operatorRegistry,
-                         DirectoryHandler directoryHandler, IndexHandler indexHandler,
-                         OpenIndexDialogFactory openIndexDialogFactory,
-                         OptimizeIndexDialogFactory optimizeIndexDialogFactory,
-                         CheckIndexDialogFactory checkIndexDialogFactory,
-                         AboutDialogFactory aboutDialogFactory) {
-    this.prefs = prefs;
-    this.operatorRegistry = operatorRegistry;
-    this.directoryHandler = directoryHandler;
-    this.indexHandler = indexHandler;
-    this.openIndexDialogFactory = openIndexDialogFactory;
-    this.optimizeIndexDialogFactory = optimizeIndexDialogFactory;
-    this.checkIndexDialogFactory = checkIndexDialogFactory;
-    this.aboutDialogFactory = aboutDialogFactory;
+  public MenuBarProvider() throws IOException {
+    this.prefs = PreferencesFactory.getInstance();
+    this.directoryHandler = DirectoryHandler.getInstance();
+    this.indexHandler = IndexHandler.getInstance();
+    this.operatorRegistry = ComponentOperatorRegistry.getInstance();
+    this.openIndexDialogFactory = OpenIndexDialogFactory.getInstance();
+    this.optimizeIndexDialogFactory = OptimizeIndexDialogFactory.getInstance();
+    this.checkIndexDialogFactory = CheckIndexDialogFactory.getInstance();
+    this.aboutDialogFactory = AboutDialogFactory.getInstance();
 
     Observer observer = new Observer();
     directoryHandler.addObserver(observer);

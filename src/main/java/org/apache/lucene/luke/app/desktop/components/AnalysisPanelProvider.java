@@ -17,9 +17,6 @@
 
 package org.apache.lucene.luke.app.desktop.components;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
-import com.google.inject.name.Named;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.custom.CustomAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -28,7 +25,9 @@ import org.apache.lucene.luke.app.desktop.components.dialog.analysis.AnalysisCha
 import org.apache.lucene.luke.app.desktop.components.dialog.analysis.TokenAttributeDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.documents.AddDocumentDialogOperator;
 import org.apache.lucene.luke.app.desktop.components.fragments.analysis.CustomAnalyzerPanelOperator;
+import org.apache.lucene.luke.app.desktop.components.fragments.analysis.CustomAnalyzerPanelProvider;
 import org.apache.lucene.luke.app.desktop.components.fragments.analysis.PresetAnalyzerPanelOperator;
+import org.apache.lucene.luke.app.desktop.components.fragments.analysis.PresetAnalyzerPanelProvider;
 import org.apache.lucene.luke.app.desktop.components.fragments.search.AnalyzerTabOperator;
 import org.apache.lucene.luke.app.desktop.components.fragments.search.MLTTabOperator;
 import org.apache.lucene.luke.app.desktop.util.DialogOpener;
@@ -59,12 +58,13 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
 
-public final class AnalysisPanelProvider implements Provider<JPanel>, AnalysisTabOperator {
+public final class AnalysisPanelProvider implements AnalysisTabOperator {
 
   private static final String TYPE_PRESET = "preset";
 
@@ -102,23 +102,16 @@ public final class AnalysisPanelProvider implements Provider<JPanel>, AnalysisTa
 
   private Analysis analysisModel;
 
-  @Inject
-  public AnalysisPanelProvider(AnalysisFactory analysisFactory,
-                               ComponentOperatorRegistry operatorRegistry,
-                               AnalysisChainDialogFactory analysisChainDialogFactory,
-                               TokenAttributeDialogFactory tokenAttrDialogFactory,
-                               MessageBroker messageBroker,
-                               @Named("analysis_preset") JPanel preset,
-                               @Named("analysis_custom") JPanel custom) {
-    this.preset = preset;
-    this.custom = custom;
+  public AnalysisPanelProvider() throws IOException {
+    this.preset = new PresetAnalyzerPanelProvider().get();
+    this.custom = new CustomAnalyzerPanelProvider().get();
 
-    this.operatorRegistry = operatorRegistry;
-    this.analysisChainDialogFactory = analysisChainDialogFactory;
-    this.tokenAttrDialogFactory = tokenAttrDialogFactory;
-    this.messageBroker = messageBroker;
+    this.operatorRegistry = ComponentOperatorRegistry.getInstance();
+    this.analysisChainDialogFactory = AnalysisChainDialogFactory.getInstance();
+    this.tokenAttrDialogFactory = TokenAttributeDialogFactory.getInstance();
+    this.messageBroker = MessageBroker.getInstance();
 
-    this.analysisModel = analysisFactory.newInstance();
+    this.analysisModel = new AnalysisFactory().newInstance();
     analysisModel.createAnalyzerFromClassName(StandardAnalyzer.class.getName());
 
     operatorRegistry.register(AnalysisTabOperator.class, this);
@@ -129,7 +122,6 @@ public final class AnalysisPanelProvider implements Provider<JPanel>, AnalysisTa
     });
   }
 
-  @Override
   public JPanel get() {
     JPanel panel = new JPanel(new GridLayout(1, 1));
     panel.setOpaque(false);

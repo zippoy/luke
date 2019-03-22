@@ -28,7 +28,13 @@ import java.io.IOException;
 
 public final class DirectoryHandler extends AbstractHandler<DirectoryObserver> {
 
+  private static final DirectoryHandler instance = new DirectoryHandler();
+
   private LukeStateImpl state;
+
+  public static DirectoryHandler getInstance() {
+    return instance;
+  }
 
   @Override
   protected void notifyOne(DirectoryObserver observer) {

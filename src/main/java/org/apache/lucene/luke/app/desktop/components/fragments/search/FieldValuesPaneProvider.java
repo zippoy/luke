@@ -17,8 +17,6 @@
 
 package org.apache.lucene.luke.app.desktop.components.fragments.search;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
 import org.apache.lucene.luke.app.desktop.components.ComponentOperatorRegistry;
 import org.apache.lucene.luke.app.desktop.components.TableColumnInfo;
 import org.apache.lucene.luke.app.desktop.components.TableModelBase;
@@ -41,7 +39,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-public final class FieldValuesPaneProvider implements Provider<JScrollPane>, FieldValuesTabOperator {
+public final class FieldValuesPaneProvider implements FieldValuesTabOperator {
 
   private final JCheckBox loadAllCB = new JCheckBox();
 
@@ -49,12 +47,10 @@ public final class FieldValuesPaneProvider implements Provider<JScrollPane>, Fie
 
   private ListenerFunctions listners = new ListenerFunctions();
 
-  @Inject
-  public FieldValuesPaneProvider(ComponentOperatorRegistry operatorRegistry) {
-    operatorRegistry.register(FieldValuesTabOperator.class, this);
+  public FieldValuesPaneProvider() {
+    ComponentOperatorRegistry.getInstance().register(FieldValuesTabOperator.class, this);
   }
 
-  @Override
   public JScrollPane get() {
     JPanel panel = new JPanel();
     panel.setOpaque(false);
