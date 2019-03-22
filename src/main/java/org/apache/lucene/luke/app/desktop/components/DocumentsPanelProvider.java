@@ -473,10 +473,11 @@ public final class DocumentsPanelProvider implements DocumentsTabOperator {
     termDocIdxTF.setText("");
     clearPosTable();
 
-    String firstTermText = documentsModel.firstTerm(fieldName).map(Term::text).orElse("");
+    Optional<Term> firstTerm = documentsModel.firstTerm(fieldName);
+    String firstTermText = firstTerm.map(Term::text).orElse("");
     termTF.setText(firstTermText);
     selectedTermTF.setText(firstTermText);
-    if (selectedTermTF.getText().length() > 0) {
+    if (firstTerm.isPresent()) {
       String num = documentsModel.getDocFreq().map(String::valueOf).orElse("?");
       termDocsNumLbl.setText("in " + num + " docs");
 
@@ -496,10 +497,11 @@ public final class DocumentsPanelProvider implements DocumentsTabOperator {
     termDocIdxTF.setText("");
     clearPosTable();
 
-    String nextTermText = documentsModel.nextTerm().map(Term::text).orElse("");
+    Optional<Term> nextTerm = documentsModel.nextTerm();
+    String nextTermText = nextTerm.map(Term::text).orElse("");
     termTF.setText(nextTermText);
     selectedTermTF.setText(nextTermText);
-    if (selectedTermTF.getText().length() > 0) {
+    if (nextTerm.isPresent()) {
       String num = documentsModel.getDocFreq().map(String::valueOf).orElse("?");
       termDocsNumLbl.setText("in " + num + " docs");
 
@@ -521,10 +523,11 @@ public final class DocumentsPanelProvider implements DocumentsTabOperator {
 
     String termText = termTF.getText();
 
-    String nextTermText = documentsModel.seekTerm(termText).map(Term::text).orElse("");
+    Optional<Term> nextTerm = documentsModel.seekTerm(termText);
+    String nextTermText = nextTerm.map(Term::text).orElse("");
     termTF.setText(nextTermText);
     selectedTermTF.setText(nextTermText);
-    if (selectedTermTF.getText().length() > 0) {
+    if (nextTerm.isPresent()) {
       String num = documentsModel.getDocFreq().map(String::valueOf).orElse("?");
       termDocsNumLbl.setText("in " + num + " docs");
 
