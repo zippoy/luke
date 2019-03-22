@@ -21,10 +21,10 @@ import com.google.common.collect.ImmutableList;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.misc.HighFreqTerms;
 
-import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.WeakHashMap;
 import java.util.stream.Collectors;
 
@@ -37,8 +37,8 @@ final class TopTerms {
 
   private final Map<String, List<TermStats>> topTermsCache;
 
-  TopTerms(@Nonnull IndexReader reader) {
-    this.reader = reader;
+  TopTerms(IndexReader reader) {
+    this.reader = Objects.requireNonNull(reader);
     this.topTermsCache = new WeakHashMap<>();
   }
 

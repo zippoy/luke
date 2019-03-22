@@ -30,8 +30,6 @@ import org.apache.lucene.util.Bits;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.Constructor;
@@ -47,6 +45,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -69,9 +68,9 @@ public final class IndexUtils {
    * @return index reader
    * @throws Exception
    */
-  public static IndexReader openIndex(@Nonnull String indexPath, @Nullable String dirImpl)
+  public static IndexReader openIndex(String indexPath, String dirImpl)
       throws Exception {
-    final Path root = FileSystems.getDefault().getPath(indexPath);
+    final Path root = FileSystems.getDefault().getPath(Objects.requireNonNull(indexPath));
     final List<DirectoryReader> readers = new ArrayList<>();
 
     // find all valid index directories in this directory
@@ -112,15 +111,15 @@ public final class IndexUtils {
    * @return directory
    * @throws IOException
    */
-  public static Directory openDirectory(@Nonnull String dirPath, @Nullable String dirImpl) throws IOException {
-    final Path path = FileSystems.getDefault().getPath(dirPath);
+  public static Directory openDirectory(String dirPath, String dirImpl) throws IOException {
+    final Path path = FileSystems.getDefault().getPath(Objects.requireNonNull(dirPath));
     Directory dir = openDirectory(path, dirImpl);
     logger.info(String.format(Locale.ENGLISH, "DirectoryReader successfully opened. Directory path=%s", dirPath));
     return dir;
   }
 
-  private static Directory openDirectory(@Nonnull Path path, String dirImpl) throws IOException {
-    if (!Files.exists(path)) {
+  private static Directory openDirectory(Path path, String dirImpl) throws IOException {
+    if (!Files.exists(Objects.requireNonNull(path))) {
       throw new IllegalArgumentException("Index directory doesn't exist.");
     }
 
@@ -192,8 +191,8 @@ public final class IndexUtils {
    * @return new index writer
    * @throws IOException
    */
-  public static IndexWriter createWriter(@Nonnull Directory dir, Analyzer analyzer, boolean useCompound, boolean keepAllCommits) throws IOException {
-    return createWriter(dir, analyzer, useCompound, keepAllCommits, null);
+  public static IndexWriter createWriter(Directory dir, Analyzer analyzer, boolean useCompound, boolean keepAllCommits) throws IOException {
+    return createWriter(Objects.requireNonNull(dir), analyzer, useCompound, keepAllCommits, null);
   }
 
   /**
@@ -207,8 +206,9 @@ public final class IndexUtils {
    * @return new index writer
    * @throws IOException
    */
-  public static IndexWriter createWriter(@Nonnull Directory dir, Analyzer analyzer, boolean useCompound, boolean keepAllCommits,
-                                         @Nullable PrintStream ps) throws IOException {
+  public static IndexWriter createWriter(Directory dir, Analyzer analyzer, boolean useCompound, boolean keepAllCommits,
+                                         PrintStream ps) throws IOException {
+    Objects.requireNonNull(dir);
 
     IndexWriterConfig config = new IndexWriterConfig(analyzer == null ? new WhitespaceAnalyzer() : analyzer);
     config.setUseCompoundFile(useCompound);
@@ -232,7 +232,8 @@ public final class IndexUtils {
    * @param maxNumSegments - max number of segments
    * @throws IOException
    */
-  public static void optimizeIndex(@Nonnull IndexWriter writer, boolean expunge, int maxNumSegments) throws IOException {
+  public static void optimizeIndex(IndexWriter writer, boolean expunge, int maxNumSegments) throws IOException {
+    Objects.requireNonNull(writer);
     if (expunge) {
       writer.forceMergeDeletes(true);
     } else {
@@ -248,7 +249,9 @@ public final class IndexUtils {
    * @return - index status
    * @throws IOException
    */
-  public static CheckIndex.Status checkIndex(@Nonnull Directory dir, @Nullable PrintStream ps) throws IOException {
+  public static CheckIndex.Status checkIndex(Directory dir, PrintStream ps) throws IOException {
+    Objects.requireNonNull(dir);
+
     try (CheckIndex ci = new CheckIndex(dir)) {
       if (ps != null) {
         ci.setInfoStream(ps);
@@ -265,7 +268,10 @@ public final class IndexUtils {
    * @param ps - information stream
    * @throws IOException
    */
-  public static void tryRepairIndex(@Nonnull Directory dir, @Nonnull CheckIndex.Status st, @Nullable PrintStream ps) throws IOException {
+  public static void tryRepairIndex(Directory dir, CheckIndex.Status st, PrintStream ps) throws IOException {
+    Objects.requireNonNull(dir);
+    Objects.requireNonNull(st);
+
     try (CheckIndex ci = new CheckIndex(dir)) {
       if (ps != null) {
         ci.setInfoStream(ps);
@@ -280,7 +286,9 @@ public final class IndexUtils {
    * @param dir - index directory
    * @throws IOException
    */
-  public static String getIndexFormat(@Nonnull Directory dir) throws IOException {
+  public static String getIndexFormat(Directory dir) throws IOException {
+    Objects.requireNonNull(dir);
+
     return new SegmentInfos.FindSegmentsFile<String>(dir) {
       @Override
       protected String doBody(String segmentFileName) throws IOException {
@@ -312,8 +320,8 @@ public final class IndexUtils {
    * @param ic - index commit
    * @throws IOException
    */
-  public static String getCommitUserData(@Nonnull IndexCommit ic) throws IOException {
-    Map<String, String> userDataMap = ic.getUserData();
+  public static String getCommitUserData(IndexCommit ic) throws IOException {
+    Map<String, String> userDataMap = Objects.requireNonNull(ic).getUserData();
     if (userDataMap != null) {
       return userDataMap.toString();
     } else {

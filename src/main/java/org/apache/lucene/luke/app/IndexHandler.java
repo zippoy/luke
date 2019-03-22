@@ -24,8 +24,8 @@ import org.apache.lucene.luke.util.IndexUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import java.util.Objects;
+
 
 public final class IndexHandler extends AbstractHandler<IndexObserver> {
 
@@ -52,11 +52,13 @@ public final class IndexHandler extends AbstractHandler<IndexObserver> {
     return state != null && !state.closed;
   }
 
-  public void open(@Nonnull String indexPath, @Nullable String dirImpl) {
+  public void open(String indexPath, String dirImpl) {
     open(indexPath, dirImpl, false, false, false);
   }
 
-  public void open(@Nonnull String indexPath, @Nullable String dirImpl, boolean readOnly, boolean useCompound, boolean keepAllCommits) {
+  public void open(String indexPath, String dirImpl, boolean readOnly, boolean useCompound, boolean keepAllCommits) {
+    Objects.requireNonNull(indexPath);
+
     if (indexOpened()) {
       close();
     }

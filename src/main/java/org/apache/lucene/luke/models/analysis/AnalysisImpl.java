@@ -32,10 +32,7 @@ import org.reflections.scanners.SubTypesScanner;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 import org.reflections.util.FilterBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.net.URL;
@@ -46,12 +43,12 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -132,7 +129,9 @@ public final class AnalysisImpl implements Analysis {
   }
 
   @Override
-  public List<Token> analyze(@Nonnull String text) {
+  public List<Token> analyze(String text) {
+    Objects.requireNonNull(text);
+
     if (analyzer == null) {
       throw new LukeException("Analyzer is not set.");
     }
@@ -171,7 +170,9 @@ public final class AnalysisImpl implements Analysis {
   }
 
   @Override
-  public Analyzer createAnalyzerFromClassName(@Nonnull String analyzerType) {
+  public Analyzer createAnalyzerFromClassName(String analyzerType) {
+    Objects.requireNonNull(analyzerType);
+
     try {
       Class<? extends Analyzer> clazz = Class.forName(analyzerType).asSubclass(Analyzer.class);
       this.analyzer = clazz.newInstance();
@@ -182,7 +183,8 @@ public final class AnalysisImpl implements Analysis {
   }
 
   @Override
-  public Analyzer buildCustomAnalyzer(@Nonnull CustomAnalyzerConfig config) {
+  public Analyzer buildCustomAnalyzer(CustomAnalyzerConfig config) {
+    Objects.requireNonNull(config);
     try {
       // create builder
       CustomAnalyzer.Builder builder = config.getConfigDir()

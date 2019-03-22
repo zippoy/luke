@@ -36,7 +36,6 @@ import org.apache.lucene.luke.models.tools.IndexToolsFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -310,7 +309,7 @@ public final class CheckIndexDialogFactory implements DialogOpener.DialogFactory
       executor.shutdown();
     }
 
-    private String createResultsMessage(@Nullable CheckIndex.Status status) {
+    private String createResultsMessage(CheckIndex.Status status) {
       String msg;
       if (status == null) {
         msg = "?";

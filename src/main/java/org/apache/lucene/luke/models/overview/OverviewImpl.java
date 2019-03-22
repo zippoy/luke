@@ -23,12 +23,11 @@ import org.apache.lucene.luke.models.LukeModel;
 import org.apache.lucene.luke.models.LukeException;
 import org.apache.lucene.luke.util.IndexUtils;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 public final class OverviewImpl extends LukeModel implements Overview {
@@ -46,9 +45,9 @@ public final class OverviewImpl extends LukeModel implements Overview {
    * @param indexPath - the (root) index directory path
    * @throws LukeException - if an internal error is occurred when accessing index
    */
-  public OverviewImpl(@Nonnull IndexReader reader, @Nonnull String indexPath) {
+  public OverviewImpl(IndexReader reader, String indexPath) {
     super(reader);
-    this.indexPath = indexPath;
+    this.indexPath = Objects.requireNonNull(indexPath);
     try {
       this.termCounts = new TermCounts(reader);
     } catch (IOException e) {
@@ -147,7 +146,7 @@ public final class OverviewImpl extends LukeModel implements Overview {
   }
 
   @Override
-  public Map<String, Long> getSortedTermCounts(@Nullable TermCountsOrder order) {
+  public Map<String, Long> getSortedTermCounts(TermCountsOrder order) {
     if (order == null) {
       order = TermCountsOrder.COUNT_DESC;
     }
@@ -155,7 +154,9 @@ public final class OverviewImpl extends LukeModel implements Overview {
   }
 
   @Override
-  public List<TermStats> getTopTerms(@Nonnull String field, int numTerms) {
+  public List<TermStats> getTopTerms(String field, int numTerms) {
+    Objects.requireNonNull(field);
+
     if (numTerms < 0) {
       throw new IllegalArgumentException(String.format(Locale.ENGLISH, "'numTerms' must be a positive integer: %d is not accepted.", numTerms));
     }
