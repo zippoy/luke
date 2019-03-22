@@ -21,7 +21,7 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.luke.models.LukeModel;
 import org.apache.lucene.luke.models.LukeException;
-import org.apache.lucene.luke.util.IndexUtils;
+import org.apache.lucene.luke.models.util.IndexUtils;
 
 import java.io.IOException;
 import java.util.List;

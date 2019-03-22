@@ -18,7 +18,7 @@
 package org.apache.lucene.luke.models.commits;
 
 import org.apache.lucene.index.IndexCommit;
-import org.apache.lucene.luke.util.IndexUtils;
+import org.apache.lucene.luke.models.util.IndexUtils;
 
 import java.io.IOException;
 

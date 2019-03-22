@@ -20,7 +20,7 @@ package org.apache.lucene.luke.models;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexCommit;
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.luke.util.IndexUtils;
+import org.apache.lucene.luke.models.util.IndexUtils;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.util.Bits;
 

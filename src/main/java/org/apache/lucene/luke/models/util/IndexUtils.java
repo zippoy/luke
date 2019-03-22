@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.lucene.luke.util;
+package org.apache.lucene.luke.models.util;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
