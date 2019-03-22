@@ -39,7 +39,6 @@ import java.util.Optional;
 
 // See: https://github.com/DmitryKey/luke/issues/111
 @LuceneTestCase.SuppressCodecs({
-    "Asserting",
     "DummyCompressingStoredFields", "HighCompressionCompressingStoredFields", "FastCompressingStoredFields", "FastDecompressionCompressingStoredFields"
 })
 public class CommitsImplTest extends LuceneTestCase {
