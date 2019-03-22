@@ -23,7 +23,13 @@ import java.util.Optional;
 
 public class ComponentOperatorRegistry {
 
+  private static final ComponentOperatorRegistry instance = new ComponentOperatorRegistry();
+
   private final Map<Class<?>, Object> operators = new HashMap<>();
+
+  public static ComponentOperatorRegistry getInstance() {
+    return instance;
+  }
 
   public <T extends ComponentOperator> void register(Class<T> type, T operator) {
     if (!operators.containsKey(type)) {

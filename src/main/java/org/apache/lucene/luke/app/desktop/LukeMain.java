@@ -17,23 +17,24 @@
 
 package org.apache.lucene.luke.app.desktop;
 
-import com.google.inject.Injector;
-import com.google.inject.Key;
-import com.google.inject.name.Names;
+import org.apache.lucene.luke.app.desktop.components.LukeWindowProvider;
 import org.apache.lucene.luke.app.desktop.components.dialog.menubar.OpenIndexDialogFactory;
 import org.apache.lucene.luke.app.desktop.util.DialogOpener;
 import org.apache.lucene.luke.app.desktop.util.FontUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
-import org.apache.lucene.luke.app.desktop.util.TextAreaAppender;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.JFrame;
-import javax.swing.JTextArea;
 import javax.swing.UIManager;
 import java.awt.GraphicsEnvironment;
+import java.io.IOException;
 
 import static org.apache.lucene.luke.app.desktop.util.ExceptionHandler.handle;
 
 public class LukeMain {
+
+  private static final Logger log = LoggerFactory.getLogger(LukeMain.class);
 
   private static JFrame frame;
 
@@ -42,30 +43,29 @@ public class LukeMain {
   }
 
   private static void createAndShowGUI() {
-    Injector injector = DesktopModule.getIngector();
 
     // uncaught error handler
-    MessageBroker messageBroker = injector.getInstance(MessageBroker.class);
+    MessageBroker messageBroker = MessageBroker.getInstance();
     Thread.setDefaultUncaughtExceptionHandler((thread, cause) ->
         handle(cause, messageBroker)
     );
 
-    // prepare log4j appender for Logs tab.
-    JTextArea textArea = injector.getInstance(Key.get(JTextArea.class, Names.named("log_area")));
-    TextAreaAppender.setTextArea(textArea);
+    try {
+      frame = new LukeWindowProvider().get();
+      frame.setLocation(200, 100);
+      frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+      frame.pack();
+      frame.setVisible(true);
 
-
-    frame = injector.getInstance(JFrame.class);
-    frame.setLocation(200, 100);
-    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    frame.pack();
-    frame.setVisible(true);
-
-    // show open index dialog
-    OpenIndexDialogFactory openIndexDialogFactory = injector.getInstance(OpenIndexDialogFactory.class);
-    new DialogOpener<>(openIndexDialogFactory).open(MessageUtils.getLocalizedMessage("openindex.dialog.title"), 600, 420,
-        (factory) -> {
-        });
+      // show open index dialog
+      OpenIndexDialogFactory openIndexDialogFactory = OpenIndexDialogFactory.getInstance();
+      new DialogOpener<>(openIndexDialogFactory).open(MessageUtils.getLocalizedMessage("openindex.dialog.title"), 600, 420,
+          (factory) -> {
+          });
+    } catch (IOException e) {
+      messageBroker.showUnknownErrorMessage();
+      log.error("Cannot initialize components.", e);
+    }
   }
 
   public static void main(String[] args) throws Exception {

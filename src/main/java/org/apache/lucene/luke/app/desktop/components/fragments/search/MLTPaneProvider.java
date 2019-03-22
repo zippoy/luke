@@ -17,8 +17,6 @@
 
 package org.apache.lucene.luke.app.desktop.components.fragments.search;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.luke.app.desktop.components.ComponentOperatorRegistry;
@@ -53,7 +51,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public final class MLTPaneProvider implements Provider<JScrollPane>, MLTTabOperator {
+public final class MLTPaneProvider implements MLTTabOperator {
 
   private final JLabel analyzerLbl = new JLabel(StandardAnalyzer.class.getName());
 
@@ -73,15 +71,12 @@ public final class MLTPaneProvider implements Provider<JScrollPane>, MLTTabOpera
 
   private MLTConfig config = new MLTConfig.Builder().build();
 
-  @Inject
-  public MLTPaneProvider(TabSwitcherProxy tabSwitcher,
-                         ComponentOperatorRegistry operatorRegistry) {
-    this.tabSwitcher = tabSwitcher;
+  public MLTPaneProvider() {
+    this.tabSwitcher = TabSwitcherProxy.getInstance();
 
-    operatorRegistry.register(MLTTabOperator.class, this);
+    ComponentOperatorRegistry.getInstance().register(MLTTabOperator.class, this);
   }
 
-  @Override
   public JScrollPane get() {
     JPanel panel = new JPanel();
     panel.setOpaque(false);

@@ -18,9 +18,6 @@
 package org.apache.lucene.luke.app.desktop.components;
 
 import com.google.common.base.Strings;
-import com.google.inject.Inject;
-import com.google.inject.Provider;
-import com.google.inject.name.Named;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.Term;
@@ -30,10 +27,16 @@ import org.apache.lucene.luke.app.LukeState;
 import org.apache.lucene.luke.app.desktop.MessageBroker;
 import org.apache.lucene.luke.app.desktop.components.dialog.ConfirmDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.search.ExplainDialogFactory;
+import org.apache.lucene.luke.app.desktop.components.fragments.search.AnalyzerPaneProvider;
+import org.apache.lucene.luke.app.desktop.components.fragments.search.FieldValuesPaneProvider;
 import org.apache.lucene.luke.app.desktop.components.fragments.search.FieldValuesTabOperator;
+import org.apache.lucene.luke.app.desktop.components.fragments.search.MLTPaneProvider;
 import org.apache.lucene.luke.app.desktop.components.fragments.search.MLTTabOperator;
+import org.apache.lucene.luke.app.desktop.components.fragments.search.QueryParserPaneProvider;
 import org.apache.lucene.luke.app.desktop.components.fragments.search.QueryParserTabOperator;
+import org.apache.lucene.luke.app.desktop.components.fragments.search.SimilarityPaneProvider;
 import org.apache.lucene.luke.app.desktop.components.fragments.search.SimilarityTabOperator;
+import org.apache.lucene.luke.app.desktop.components.fragments.search.SortPaneProvider;
 import org.apache.lucene.luke.app.desktop.components.fragments.search.SortTabOperator;
 import org.apache.lucene.luke.app.desktop.util.DialogOpener;
 import org.apache.lucene.luke.app.desktop.util.FontUtils;
@@ -50,7 +53,11 @@ import org.apache.lucene.luke.models.search.SearchResults;
 import org.apache.lucene.luke.models.search.SimilarityConfig;
 import org.apache.lucene.luke.models.tools.IndexTools;
 import org.apache.lucene.luke.models.tools.IndexToolsFactory;
-import org.apache.lucene.search.*;
+import org.apache.lucene.search.Explanation;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.Sort;
+import org.apache.lucene.search.TermQuery;
+import org.apache.lucene.search.TotalHits;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -79,6 +86,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -87,7 +95,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public final class SearchPanelProvider implements Provider<JPanel>, SearchTabOperator {
+public final class SearchPanelProvider implements SearchTabOperator {
 
   private static final int DEFAULT_PAGE_SIZE = 10;
 
@@ -159,41 +167,26 @@ public final class SearchPanelProvider implements Provider<JPanel>, SearchTabOpe
 
   private IndexTools toolsModel;
 
-  @Inject
-  public SearchPanelProvider(SearchFactory searchFactory,
-                             IndexToolsFactory toolsFactory,
-                             IndexHandler indexHandler,
-                             MessageBroker messageBroker,
-                             TabSwitcherProxy tabSwitcher,
-                             ComponentOperatorRegistry operatorRegistry,
-                             ConfirmDialogFactory confirmDialogFactory,
-                             ExplainDialogFactory explainDialogProvider,
-                             @Named("search_qparser") JScrollPane qparser,
-                             @Named("search_analyzer") JScrollPane analyzer,
-                             @Named("search_similarity") JScrollPane similarity,
-                             @Named("search_sort") JScrollPane sort,
-                             @Named("search_values") JScrollPane values,
-                             @Named("search_mlt") JScrollPane mlt) {
-    this.searchFactory = searchFactory;
-    this.toolsFactory = toolsFactory;
-    this.indexHandler = indexHandler;
-    this.messageBroker = messageBroker;
-    this.tabSwitcher = tabSwitcher;
-    this.operatorRegistry = operatorRegistry;
-    this.confirmDialogFactory = confirmDialogFactory;
-    this.explainDialogProvider = explainDialogProvider;
-    this.qparser = qparser;
-    this.analyzer = analyzer;
-    this.similarity = similarity;
-    this.sort = sort;
-    this.values = values;
-    this.mlt = mlt;
+  public SearchPanelProvider() throws IOException {
+    this.searchFactory = new SearchFactory();
+    this.toolsFactory = new IndexToolsFactory();
+    this.indexHandler = IndexHandler.getInstance();
+    this.messageBroker = MessageBroker.getInstance();
+    this.tabSwitcher = TabSwitcherProxy.getInstance();
+    this.operatorRegistry = ComponentOperatorRegistry.getInstance();
+    this.confirmDialogFactory = ConfirmDialogFactory.getInstance();
+    this.explainDialogProvider = ExplainDialogFactory.getInstance();
+    this.qparser = new QueryParserPaneProvider().get();
+    this.analyzer = new AnalyzerPaneProvider().get();
+    this.similarity = new SimilarityPaneProvider().get();
+    this.sort = new SortPaneProvider().get();
+    this.values = new FieldValuesPaneProvider().get();
+    this.mlt = new MLTPaneProvider().get();
 
     indexHandler.addObserver(new Observer());
     operatorRegistry.register(SearchTabOperator.class, this);
   }
 
-  @Override
   public JPanel get() {
     JPanel panel = new JPanel(new GridLayout(1, 1));
     panel.setOpaque(false);

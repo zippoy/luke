@@ -17,24 +17,27 @@
 
 package org.apache.lucene.luke.app.desktop.components;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class TabSwitcherProxy {
 
-  private final List<TabSwitcher> switcherHolder = new ArrayList<>();
+  private static final TabSwitcherProxy instance = new TabSwitcherProxy();
+
+  private TabSwitcher switcher;
+
+  public static TabSwitcherProxy getInstance() {
+    return instance;
+  }
 
   public void set(TabSwitcher switcher) {
-    if (switcherHolder.isEmpty()) {
-      switcherHolder.add(switcher);
+    if (this.switcher == null) {
+      this.switcher = switcher;
     }
   }
 
   public void switchTab(TabbedPaneProvider.Tab tab) {
-    if (switcherHolder.get(0) == null) {
+    if (switcher == null) {
       throw new IllegalStateException();
     }
-    switcherHolder.get(0).switchTab(tab);
+    switcher.switchTab(tab);
   }
 
   public interface TabSwitcher {

@@ -17,9 +17,6 @@
 
 package org.apache.lucene.luke.app.desktop.components;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
-import com.google.inject.name.Named;
 import org.apache.lucene.luke.app.DirectoryHandler;
 import org.apache.lucene.luke.app.DirectoryObserver;
 import org.apache.lucene.luke.app.IndexHandler;
@@ -27,9 +24,11 @@ import org.apache.lucene.luke.app.IndexObserver;
 import org.apache.lucene.luke.app.LukeState;
 import org.apache.lucene.luke.app.desktop.MessageBroker;
 import org.apache.lucene.luke.app.desktop.Preferences;
+import org.apache.lucene.luke.app.desktop.PreferencesFactory;
 import org.apache.lucene.luke.app.desktop.util.FontUtils;
 import org.apache.lucene.luke.app.desktop.util.ImageUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
+import org.apache.lucene.luke.app.desktop.util.TextAreaAppender;
 import org.apache.lucene.util.Version;
 
 import javax.swing.BorderFactory;
@@ -38,6 +37,7 @@ import javax.swing.JLabel;
 import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
+import javax.swing.JTextArea;
 import javax.swing.WindowConstants;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -46,9 +46,10 @@ import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.io.IOException;
 
 
-public final class LukeWindowProvider implements Provider<JFrame>, LukeWindowOperator {
+public final class LukeWindowProvider implements LukeWindowOperator {
 
   private static final String WINDOW_TITLE = MessageUtils.getLocalizedMessage("window.title") + " - v" + Version.LATEST.toString();
 
@@ -72,30 +73,25 @@ public final class LukeWindowProvider implements Provider<JFrame>, LukeWindowOpe
 
   private JFrame frame = new JFrame();
 
-  @Inject
-  public LukeWindowProvider(Preferences prefs,
-                            ComponentOperatorRegistry operatorRegistry,
-                            JMenuBar menuBar,
-                            @Named("main") JTabbedPane tabbedPane,
-                            DirectoryHandler directoryHandler,
-                            IndexHandler indexHandler,
-                            MessageBroker messageBroker,
-                            TabSwitcherProxy tabSwitcher) {
-    this.prefs = prefs;
-    this.menuBar = menuBar;
-    this.tabbedPane = tabbedPane;
-    this.messageBroker = messageBroker;
-    this.tabSwitcher = tabSwitcher;
+  public LukeWindowProvider() throws IOException {
+    // prepare log4j appender for Logs tab.
+    JTextArea logTextArea = new JTextArea();
+    TextAreaAppender.setTextArea(logTextArea);
 
-    operatorRegistry.register(LukeWindowOperator.class, this);
+    this.prefs = PreferencesFactory.getInstance();
+    this.menuBar = new MenuBarProvider().get();
+    this.tabbedPane = new TabbedPaneProvider(logTextArea).get();
+    this.messageBroker = MessageBroker.getInstance();
+    this.tabSwitcher = TabSwitcherProxy.getInstance();
+
+    ComponentOperatorRegistry.getInstance().register(LukeWindowOperator.class, this);
     Observer observer = new Observer();
-    directoryHandler.addObserver(observer);
-    indexHandler.addObserver(observer);
+    DirectoryHandler.getInstance().addObserver(observer);
+    IndexHandler.getInstance().addObserver(observer);
 
     messageBroker.registerReceiver(new MessageReceiverImpl());
   }
 
-  @Override
   public JFrame get() {
     frame.setTitle(WINDOW_TITLE);
     frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);

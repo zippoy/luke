@@ -29,9 +29,15 @@ import javax.annotation.Nullable;
 
 public final class IndexHandler extends AbstractHandler<IndexObserver> {
 
-  private static Logger logger = LoggerFactory.getLogger(IndexHandler.class);
+  private static final Logger logger = LoggerFactory.getLogger(IndexHandler.class);
+
+  private static final IndexHandler instance = new IndexHandler();
 
   private LukeStateImpl state;
+
+  public static IndexHandler getInstance() {
+    return instance;
+  }
 
   @Override
   protected void notifyOne(IndexObserver observer) {

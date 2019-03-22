@@ -18,8 +18,6 @@
 package org.apache.lucene.luke.app.desktop.components.fragments.search;
 
 import com.google.common.base.Strings;
-import com.google.inject.Inject;
-import com.google.inject.Provider;
 import org.apache.lucene.luke.app.desktop.components.ComponentOperatorRegistry;
 import org.apache.lucene.luke.app.desktop.components.SearchTabOperator;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
@@ -43,7 +41,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-public final class SortPaneProvider implements Provider<JScrollPane>, SortTabOperator {
+public final class SortPaneProvider implements SortTabOperator {
 
   private static final String COMMAND_FIELD_COMBO1 = "fieldCombo1";
 
@@ -67,13 +65,11 @@ public final class SortPaneProvider implements Provider<JScrollPane>, SortTabOpe
 
   private Search searchModel;
 
-  @Inject
-  public SortPaneProvider(ComponentOperatorRegistry operatorRegistry) {
-    this.operatorRegistry = operatorRegistry;
+  public SortPaneProvider() {
+    this.operatorRegistry = ComponentOperatorRegistry.getInstance();
     operatorRegistry.register(SortTabOperator.class, this);
   }
 
-  @Override
   public JScrollPane get() {
     JPanel panel = new JPanel(new GridLayout(1, 1));
     panel.setOpaque(false);

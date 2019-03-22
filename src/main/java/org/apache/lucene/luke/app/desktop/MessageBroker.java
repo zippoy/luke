@@ -22,7 +22,13 @@ import java.util.List;
 
 public class MessageBroker {
 
+  private static final MessageBroker instance = new MessageBroker();
+
   private List<MessageReceiver> receivers = new ArrayList<>();
+
+  public static MessageBroker getInstance() {
+    return instance;
+  }
 
   public void registerReceiver(MessageReceiver receiver) {
     receivers.add(receiver);

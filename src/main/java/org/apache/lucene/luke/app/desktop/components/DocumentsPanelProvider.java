@@ -17,8 +17,6 @@
 
 package org.apache.lucene.luke.app.desktop.components;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
 import org.apache.lucene.index.DocValuesType;
 import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.index.Term;
@@ -79,15 +77,16 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-public final class DocumentsPanelProvider implements Provider<JPanel>, DocumentsTabOperator {
+public final class DocumentsPanelProvider implements DocumentsTabOperator {
 
-  private final DocumentsFactory documentsFactory;
+  private final DocumentsFactory documentsFactory = new DocumentsFactory();
 
   private final MessageBroker messageBroker;
 
@@ -143,30 +142,20 @@ public final class DocumentsPanelProvider implements Provider<JPanel>, Documents
 
   private Documents documentsModel;
 
-  @Inject
-  public DocumentsPanelProvider(DocumentsFactory documentsFactory,
-                                MessageBroker messageBroker,
-                                IndexHandler indexHandler,
-                                TabSwitcherProxy tabSwitcher,
-                                ComponentOperatorRegistry operatorRegistry,
-                                AddDocumentDialogFactory addDocDialogFactory,
-                                TermVectorDialogFactory tvDialogFactory,
-                                DocValuesDialogFactory dvDialogFactory,
-                                StoredValueDialogFactory valueDialogFactory,
-                                HelpDialogFactory helpDialogFactory) {
-    this.documentsFactory = documentsFactory;
-    this.messageBroker = messageBroker;
-    this.operatorRegistry = operatorRegistry;
-    this.tabSwitcher = tabSwitcher;
-    this.addDocDialogFactory = addDocDialogFactory;
-    this.tvDialogFactory = tvDialogFactory;
-    this.dvDialogFactory = dvDialogFactory;
-    this.valueDialogFactory = valueDialogFactory;
+  public DocumentsPanelProvider() throws IOException {
+    this.messageBroker = MessageBroker.getInstance();
+    this.operatorRegistry = ComponentOperatorRegistry.getInstance();
+    this.tabSwitcher = TabSwitcherProxy.getInstance();
+    this.addDocDialogFactory = AddDocumentDialogFactory.getInstance();
+    this.tvDialogFactory = TermVectorDialogFactory.getInstance();
+    this.dvDialogFactory = DocValuesDialogFactory.getInstance();
+    this.valueDialogFactory = StoredValueDialogFactory.getInstance();
+    HelpDialogFactory helpDialogFactory = HelpDialogFactory.getInstance();
     this.tableHeaderRenderer = new HelpHeaderRenderer(
         "About Flags", "Format: IdfpoNPSB#txxVDtxxxxTx/x",
         createFlagsHelpDialog(), helpDialogFactory);
 
-    indexHandler.addObserver(new Observer());
+    IndexHandler.getInstance().addObserver(new Observer());
     operatorRegistry.register(DocumentsTabOperator.class, this);
   }
 
@@ -186,7 +175,6 @@ public final class DocumentsPanelProvider implements Provider<JPanel>, Documents
     return new JScrollPane(list);
   }
 
-  @Override
   public JPanel get() {
     JPanel panel = new JPanel(new GridLayout(1, 1));
     panel.setOpaque(false);
