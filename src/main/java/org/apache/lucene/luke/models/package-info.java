@@ -15,9 +15,5 @@
  * limitations under the License.
  */
 
-package org.apache.lucene.luke.models.analysis;
-
-import org.apache.lucene.util.LuceneTestCase;
-
-public class AnalysisTestBase extends LuceneTestCase {
-}
+/** Models and internal APIs for Luke */
+package org.apache.lucene.luke.models;

@@ -43,6 +43,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/** Factory of token attribute dialog */
 public final class TokenAttributeDialogFactory implements DialogOpener.DialogFactory {
 
   private static TokenAttributeDialogFactory instance;

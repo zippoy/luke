@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+/** An utility class for interaction between components */
 public class ComponentOperatorRegistry {
 
   private static final ComponentOperatorRegistry instance = new ComponentOperatorRegistry();

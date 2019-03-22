@@ -31,6 +31,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import java.io.IOException;
 
+/** Provider of the Tabbed pane */
 public final class TabbedPaneProvider implements TabSwitcherProxy.TabSwitcher {
 
   private final MessageBroker messageBroker;

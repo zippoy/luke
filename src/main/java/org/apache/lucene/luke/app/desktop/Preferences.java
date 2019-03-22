@@ -21,6 +21,7 @@ import java.awt.Color;
 import java.io.IOException;
 import java.util.List;
 
+/** Preference */
 public interface Preferences {
 
   List<String> getHistory();

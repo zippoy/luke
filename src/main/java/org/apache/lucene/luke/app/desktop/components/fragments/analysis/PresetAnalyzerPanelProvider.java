@@ -34,6 +34,7 @@ import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.util.Collection;
 
+/** Provider of the preset analyzer panel */
 public final class PresetAnalyzerPanelProvider implements PresetAnalyzerPanelOperator {
 
   private final ComponentOperatorRegistry operatorRegistry;

@@ -27,19 +27,20 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
+/** PrintStream for text areas */
 public final class TextAreaPrintStream extends PrintStream {
 
-  private Logger logger;
+  private Logger log;
 
   private ByteArrayOutputStream baos;
 
   private JTextArea textArea;
 
-  public TextAreaPrintStream(JTextArea textArea, ByteArrayOutputStream baos, Charset charset, Logger logger) throws UnsupportedEncodingException {
+  public TextAreaPrintStream(JTextArea textArea, ByteArrayOutputStream baos, Charset charset, Logger log) throws UnsupportedEncodingException {
     super(baos, false, charset.name());
     this.baos = baos;
     this.textArea = textArea;
-    this.logger = logger;
+    this.log = log;
     baos.reset();
   }
 
@@ -49,7 +50,7 @@ public final class TextAreaPrintStream extends PrintStream {
       baos.write(s.getBytes(StandardCharsets.UTF_8));
       baos.write('\n');
     } catch (IOException e) {
-      logger.error(e.getMessage(), e);
+      log.error(e.getMessage(), e);
     }
   }
 
@@ -58,7 +59,7 @@ public final class TextAreaPrintStream extends PrintStream {
     try {
       textArea.append(baos.toString(StandardCharsets.UTF_8.name()));
     } catch (IOException e) {
-      logger.error(e.getMessage(), e);
+      log.error(e.getMessage(), e);
     } finally {
       baos.reset();
     }

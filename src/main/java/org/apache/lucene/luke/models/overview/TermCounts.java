@@ -18,7 +18,7 @@
 package org.apache.lucene.luke.models.overview;
 
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.luke.util.IndexUtils;
+import org.apache.lucene.luke.models.util.IndexUtils;
 
 import java.io.IOException;
 import java.util.Comparator;

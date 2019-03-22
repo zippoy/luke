@@ -23,6 +23,7 @@ import org.apache.lucene.luke.models.analysis.Analysis;
 import java.util.List;
 import java.util.Map;
 
+/** Operator of the custom analyzer panel */
 public interface CustomAnalyzerPanelOperator extends ComponentOperatorRegistry.ComponentOperator {
   void setAnalysisModel(Analysis analysisModel);
 

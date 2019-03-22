@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.lucene.luke.util;
+package org.apache.lucene.luke.models.util;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
@@ -58,7 +58,7 @@ import java.util.stream.StreamSupport;
  */
 public final class IndexUtils {
 
-  private static final Logger logger = LoggerFactory.getLogger(IndexUtils.class);
+  private static final Logger log = LoggerFactory.getLogger(IndexUtils.class);
 
   /**
    * Opens index(es) reader for given index path.
@@ -82,7 +82,7 @@ public final class IndexUtils {
           DirectoryReader dr = DirectoryReader.open(dir);
           readers.add(dr);
         } catch (IOException e) {
-          logger.warn(e.getMessage(), e);
+          log.warn(e.getMessage(), e);
         }
         return FileVisitResult.CONTINUE;
       }
@@ -92,7 +92,7 @@ public final class IndexUtils {
       throw new RuntimeException("No valid directory at the location: " + indexPath);
     }
 
-    logger.info(String.format(Locale.ENGLISH, "IndexReaders (%d leaf readers) successfully opened. Index path=%s", readers.size(), indexPath));
+    log.info(String.format(Locale.ENGLISH, "IndexReaders (%d leaf readers) successfully opened. Index path=%s", readers.size(), indexPath));
 
     if (readers.size() == 1) {
       return readers.get(0);
@@ -114,7 +114,7 @@ public final class IndexUtils {
   public static Directory openDirectory(String dirPath, String dirImpl) throws IOException {
     final Path path = FileSystems.getDefault().getPath(Objects.requireNonNull(dirPath));
     Directory dir = openDirectory(path, dirImpl);
-    logger.info(String.format(Locale.ENGLISH, "DirectoryReader successfully opened. Directory path=%s", dirPath));
+    log.info(String.format(Locale.ENGLISH, "DirectoryReader successfully opened. Directory path=%s", dirPath));
     return dir;
   }
 
@@ -137,7 +137,7 @@ public final class IndexUtils {
           dir = (Directory) constr.newInstance(path, null);
         }
       } catch (Exception e) {
-        logger.warn(e.getMessage(), e);
+        log.warn(e.getMessage(), e);
         throw new IllegalArgumentException("Invalid directory implementation class: " + dirImpl);
       }
     }
@@ -153,10 +153,10 @@ public final class IndexUtils {
     try {
       if (dir != null) {
         dir.close();
-        logger.info("Directory successfully closed.");
+        log.info("Directory successfully closed.");
       }
     } catch (IOException e) {
-      logger.error(e.getMessage(), e);
+      log.error(e.getMessage(), e);
     }
   }
 
@@ -169,15 +169,15 @@ public final class IndexUtils {
     try {
       if (reader != null) {
         reader.close();
-        logger.info("IndexReader successfully closed.");
+        log.info("IndexReader successfully closed.");
         if (reader instanceof DirectoryReader) {
           Directory dir = ((DirectoryReader) reader).directory();
           dir.close();
-          logger.info("Directory successfully closed.");
+          log.info("Directory successfully closed.");
         }
       }
     } catch (IOException e) {
-      logger.error(e.getMessage(), e);
+      log.error(e.getMessage(), e);
     }
   }
 

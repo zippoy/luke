@@ -28,6 +28,7 @@ import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.io.File;
 
+/** Provider of the Logs panel */
 public final class LogsPanelProvider {
 
   private static final String LOG_FILE = System.getProperty("user.home") + File.separator + ".luke.d" + File.separator + "luke.log";

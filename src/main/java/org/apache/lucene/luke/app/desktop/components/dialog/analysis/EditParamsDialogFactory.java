@@ -48,6 +48,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+/** Factory of edit parameters dialog */
 public final class EditParamsDialogFactory implements DialogOpener.DialogFactory {
 
   private static EditParamsDialogFactory instance;

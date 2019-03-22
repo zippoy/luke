@@ -23,6 +23,7 @@ import org.apache.log4j.spi.LoggingEvent;
 
 import javax.swing.JTextArea;
 
+/** Log appender for text areas */
 public final class TextAreaAppender extends AppenderSkeleton {
 
   private static JTextArea textArea;

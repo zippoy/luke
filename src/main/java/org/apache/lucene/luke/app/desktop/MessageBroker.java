@@ -20,6 +20,7 @@ package org.apache.lucene.luke.app.desktop;
 import java.util.ArrayList;
 import java.util.List;
 
+/** Message broker */
 public class MessageBroker {
 
   private static final MessageBroker instance = new MessageBroker();

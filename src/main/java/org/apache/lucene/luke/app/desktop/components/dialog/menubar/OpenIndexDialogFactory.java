@@ -65,9 +65,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/** Factory of open index dialog */
 public final class OpenIndexDialogFactory implements DialogOpener.DialogFactory {
 
-  private static final Logger logger = LoggerFactory.getLogger(OpenIndexDialogFactory.class);
+  private static final Logger log = LoggerFactory.getLogger(OpenIndexDialogFactory.class);
 
   private static OpenIndexDialogFactory instance;
 
@@ -349,7 +350,7 @@ public final class OpenIndexDialogFactory implements DialogOpener.DialogFactory 
         JOptionPane.showMessageDialog(dialog, message, "Invalid index path", JOptionPane.ERROR_MESSAGE);
       } catch (Throwable cause) {
         JOptionPane.showMessageDialog(dialog, MessageUtils.getLocalizedMessage("message.error.unknown"), "Unknown Error", JOptionPane.ERROR_MESSAGE);
-        logger.error(cause.getMessage(), cause);
+        log.error(cause.getMessage(), cause);
       }
     }
 

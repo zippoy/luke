@@ -61,9 +61,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+/** Factory of check index dialog */
 public final class CheckIndexDialogFactory implements DialogOpener.DialogFactory {
 
-  private static final Logger logger = LoggerFactory.getLogger(CheckIndexDialogFactory.class);
+  private static final Logger log = LoggerFactory.getLogger(CheckIndexDialogFactory.class);
 
   private static CheckIndexDialogFactory instance;
 
@@ -272,7 +273,7 @@ public final class CheckIndexDialogFactory implements DialogOpener.DialogFactory
           indicatorLbl.setVisible(true);
           TextAreaPrintStream ps;
           try {
-            ps = new TextAreaPrintStream(logArea, new ByteArrayOutputStream(), StandardCharsets.UTF_8, logger);
+            ps = new TextAreaPrintStream(logArea, new ByteArrayOutputStream(), StandardCharsets.UTF_8, log);
             CheckIndex.Status status = toolsModel.checkIndex(ps);
             ps.flush();
             return status;
@@ -299,7 +300,7 @@ public final class CheckIndexDialogFactory implements DialogOpener.DialogFactory
             }
             status = st;
           } catch (Exception e) {
-            logger.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             statusLbl.setText(MessageUtils.getLocalizedMessage("message.error.unknown"));
           }
         }
@@ -352,7 +353,7 @@ public final class CheckIndexDialogFactory implements DialogOpener.DialogFactory
           logArea.setText("");
           TextAreaPrintStream ps;
           try {
-            ps = new TextAreaPrintStream(logArea, new ByteArrayOutputStream(), StandardCharsets.UTF_8, logger);
+            ps = new TextAreaPrintStream(logArea, new ByteArrayOutputStream(), StandardCharsets.UTF_8, log);
             toolsModel.repairIndex(status, ps);
             statusLbl.setText("Done");
             ps.flush();

@@ -35,7 +35,7 @@ import org.apache.lucene.luke.app.desktop.util.NumericUtils;
 
 import java.util.Objects;
 
-
+/** Data holder for a new field. This is used in the add document dialog. */
 public final class NewField {
 
   private boolean deleted;

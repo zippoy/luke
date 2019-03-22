@@ -39,6 +39,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+/** Provider of the FieldValues pane */
 public final class FieldValuesPaneProvider implements FieldValuesTabOperator {
 
   private final JCheckBox loadAllCB = new JCheckBox();

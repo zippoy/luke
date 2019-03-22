@@ -3,6 +3,7 @@ package org.apache.lucene.luke.app.desktop.util.inifile;
 import java.io.IOException;
 import java.nio.file.Path;
 
+/** Interface representing ini files */
 public interface IniFile {
 
   void load(Path path) throws IOException;

@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/** Simple implementation of {@link IniFileReader} */
 public class SimpleIniFileReader implements IniFileReader {
 
   private String currentSection = "";

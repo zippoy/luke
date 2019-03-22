@@ -29,6 +29,7 @@ import java.util.TreeMap;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
+/** Table utilities */
 public class TableUtils {
 
   public static void setupTable(JTable table, int selectionModel, TableModel model, MouseListener mouseListener,

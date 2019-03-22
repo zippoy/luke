@@ -95,6 +95,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/** Provider of the Search panel */
 public final class SearchPanelProvider implements SearchTabOperator {
 
   private static final int DEFAULT_PAGE_SIZE = 10;

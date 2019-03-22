@@ -43,6 +43,7 @@ import java.awt.datatransfer.StringSelection;
 import java.io.IOException;
 import java.util.Objects;
 
+/** Factory of stored values dialog */
 public final class StoredValueDialogFactory implements DialogOpener.DialogFactory {
 
   private static StoredValueDialogFactory instance;

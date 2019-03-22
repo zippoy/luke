@@ -23,6 +23,7 @@ import org.apache.lucene.luke.models.search.MLTConfig;
 
 import java.util.Collection;
 
+/** Operator of the MLT tab */
 public interface MLTTabOperator extends ComponentOperatorRegistry.ComponentOperator {
   void setAnalyzer(Analyzer analyzer);
 

@@ -53,6 +53,7 @@ import java.util.TimeZone;
 
 import static org.apache.lucene.luke.app.desktop.components.fragments.search.PointTypesTableModel.NumType.INT;
 
+/** Provider of the QueryParser pane (tab) */
 public final class QueryParserPaneProvider implements QueryParserTabOperator {
 
   private final JRadioButton standardRB = new JRadioButton();

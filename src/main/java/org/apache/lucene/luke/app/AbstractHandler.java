@@ -23,15 +23,16 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 
+/** Abstract handler class */
 public abstract class AbstractHandler<T extends Observer> {
 
-  private static final Logger logger = LoggerFactory.getLogger(AbstractHandler.class);
+  private static final Logger log = LoggerFactory.getLogger(AbstractHandler.class);
 
   private List<T> observers = new ArrayList<>();
 
   public void addObserver(T observer) {
     observers.add(observer);
-    logger.debug("{} registered.", observer.getClass().getName());
+    log.debug("{} registered.", observer.getClass().getName());
   }
 
   void notifyObservers() {

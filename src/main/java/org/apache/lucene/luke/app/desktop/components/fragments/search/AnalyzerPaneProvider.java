@@ -45,6 +45,7 @@ import java.awt.Insets;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
+/** Provider of the Analyzer pane */
 public final class AnalyzerPaneProvider implements AnalyzerTabOperator {
 
   private final TabSwitcherProxy tabSwitcher;

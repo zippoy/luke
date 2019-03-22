@@ -20,6 +20,7 @@ package org.apache.lucene.luke.app.desktop.util;
 import javax.swing.ImageIcon;
 import java.awt.Image;
 
+/** Image utilities */
 public class ImageUtils {
 
   private static final int DEFAULT_ICON_WIDTH = 20;

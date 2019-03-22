@@ -47,6 +47,7 @@ import java.awt.Window;
 import java.io.IOException;
 import java.util.Arrays;
 
+/** Factory of index options dialog */
 public final class IndexOptionsDialogFactory implements DialogOpener.DialogFactory {
 
   private static IndexOptionsDialogFactory instance;

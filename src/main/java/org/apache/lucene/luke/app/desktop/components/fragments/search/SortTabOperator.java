@@ -23,6 +23,7 @@ import org.apache.lucene.search.Sort;
 
 import java.util.Collection;
 
+/** Operator for the Sort tab */
 public interface SortTabOperator extends ComponentOperatorRegistry.ComponentOperator {
   void setSearchModel(Search model);
 

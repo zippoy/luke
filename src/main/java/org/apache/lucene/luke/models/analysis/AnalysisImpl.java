@@ -53,6 +53,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/** Default implementation of {@link AnalysisImpl} */
 public final class AnalysisImpl implements Analysis {
 
   private final List<Class<? extends Analyzer>> presetAnalyzerTypes;

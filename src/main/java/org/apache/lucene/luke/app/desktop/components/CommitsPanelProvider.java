@@ -59,6 +59,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/** Provider of the Commits panel */
 public final class CommitsPanelProvider {
 
   private final CommitsFactory commitsFactory = new CommitsFactory();

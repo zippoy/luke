@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableMap;
 import org.apache.lucene.codecs.Codec;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexCommit;
-import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.SegmentInfos;
 import org.apache.lucene.luke.models.LukeModel;
 import org.apache.lucene.luke.models.LukeException;
@@ -37,12 +36,12 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
-import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
+/** Default implementation of {@link Commits} */
 public final class CommitsImpl extends LukeModel implements Commits {
 
-  private static final Logger logger = LoggerFactory.getLogger(CommitsImpl.class);
+  private static final Logger log = LoggerFactory.getLogger(CommitsImpl.class);
 
   private final String indexPath;
 
@@ -100,7 +99,7 @@ public final class CommitsImpl extends LukeModel implements Commits {
 
     if (ic == null) {
       String msg = String.format(Locale.ENGLISH, "Commit generation %d not exists.", commitGen);
-      logger.warn(msg);
+      log.warn(msg);
       return Optional.empty();
     }
 
@@ -113,7 +112,7 @@ public final class CommitsImpl extends LukeModel implements Commits {
 
     if (ic == null) {
       String msg = String.format(Locale.ENGLISH, "Commit generation %d not exists.", commitGen);
-      logger.warn(msg);
+      log.warn(msg);
       return Collections.emptyList();
     }
 

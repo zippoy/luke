@@ -48,7 +48,7 @@ import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.io.IOException;
 
-
+/** Provider of the root window */
 public final class LukeWindowProvider implements LukeWindowOperator {
 
   private static final String WINDOW_TITLE = MessageUtils.getLocalizedMessage("window.title") + " - v" + Version.LATEST.toString();
