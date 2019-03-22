@@ -306,7 +306,7 @@ public final class IndexUtils {
               format = "Lucene 7.4 or later (UNSUPPORTED)";
             }
           } else {
-            format = "Lucene 5.x or prior (UNSUPPORTED)";
+            format = "Lucene 6.x or prior (UNSUPPORTED)";
           }
         }
         return format;
@@ -343,7 +343,6 @@ public final class IndexUtils {
       if (!res.containsKey(field)) {
         res.put(field, 0L);
       }
-      //Terms terms = MultiFields.getTerms(reader, field);
       Terms terms = MultiTerms.getTerms(reader, field);
       if (terms != null) {
         TermsEnum te = terms.iterator();
@@ -364,7 +363,6 @@ public final class IndexUtils {
     if (reader instanceof LeafReader) {
       return ((LeafReader) reader).getLiveDocs();
     } else {
-      //return MultiFields.getLiveDocs(reader);
       return MultiBits.getLiveDocs(reader);
     }
   }
@@ -378,7 +376,6 @@ public final class IndexUtils {
     if (reader instanceof LeafReader) {
       return ((LeafReader) reader).getFieldInfos();
     } else {
-      //return MultiFields.getMergedFieldInfos(reader);
       return FieldInfos.getMergedFieldInfos(reader);
     }
   }
@@ -415,7 +412,6 @@ public final class IndexUtils {
     if (reader instanceof LeafReader) {
       return ((LeafReader) reader).terms(field);
     } else {
-      //return MultiFields.getTerms(reader, field);
       return MultiTerms.getTerms(reader, field);
     }
   }
