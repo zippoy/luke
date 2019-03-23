@@ -234,6 +234,7 @@ public final class AddDocumentDialogFactory implements DialogOpener.DialogFactor
 
     JPanel tableFooter = new JPanel(new FlowLayout(FlowLayout.TRAILING, 10, 5));
     tableFooter.setOpaque(false);
+    addBtn.setEnabled(true);
     tableFooter.add(addBtn);
     tableFooter.add(closeBtn);
     panel.add(tableFooter, BorderLayout.PAGE_END);

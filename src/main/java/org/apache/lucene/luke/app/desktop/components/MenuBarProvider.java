@@ -26,6 +26,7 @@ import org.apache.lucene.luke.app.desktop.Preferences;
 import org.apache.lucene.luke.app.desktop.PreferencesFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.menubar.AboutDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.menubar.CheckIndexDialogFactory;
+import org.apache.lucene.luke.app.desktop.components.dialog.menubar.CreateIndexDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.menubar.OpenIndexDialogFactory;
 import org.apache.lucene.luke.app.desktop.components.dialog.menubar.OptimizeIndexDialogFactory;
 import org.apache.lucene.luke.app.desktop.util.DialogOpener;
@@ -52,6 +53,8 @@ public final class MenuBarProvider {
 
   private final OpenIndexDialogFactory openIndexDialogFactory;
 
+  private final CreateIndexDialogFactory createIndexDialogFactory;
+
   private final OptimizeIndexDialogFactory optimizeIndexDialogFactory;
 
   private final CheckIndexDialogFactory checkIndexDialogFactory;
@@ -61,6 +64,8 @@ public final class MenuBarProvider {
   private final JMenuItem openIndexMItem = new JMenuItem();
 
   private final JMenuItem reopenIndexMItem = new JMenuItem();
+
+  private final JMenuItem createIndexMItem = new JMenuItem();
 
   private final JMenuItem closeIndexMItem = new JMenuItem();
 
@@ -88,6 +93,7 @@ public final class MenuBarProvider {
     this.indexHandler = IndexHandler.getInstance();
     this.operatorRegistry = ComponentOperatorRegistry.getInstance();
     this.openIndexDialogFactory = OpenIndexDialogFactory.getInstance();
+    this.createIndexDialogFactory = CreateIndexDialogFactory.getInstance();
     this.optimizeIndexDialogFactory = OptimizeIndexDialogFactory.getInstance();
     this.checkIndexDialogFactory = CheckIndexDialogFactory.getInstance();
     this.aboutDialogFactory = AboutDialogFactory.getInstance();
@@ -118,6 +124,11 @@ public final class MenuBarProvider {
     reopenIndexMItem.setEnabled(false);
     reopenIndexMItem.addActionListener(listeners::reopenIndex);
     fileMenu.add(reopenIndexMItem);
+
+    createIndexMItem.setText(MessageUtils.getLocalizedMessage("menu.item.create_index"));
+    createIndexMItem.addActionListener(listeners::showCreateIndexDialog);
+    fileMenu.add(createIndexMItem);
+
 
     closeIndexMItem.setText(MessageUtils.getLocalizedMessage("menu.item.close_index"));
     closeIndexMItem.setEnabled(false);
@@ -177,8 +188,12 @@ public final class MenuBarProvider {
 
     void showOpenIndexDialog(ActionEvent e) {
       new DialogOpener<>(openIndexDialogFactory).open(MessageUtils.getLocalizedMessage("openindex.dialog.title"), 600, 420,
-          (factory) -> {
-          });
+          (factory) -> {});
+    }
+
+    void showCreateIndexDialog(ActionEvent e) {
+      new DialogOpener<>(createIndexDialogFactory).open(MessageUtils.getLocalizedMessage("createindex.dialog.title"), 600, 360,
+          (factory) -> {});
     }
 
     void reopenIndex(ActionEvent e) {

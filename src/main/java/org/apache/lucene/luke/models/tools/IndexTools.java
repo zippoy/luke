@@ -25,6 +25,7 @@ import org.apache.lucene.luke.models.LukeException;
 import org.apache.lucene.search.Query;
 
 import java.io.PrintStream;
+import java.nio.file.Path;
 import java.util.Collection;
 
 /**
@@ -83,6 +84,19 @@ public interface IndexTools {
    * @throws LukeException - if an internal error occurs when accessing index
    */
   void deleteDocuments(Query query);
+
+  /**
+   * Create a new index.
+   *
+   * @throws LukeException - if an internal error occurs when accessing index
+   */
+  void createNewIndex();
+
+  /**
+   * Create a new index with sample documents.
+   * @param dataDir - the directory path which contains sample documents (20 Newsgroups).
+   */
+  void createNewIndex(String dataDir);
 
   /**
    * Returns preset {@link Field} classes.
