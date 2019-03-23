@@ -133,7 +133,7 @@ public final class SortPaneProvider implements SortTabOperator {
 
     JPanel clear = new JPanel(new FlowLayout(FlowLayout.LEADING));
     clear.setOpaque(false);
-    JButton clearBtn = new JButton(MessageUtils.getLocalizedMessage("search_sort.button.clear"));
+    JButton clearBtn = new JButton(MessageUtils.getLocalizedMessage("button.clear"));
     clearBtn.addActionListener(listeners::clear);
     clear.add(clearBtn);
     panel.add(clear);

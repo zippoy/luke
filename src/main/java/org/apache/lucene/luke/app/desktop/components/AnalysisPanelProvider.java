@@ -207,7 +207,7 @@ public final class AnalysisPanelProvider implements AnalysisTabOperator {
     executeBtn.addActionListener(listeners::executeAnalysis);
     input.add(executeBtn);
 
-    JButton clearBtn = new JButton(MessageUtils.getLocalizedMessage("analysis.button.clear"));
+    JButton clearBtn = new JButton(MessageUtils.getLocalizedMessage("button.clear"));
     clearBtn.setFont(StyleConstants.FONT_BUTTON_LARGE);
     clearBtn.setMargin(new Insets(5, 5, 5, 5));
     clearBtn.addActionListener(e -> {

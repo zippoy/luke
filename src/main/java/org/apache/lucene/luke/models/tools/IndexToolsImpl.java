@@ -38,13 +38,18 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.luke.models.LukeException;
 import org.apache.lucene.luke.models.LukeModel;
 import org.apache.lucene.luke.models.util.IndexUtils;
+import org.apache.lucene.luke.models.util.twentynewsgroups.Message;
+import org.apache.lucene.luke.models.util.twentynewsgroups.MessageFilesParser;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.store.Directory;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
 /** Default implementation of {@link IndexTools} */
@@ -162,6 +167,43 @@ public final class IndexToolsImpl extends LukeModel implements IndexTools {
       }
     } else {
       throw new LukeException("Current reader is not an instance of DirectoryReader.");
+    }
+  }
+
+  @Override
+  public void createNewIndex() {
+    createNewIndex(null);
+  }
+
+  @Override
+  public void createNewIndex(String dataDir) {
+    IndexWriter writer = null;
+    try {
+      if (dir == null || dir.listAll().length > 0) {
+        // Directory is null or not empty
+        throw new IllegalStateException();
+      }
+
+      writer = IndexUtils.createWriter(dir, Message.createLuceneAnalyzer(), useCompound, keepAllCommits);
+
+      if (Objects.nonNull(dataDir)) {
+        Path path = Paths.get(dataDir);
+        MessageFilesParser parser = new MessageFilesParser(path);
+        List<Message> messages = parser.parseAll();
+        for (Message message : messages) {
+          writer.addDocument(message.toLuceneDoc());
+        }
+      }
+
+      writer.commit();
+    } catch (IOException e) {
+      throw new LukeException("Cannot create new index.", e);
+    } finally {
+      if (writer != null) {
+        try {
+          writer.close();
+        } catch (IOException e) {}
+      }
     }
   }
 
