@@ -1,3 +1,16 @@
+* Upgrade to 8.0.0
+Upgrade Lucene version 8.0.0. (#163)
+
+Fixed in this release:
+#163: Add a checkbox to the Search tab to return exact total hit count.
+#164: Remove the dependency to Guice.
+#165: Remove the dependency to FindBugs.
+#166: Remove the dependency to ini4j, implement tiny ini file writer / parser.
+#167: Add javadocs.
+#168: Use log4j 2 APIs.
+#169: Fix documents panel bugs when fields contain empty string.
+#170: Add 'Create new index' feature.
+
 * Upgrade to 7.7.0
 Upgrade Lucene version 7.7.0. (#161)
 
