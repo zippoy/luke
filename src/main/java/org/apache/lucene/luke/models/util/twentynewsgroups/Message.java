@@ -93,7 +93,6 @@ public class Message {
     this.lines = lines;
   }
 
-  private static final SimpleDateFormat sdf = new SimpleDateFormat("E, d M y H:m:s z");
   public Document toLuceneDoc() {
     Document doc = new Document();
 
