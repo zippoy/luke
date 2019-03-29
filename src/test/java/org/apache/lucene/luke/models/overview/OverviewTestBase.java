@@ -32,7 +32,6 @@ import org.junit.Before;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.Map;
 
 public abstract class OverviewTestBase extends LuceneTestCase {

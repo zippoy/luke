@@ -18,9 +18,7 @@
 package org.apache.lucene.luke.models.commits;
 
 import org.apache.lucene.codecs.Codec;
-import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.luke.models.LukeException;
-import org.apache.lucene.store.Directory;
 
 import java.util.List;
 import java.util.Map;

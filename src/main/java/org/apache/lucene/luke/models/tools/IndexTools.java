@@ -25,7 +25,6 @@ import org.apache.lucene.luke.models.LukeException;
 import org.apache.lucene.search.Query;
 
 import java.io.PrintStream;
-import java.nio.file.Path;
 import java.util.Collection;
 
 /**
