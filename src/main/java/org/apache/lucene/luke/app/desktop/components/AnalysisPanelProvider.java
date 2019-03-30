@@ -61,6 +61,8 @@ import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 /** Provider of the Analysis panel */
@@ -117,8 +119,13 @@ public final class AnalysisPanelProvider implements AnalysisTabOperator {
     operatorRegistry.register(AnalysisTabOperator.class, this);
 
     operatorRegistry.get(PresetAnalyzerPanelOperator.class).ifPresent(operator -> {
-      operator.setPresetAnalyzers(analysisModel.getPresetAnalyzerTypes());
-      operator.setSelectedAnalyzer(analysisModel.currentAnalyzer().getClass());
+      // Scanning all Analyzers will take time...
+      ExecutorService executorService = Executors.newSingleThreadExecutor();
+      executorService.execute(() -> {
+        operator.setPresetAnalyzers(analysisModel.getPresetAnalyzerTypes());
+        operator.setSelectedAnalyzer(analysisModel.currentAnalyzer().getClass());
+      });
+      executorService.shutdown();
     });
   }
 

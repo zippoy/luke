@@ -19,8 +19,8 @@ package org.apache.lucene.luke.models.overview;
 
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.luke.models.LukeModel;
 import org.apache.lucene.luke.models.LukeException;
+import org.apache.lucene.luke.models.LukeModel;
 import org.apache.lucene.luke.models.util.IndexUtils;
 
 import java.io.IOException;

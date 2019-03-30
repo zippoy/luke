@@ -17,15 +17,13 @@
 
 package org.apache.lucene.luke.models.search;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.index.DocValuesType;
 import org.apache.lucene.index.FieldInfo;
 import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.luke.models.LukeModel;
 import org.apache.lucene.luke.models.LukeException;
+import org.apache.lucene.luke.models.LukeModel;
 import org.apache.lucene.luke.models.util.IndexUtils;
 import org.apache.lucene.queries.mlt.MoreLikeThis;
 import org.apache.lucene.queryparser.classic.ParseException;
@@ -34,7 +32,17 @@ import org.apache.lucene.queryparser.flexible.core.QueryNodeException;
 import org.apache.lucene.queryparser.flexible.standard.StandardQueryParser;
 import org.apache.lucene.queryparser.flexible.standard.config.PointsConfig;
 import org.apache.lucene.queryparser.flexible.standard.config.StandardQueryConfigHandler;
-import org.apache.lucene.search.*;
+import org.apache.lucene.search.Explanation;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.Sort;
+import org.apache.lucene.search.SortField;
+import org.apache.lucene.search.SortedNumericSortField;
+import org.apache.lucene.search.SortedSetSortField;
+import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.TopScoreDocCollector;
+import org.apache.lucene.search.TotalHits;
 import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.search.similarities.ClassicSimilarity;
 import org.apache.lucene.search.similarities.Similarity;
@@ -267,7 +275,7 @@ public final class SearchImpl extends LukeModel implements Search {
     this.exactHitsCount = exactHitsCount;
     this.query = Objects.requireNonNull(query);
     this.sort = sort;
-    this.fieldsToLoad = fieldsToLoad == null ? null : ImmutableSet.copyOf(fieldsToLoad);
+    this.fieldsToLoad = fieldsToLoad == null ? null : Collections.unmodifiableSet(fieldsToLoad);
     searcher.setSimilarity(createSimilarity(Objects.requireNonNull(simConfig)));
 
     try {
@@ -391,23 +399,26 @@ public final class SearchImpl extends LukeModel implements Search {
         return Collections.emptyList();
 
       case NUMERIC:
-        return Lists.newArrayList(
+        return Arrays.stream(new SortField[]{
             new SortField(name, SortField.Type.INT),
             new SortField(name, SortField.Type.LONG),
             new SortField(name, SortField.Type.FLOAT),
-            new SortField(name, SortField.Type.DOUBLE));
+            new SortField(name, SortField.Type.DOUBLE)
+        }).collect(Collectors.toList());
 
       case SORTED_NUMERIC:
-        return Lists.newArrayList(
+        return Arrays.stream(new SortField[]{
             new SortedNumericSortField(name, SortField.Type.INT),
             new SortedNumericSortField(name, SortField.Type.LONG),
             new SortedNumericSortField(name, SortField.Type.FLOAT),
-            new SortedNumericSortField(name, SortField.Type.DOUBLE));
+            new SortedNumericSortField(name, SortField.Type.DOUBLE)
+        }).collect(Collectors.toList());
 
       case SORTED:
-        return Lists.newArrayList(
+        return Arrays.stream(new SortField[] {
             new SortField(name, SortField.Type.STRING),
-            new SortField(name, SortField.Type.STRING_VAL));
+            new SortField(name, SortField.Type.STRING_VAL)
+        }).collect(Collectors.toList());
 
       case SORTED_SET:
         return Collections.singletonList(new SortedSetSortField(name, false));

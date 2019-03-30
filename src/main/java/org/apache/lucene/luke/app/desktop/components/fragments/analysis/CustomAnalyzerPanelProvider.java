@@ -17,7 +17,6 @@
 
 package org.apache.lucene.luke.app.desktop.components.fragments.analysis;
 
-import com.google.common.collect.ImmutableMap;
 import org.apache.lucene.luke.app.desktop.MessageBroker;
 import org.apache.lucene.luke.app.desktop.components.AnalysisTabOperator;
 import org.apache.lucene.luke.app.desktop.components.ComponentOperatorRegistry;
@@ -665,7 +664,7 @@ public final class CustomAnalyzerPanelProvider implements CustomAnalyzerPanelOpe
     if (index < 0 || index > cfParamsList.size()) {
       throw new IllegalArgumentException();
     }
-    return ImmutableMap.copyOf(cfParamsList.get(index));
+    return Collections.unmodifiableMap(cfParamsList.get(index));
   }
 
   @Override
@@ -691,7 +690,7 @@ public final class CustomAnalyzerPanelProvider implements CustomAnalyzerPanelOpe
     if (index < 0 || index > tfParamsList.size()) {
       throw new IllegalArgumentException();
     }
-    return ImmutableMap.copyOf(tfParamsList.get(index));
+    return Collections.unmodifiableMap(tfParamsList.get(index));
   }
 
   @Override
