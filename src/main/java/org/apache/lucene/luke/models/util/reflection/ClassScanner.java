@@ -95,11 +95,10 @@ public class ClassScanner {
       for (Enumeration<URL> e = loader.getResources(resourceName); e.hasMoreElements(); ) {
         URL url = e.nextElement();
         // extract jar file path from the resource name
-        int beginIndex = url.getPath().indexOf("file:");
-        int endIndex = url.getPath().lastIndexOf(".jar");
-        if (beginIndex == 0 && endIndex > 0) {
-          Path path = Paths.get(url.getPath().substring(5, endIndex + 4));
-          urls.add(new URL("file:" + path.toString()));
+        int index = url.getPath().lastIndexOf(".jar");
+        if (index > 0) {
+          String path = url.getPath().substring(0, index + 4);
+          urls.add(new URL(path));
         }
       }
     }
