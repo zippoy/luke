@@ -28,7 +28,6 @@ import org.apache.lucene.luke.app.desktop.util.StyleConstants;
 import org.apache.lucene.luke.models.LukeException;
 import org.apache.lucene.luke.models.util.reflection.ClassScanner;
 import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.store.MMapDirectory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
