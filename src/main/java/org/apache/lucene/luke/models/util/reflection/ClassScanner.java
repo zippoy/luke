@@ -117,17 +117,4 @@ public class ClassScanner {
     }
     return packageName.replace('.', '/');
   }
-
-  public static void main(String[] args) {
-    long start = System.currentTimeMillis();
-    ClassScanner scanner = new ClassScanner("org.apache.lucene.analysis", AnalysisImpl.class.getClassLoader());
-    Set<Class<? extends Analyzer>> types = scanner.scanSubTypes(Analyzer.class);
-    long end = System.currentTimeMillis();
-
-    for (Class<? extends Analyzer> type : types) {
-      System.out.println(type.getName());
-    }
-
-    System.out.println("elapsed: " + (end - start) + " msec");
-  }
 }
