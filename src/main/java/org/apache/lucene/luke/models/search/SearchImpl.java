@@ -17,8 +17,6 @@
 
 package org.apache.lucene.luke.models.search;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.index.DocValuesType;
 import org.apache.lucene.index.FieldInfo;
@@ -277,7 +275,7 @@ public final class SearchImpl extends LukeModel implements Search {
     this.exactHitsCount = exactHitsCount;
     this.query = Objects.requireNonNull(query);
     this.sort = sort;
-    this.fieldsToLoad = fieldsToLoad == null ? null : ImmutableSet.copyOf(fieldsToLoad);
+    this.fieldsToLoad = fieldsToLoad == null ? null : Collections.unmodifiableSet(fieldsToLoad);
     searcher.setSimilarity(createSimilarity(Objects.requireNonNull(simConfig)));
 
     try {
@@ -401,23 +399,26 @@ public final class SearchImpl extends LukeModel implements Search {
         return Collections.emptyList();
 
       case NUMERIC:
-        return Lists.newArrayList(
+        return Arrays.stream(new SortField[]{
             new SortField(name, SortField.Type.INT),
             new SortField(name, SortField.Type.LONG),
             new SortField(name, SortField.Type.FLOAT),
-            new SortField(name, SortField.Type.DOUBLE));
+            new SortField(name, SortField.Type.DOUBLE)
+        }).collect(Collectors.toList());
 
       case SORTED_NUMERIC:
-        return Lists.newArrayList(
+        return Arrays.stream(new SortField[]{
             new SortedNumericSortField(name, SortField.Type.INT),
             new SortedNumericSortField(name, SortField.Type.LONG),
             new SortedNumericSortField(name, SortField.Type.FLOAT),
-            new SortedNumericSortField(name, SortField.Type.DOUBLE));
+            new SortedNumericSortField(name, SortField.Type.DOUBLE)
+        }).collect(Collectors.toList());
 
       case SORTED:
-        return Lists.newArrayList(
+        return Arrays.stream(new SortField[] {
             new SortField(name, SortField.Type.STRING),
-            new SortField(name, SortField.Type.STRING_VAL));
+            new SortField(name, SortField.Type.STRING_VAL)
+        }).collect(Collectors.toList());
 
       case SORTED_SET:
         return Collections.singletonList(new SortedSetSortField(name, false));

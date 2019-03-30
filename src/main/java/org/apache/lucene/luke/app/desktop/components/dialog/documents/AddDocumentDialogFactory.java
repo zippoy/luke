@@ -17,7 +17,6 @@
 
 package org.apache.lucene.luke.app.desktop.components.dialog.documents;
 
-import com.google.common.base.Strings;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -54,6 +53,7 @@ import org.apache.lucene.luke.app.desktop.util.FontUtils;
 import org.apache.lucene.luke.app.desktop.util.HelpHeaderRenderer;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
 import org.apache.lucene.luke.app.desktop.util.NumericUtils;
+import org.apache.lucene.luke.app.desktop.util.StringUtils;
 import org.apache.lucene.luke.app.desktop.util.TableUtils;
 import org.apache.lucene.luke.models.LukeException;
 import org.apache.lucene.luke.models.tools.IndexTools;
@@ -93,6 +93,7 @@ import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -341,8 +342,8 @@ public final class AddDocumentDialogFactory implements DialogOpener.DialogFactor
     void addDocument(ActionEvent e) {
       List<NewField> validFields = newFieldList.stream()
           .filter(nf -> !nf.isDeleted())
-          .filter(nf -> !Strings.isNullOrEmpty(nf.getName()))
-          .filter(nf -> !Strings.isNullOrEmpty(nf.getValue()))
+          .filter(nf -> !StringUtils.isNullOrEmpty(nf.getName()))
+          .filter(nf -> !StringUtils.isNullOrEmpty(nf.getValue()))
           .collect(Collectors.toList());
       if (validFields.isEmpty()) {
         infoTA.setText("Please add one or more fields. Name and Value are both required.");

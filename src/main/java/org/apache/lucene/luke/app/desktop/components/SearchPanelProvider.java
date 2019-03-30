@@ -17,7 +17,6 @@
 
 package org.apache.lucene.luke.app.desktop.components;
 
-import com.google.common.base.Strings;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.Term;
@@ -41,6 +40,7 @@ import org.apache.lucene.luke.app.desktop.components.fragments.search.SortTabOpe
 import org.apache.lucene.luke.app.desktop.util.DialogOpener;
 import org.apache.lucene.luke.app.desktop.util.FontUtils;
 import org.apache.lucene.luke.app.desktop.util.MessageUtils;
+import org.apache.lucene.luke.app.desktop.util.StringUtils;
 import org.apache.lucene.luke.app.desktop.util.StyleConstants;
 import org.apache.lucene.luke.app.desktop.util.TabUtils;
 import org.apache.lucene.luke.app.desktop.util.TableUtils;
@@ -491,7 +491,7 @@ public final class SearchPanelProvider implements SearchTabOperator {
     Query query;
     if (termQueryCB.isSelected()) {
       // term query
-      if (Strings.isNullOrEmpty(queryStringTA.getText())) {
+      if (StringUtils.isNullOrEmpty(queryStringTA.getText())) {
         throw new LukeException("Query is not set.");
       }
       String[] tmp = queryStringTA.getText().split(":");
@@ -557,7 +557,7 @@ public final class SearchPanelProvider implements SearchTabOperator {
   }
 
   private Query parse(boolean rewrite) {
-    String expr = Strings.isNullOrEmpty(queryStringTA.getText()) ? "*:*" : queryStringTA.getText();
+    String expr = StringUtils.isNullOrEmpty(queryStringTA.getText()) ? "*:*" : queryStringTA.getText();
     String df = operatorRegistry.get(QueryParserTabOperator.class)
         .map(QueryParserTabOperator::getDefaultField)
         .orElse("");

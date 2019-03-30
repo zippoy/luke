@@ -61,6 +61,7 @@ public final class PresetAnalyzerPanelProvider implements PresetAnalyzerPanelOpe
     center.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
     center.setPreferredSize(new Dimension(400, 40));
     analyzersCB.addActionListener(listeners::setAnalyzer);
+    analyzersCB.setEnabled(false);
     center.add(analyzersCB);
     panel.add(center, BorderLayout.CENTER);
 
@@ -74,6 +75,7 @@ public final class PresetAnalyzerPanelProvider implements PresetAnalyzerPanelOpe
     String[] analyzerNames = presetAnalyzers.stream().map(Class::getName).toArray(String[]::new);
     ComboBoxModel<String> model = new DefaultComboBoxModel<>(analyzerNames);
     analyzersCB.setModel(model);
+    analyzersCB.setEnabled(true);
   }
 
   @Override

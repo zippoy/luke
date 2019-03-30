@@ -17,7 +17,6 @@
 
 package org.apache.lucene.luke.models.commits;
 
-import com.google.common.collect.ImmutableMap;
 import org.apache.lucene.codecs.Codec;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexCommit;
@@ -200,7 +199,7 @@ public final class CommitsImpl extends LukeModel implements Commits {
     if (dir == null) {
       return Collections.emptyMap();
     }
-    return ImmutableMap.copyOf(commitMap);
+    return Collections.unmodifiableMap(commitMap);
   }
 
   private SegmentInfos findSegmentInfos(long commitGen) throws LukeException, IOException {
