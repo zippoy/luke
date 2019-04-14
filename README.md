@@ -1,7 +1,7 @@
 [![TravisCI](https://api.travis-ci.org/DmitryKey/luke.svg?branch=master)](https://travis-ci.org/DmitryKey/luke)
 [![Github All Releases](https://img.shields.io/github/downloads/DmitryKey/luke/total.svg)](http://www.somsubhra.com/github-release-stats/?username=DmitryKey&repository=luke) 
 
-Important Notice
+IMPORTANT NOTICE
 ================
 
 Please see:
