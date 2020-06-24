@@ -284,7 +284,7 @@ public final class SearchImpl extends LukeModel implements Search {
         searcher.searchAfter(after, query, pageSize, sort);
 
     // reset total hits for the current query
-    this.totalHits = topDocs.totalHits;
+    this.totalHits = topDocs.totalHits.value;
 
     // cache search results for later use
     ScoreDoc[] newDocs = new ScoreDoc[docs.length + topDocs.scoreDocs.length];
@@ -292,7 +292,7 @@ public final class SearchImpl extends LukeModel implements Search {
     System.arraycopy(topDocs.scoreDocs, 0, newDocs, docs.length, topDocs.scoreDocs.length);
     this.docs = newDocs;
 
-    return SearchResults.of(topDocs.totalHits, topDocs.scoreDocs, currentPage * pageSize, searcher, fieldsToLoad);
+    return SearchResults.of(topDocs.totalHits.value, topDocs.scoreDocs, currentPage * pageSize, searcher, fieldsToLoad);
   }
 
   @Override

@@ -31,9 +31,10 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.KeepOnlyLastCommitDeletionPolicy;
 import org.apache.lucene.index.LeafReader;
+import org.apache.lucene.index.MultiBits;
 import org.apache.lucene.index.MultiDocValues;
-import org.apache.lucene.index.MultiFields;
 import org.apache.lucene.index.MultiReader;
+import org.apache.lucene.index.MultiTerms;
 import org.apache.lucene.index.NoDeletionPolicy;
 import org.apache.lucene.index.NumericDocValues;
 import org.apache.lucene.index.SegmentInfos;
@@ -306,10 +307,8 @@ public final class IndexUtils {
         String format = "unknown";
         try (IndexInput in = dir.openInput(segmentFileName, IOContext.READ)) {
           if (CodecUtil.CODEC_MAGIC == in.readInt()) {
-            int actualVersion = CodecUtil.checkHeaderNoMagic(in, "segments", SegmentInfos.VERSION_53, Integer.MAX_VALUE);
-            if (actualVersion == SegmentInfos.VERSION_53) {
-              format = "Lucene 5.3 or later";
-            } else if (actualVersion == SegmentInfos.VERSION_70) {
+            int actualVersion = CodecUtil.checkHeaderNoMagic(in, "segments", SegmentInfos.VERSION_70, Integer.MAX_VALUE);
+            if (actualVersion == SegmentInfos.VERSION_70) {
               format = "Lucene 7.0 or later";
             } else if (actualVersion == SegmentInfos.VERSION_72) {
               format = "Lucene 7.2 or later";
@@ -356,7 +355,7 @@ public final class IndexUtils {
       if (!res.containsKey(field)) {
         res.put(field, 0L);
       }
-      Terms terms = MultiFields.getTerms(reader, field);
+      Terms terms = MultiTerms.getTerms(reader, field);
       if (terms != null) {
         TermsEnum te = terms.iterator();
         while (te.next() != null) {
@@ -376,7 +375,7 @@ public final class IndexUtils {
     if (reader instanceof LeafReader) {
       return ((LeafReader) reader).getLiveDocs();
     } else {
-      return MultiFields.getLiveDocs(reader);
+      return MultiBits.getLiveDocs(reader);
     }
   }
 
@@ -389,7 +388,7 @@ public final class IndexUtils {
     if (reader instanceof LeafReader) {
       return ((LeafReader) reader).getFieldInfos();
     } else {
-      return MultiFields.getMergedFieldInfos(reader);
+      return FieldInfos.getMergedFieldInfos(reader);
     }
   }
 
@@ -425,7 +424,7 @@ public final class IndexUtils {
     if (reader instanceof LeafReader) {
       return ((LeafReader) reader).terms(field);
     } else {
-      return MultiFields.getTerms(reader, field);
+      return MultiTerms.getTerms(reader, field);
     }
   }
 
